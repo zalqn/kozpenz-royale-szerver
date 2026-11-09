@@ -88,8 +88,8 @@ function lobbyFx(t){const L=window.LB3D;if(!L)return;const dt=Math.min(.05,Math.
   o.la=o.ra=o.laz=o.raz=0;
   const busy=me.userData._x13cDance||(l.rarm&&Math.abs(l.rarm.rotation.x)>.5)||(l.larm&&Math.abs(l.larm.rotation.x)>.5);
   if(ON&&!busy){const br=Math.sin(t*1.9);o.laz=.05+br*.03;o.raz=-.05-br*.03;
-   LS.next-=dt;if(LS.next<=0&&!LS.watch){LS.watch=2.6;LS.next=10+Math.random()*8}
-   if(LS.watch>0){LS.watch=Math.max(0,LS.watch-dt);const w=Math.sin(Math.min(1,(2.6-LS.watch)/.4,LS.watch/.4)*Math.PI/2);o.la=-1.35*w;o.laz=.05+.9*w}// órára néz
+   LS.next-=dt;if(false&&LS.next<=0&&!LS.watch){LS.watch=2.6;LS.next=10+Math.random()*8}
+   if(LS.watch>0){LS.watch=Math.max(0,LS.watch-dt);const w=Math.sin(Math.min(1,(2.6-LS.watch)/.4,LS.watch/.4)*Math.PI/2);o.la=-1.35*w;o.laz=.9*w}// órára néz (kikapcsolva: bal kéz akadt)
    if(st.in)st.in.scale.y=1+br*.012}
   if(l.larm){l.larm.rotation.x+=o.la;l.larm.rotation.z+=o.laz}if(l.rarm){l.rarm.rotation.x+=o.ra;l.rarm.rotation.z+=o.raz}}
  const d=L.dog;if(d){d.rotation.y-=o.dr;o.dr=0;if(ON){o.dr=Math.sin(t*.7)*.25+Math.sin(t*2.3)*.06;LS.hopNext-=dt;if(LS.hopNext<=0&&LS.hop<=0){LS.hop=.9;LS.hopNext=6+Math.random()*6}
