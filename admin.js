@@ -302,5 +302,6 @@
   const DEVX = /^\/?(god|spawn|tp)\b/i; let gatedX = null;
   function gateX() { const f = window.extraCmd; if (!f || f === gatedX) return; const inner = f; gatedX = function (c) { if (!A.admin && DEVX.test(String(c || '').trim())) return '⛔ Ez fejlesztői parancs – csak admin használhatja.'; return inner.apply(this, arguments); }; window.extraCmd = gatedX; }
   setInterval(() => { gateDev(); gateX(); }, 1000); setTimeout(() => { gateDev(); gateX(); }, 0);
-  window._adm = { get admin() { return A.admin; }, open: () => $('#admBA').click(), dev: () => $('#admBD').click(), check: () => { A.tok = ''; return check(); }, ERR };
+  (function regCmd(){const o=window.extraCmd;window.extraCmd=function(c){const m=String(c||'').trim().toLowerCase();if(m==='/devpanel'||m==='/adminpanel'){if(!A.admin)return '⛔ Csak admin nyithatja meg.';(m==='/devpanel'?$('#admBD'):$('#admBA')).click();return m==='/devpanel'?'🧪 Dev panel':'🛡️ Admin panel'}return o?o.apply(this,arguments):null}})();
+window._adm = { get admin() { return A.admin; }, open: () => $('#admBA').click(), dev: () => $('#admBD').click(), check: () => { A.tok = ''; return check(); }, ERR };
 })();
