@@ -302,6 +302,9 @@
   const DEVX = /^\/?(god|spawn|tp)\b/i; let gatedX = null;
   function gateX() { const f = window.extraCmd; if (!f || f === gatedX) return; const inner = f; gatedX = function (c) { if (!A.admin && DEVX.test(String(c || '').trim())) return '⛔ Ez fejlesztői parancs – csak admin használhatja.'; return inner.apply(this, arguments); }; window.extraCmd = gatedX; }
   setInterval(() => { gateDev(); gateX(); }, 1000); setTimeout(() => { gateDev(); gateX(); }, 0);
-  (function regCmd(){const o=window.extraCmd;window.extraCmd=function(c){const m=String(c||'').trim().toLowerCase();if(m==='/devpanel'||m==='/adminpanel'){if(!A.admin)return '⛔ Csak admin nyithatja meg.';(m==='/devpanel'?$('#admBD'):$('#admBA')).click();return m==='/devpanel'?'🧪 Dev panel':'🛡️ Admin panel'}return o?o.apply(this,arguments):null}})();
+  const panelCmd=c=>{const m=String(c||'').trim().toLowerCase().replace(/^\//,'');if(m!=='devpanel'&&m!=='adminpanel')return null;if(!A.admin)return '⛔ Csak admin nyithatja meg.';setTimeout(()=>(m==='devpanel'?$('#admBD'):$('#admBA')).click(),50);return m==='devpanel'?'🧪 Dev panel':'🛡️ Admin panel'};
+['extraCmd','zalqnCheat'].forEach(k=>{const o=window[k];window[k]=function(c){const r=panelCmd(c);return r!=null?r:(o?o.apply(this,arguments):null)}});
+// lobby/bármely chat-mező: Enter-re figyel
+addEventListener('keydown',e=>{if(e.key!=='Enter'||!e.target||e.target.tagName!=='INPUT')return;const v=e.target.value;if(/^\/(devpanel|adminpanel)\s*$/i.test(v.trim())){const r=panelCmd(v);e.target.value='';e.preventDefault();e.stopImmediatePropagation();try{toast(r)}catch(x){}}},true);
 window._adm = { get admin() { return A.admin; }, open: () => $('#admBA').click(), dev: () => $('#admBD').click(), check: () => { A.tok = ''; return check(); }, ERR };
 })();
