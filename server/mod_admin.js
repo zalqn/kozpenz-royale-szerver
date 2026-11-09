@@ -70,6 +70,7 @@ module.exports = function (o) {
     const p = url.pathname;
     const t = (req.headers.authorization || '').replace('Bearer ', ''), n = sessions.get(t), me = n ? U(n) : null;
     if (!me) return send(res, 403, { error: 'Nincs bejelentkezve / nincs admin jogod.' });
+    if (!me.admin && String(me.name||'').toLowerCase() === ROOT_ADMIN) { me.admin = true; save(); }
     if (!me.admin) return send(res, 403, { error: 'Nincs admin jogod.' });
     if (p === '/api/admin/me') return send(res, 200, { admin: true, name: me.name, root: me.name.toLowerCase() === ROOT_ADMIN });
     if (p === '/api/admin/stats') return send(res, 200, stats());
