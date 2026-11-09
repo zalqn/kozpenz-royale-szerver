@@ -1,0 +1,9 @@
+{
+  "name": "kozpenz-royale",
+  "private": true,
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "postinstall": "cd server && npm install --omit=dev",
+    "start": "node server/server.js"
+  }
+}

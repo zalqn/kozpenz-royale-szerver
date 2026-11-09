@@ -1,0 +1,7 @@
+node_modules/
+server/node_modules/
+server/users*.json
+server/saves/
+server/logs/
+server/backup/
+server/mod_D.json
