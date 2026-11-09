@@ -4,7 +4,7 @@
 const fs = require('fs'), crypto = require('crypto'), { Readable } = require('stream');
 
 module.exports = function (X) {
-  const { server, wss, db, sessions, save, online, parties, sendParty, leaveParty, saveFile } = X;
+  const { server, wss, db, sessions, save, online, parties, sendParty, leaveParty, saveFile, store } = X;
   const U = n => db.users[String(n || '').toLowerCase()];
   const send = (res, code, o) => { res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(o)); };
   const authN = req => { const t = (req.headers.authorization || '').replace('Bearer ', '') || new URL(req.url, 'http://x').searchParams.get('tk'); const n = sessions.get(t); return n && U(n) ? U(n) : null; };
@@ -55,8 +55,8 @@ module.exports = function (X) {
   }
   const allow = (u, ft, zs) => { if (!u.mbEco) return; u.mbEco.al = (u.mbEco.al || 0) + Math.max(0, ft || 0); u.mbEco.alz = (u.mbEco.alz || 0) + Math.max(0, zs || 0); };
   // szerveren tárolt mentés olvasás/írás (kereskedés, póker)
-  function rdSave(u) { try { return JSON.parse(fs.readFileSync(saveFile(u), 'utf8')); } catch (e) { return { t: 0, d: {} }; } }
-  function wrSave(u, s) { try { s.t = now(); fs.writeFileSync(saveFile(u), JSON.stringify(s)); u.saveT = s.t; } catch (e) {} }
+  function rdSave(u) { try { if (store && store.ok) { const j = store.readSave(u.name); return j ? JSON.parse(j) : { t: 0, d: {} }; } return JSON.parse(fs.readFileSync(saveFile(u), 'utf8')); } catch (e) { return { t: 0, d: {} }; } }
+  function wrSave(u, s) { try { s.t = now(); if (store && store.ok) store.writeSave(u.name, JSON.stringify(s), s.t); else fs.writeFileSync(saveFile(u), JSON.stringify(s)); u.saveT = s.t; } catch (e) {} }
   const ecoC = u => (u.mbEco ? u.mbEco.c : num(rdSave(u).d.k3c) || 0);
   const ecoZ = u => { if (u.mbEco) return u.mbEco.zs; try { return num(JSON.parse(rdSave(u).d.k3br).zs) || 0; } catch (e) { return 0; } };
   function ownItems(u) { try { const b = JSON.parse(rdSave(u).d.k3br || '{}'); return Object.keys(b.own || {}).filter(k => b.own[k]); } catch (e) { return []; } }

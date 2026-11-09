@@ -98,7 +98,7 @@ window.x10pbet=b=>{PK.bet=b;pkDraw()};
 window.x10hold=i=>{if(PK.st!=='hold')return;PK.hold[i]=!PK.hold[i];pkDraw()};
 window.x10pgo=()=>{if(PK.st!=='hold'){const e=canBet(PK.bet);if(e){PK.res=e;pkDraw();return}bet(PK.bet);PK.deck=newDeck();PK.hand=PK.deck.splice(0,5);PK.hold=[0,0,0,0,0];PK.st='hold';const v=evalH(PK.hand);PK.res=v>=0?'Már most: '+PAY[v][0]+' — tartsd meg!':'Válaszd ki, mit tartasz meg!';pkDraw();return}
  PK.hand=PK.hand.map((c,i)=>PK.hold[i]?c:PK.deck.shift());PK.hold=[0,0,0,0,0];PK.st='bet';const v=evalH(PK.hand);
- if(v>=0){const w=PK.bet*PAY[v][1];pay(w);PK.res='🎉 '+PAY[v][0]+'! +'+w+' zseton';stat('poker');if(v<=2)stat('poker4')}else PK.res='Semmi. Próbáld újra!';pkDraw()};
+ if(v>=0){const w=PK.bet*PAY[v][1];pay(w);try{const F=window._k4&&_k4.fx;if(F){setTimeout(()=>F.chips(w),80);if(v<=3)setTimeout(()=>F.jackpot(w,PK.bet,PAY[v][0].toUpperCase()+'!'),300)}}catch(e){}PK.res='🎉 '+PAY[v][0]+'! +'+w+' zseton';stat('poker');if(v<=2)stat('poker4')}else PK.res='Semmi. Próbáld újra!';pkDraw()};
 // --- nyerőgép ---
 const SY=['🍒','🍋','🔔','⭐','💎','7️⃣'],SW=[30,25,18,13,8,4],SM={'🍒':5,'🍋':8,'🔔':12,'⭐':20,'💎':40,'7️⃣':100};
 const SLOT={bet:50,r:['🍒','⭐','7️⃣'],res:'',spin:false};
@@ -108,13 +108,13 @@ function slDraw(){const free=LIM.free!==today();
  '<div style="text-align:center;margin:16px 0">'+SLOT.r.map((s,i)=>'<span class="x10reel" id="x10r'+i+'">'+s+'</span>').join('')+'</div>'+
  '<div id="x10sres" style="text-align:center;font-size:20px;min-height:26px;color:#fde68a">'+SLOT.res+'</div><div style="text-align:center">'+
  '<button class="y" id="x10spinB" style="font-size:22px;padding:10px 34px" onclick="x10spin(false)">PÖRGETÉS ('+SLOT.bet+')</button>'+(free?'<button class="g" style="font-size:18px;padding:10px 20px" onclick="x10spin(true)">🎁 INGYEN PÖRGETÉS</button>':'')+'</div>'+
- '<div style="font-size:13px;opacity:.75;margin-top:10px">3 egyforma: '+SY.map(s=>s+'×'+SM[s]).join(' · ')+' · 2 egyforma: ×1,5 · bármely 🍒: ×0,5</div>'+
+ '<div style="font-size:13px;opacity:.75;margin-top:10px">3 egyforma: '+SY.map(s=>s+'×'+SM[s]).join(' · ')+' · 2 egyforma: ×0,5 · bármely 🍒: ×0,5</div>'+
  '<div style="text-align:right;margin-top:8px"><button onclick="x10cas()">◀ VISSZA</button></div>')}
 window.x10slot=slDraw;window.x10sbet=b=>{if(!SLOT.spin){SLOT.bet=b;slDraw()}};
 window.x10spin=free=>{if(SLOT.spin)return;const b=free?50:SLOT.bet;if(free){if(LIM.free===today())return;LIM.free=today();SV('k3x10lim',LIM)}else{const e=canBet(b);if(e){SLOT.res=e;slDraw();return}bet(b)}
  SLOT.spin=true;const fin=[rollSym(),rollSym(),rollSym()];let t=0;const B=$$('x10spinB');if(B)B.disabled=true;
  const iv=setInterval(()=>{t++;for(let i=0;i<3;i++){const el=$$('x10r'+i);if(!el){clearInterval(iv);SLOT.spin=false;return}el.textContent=t<8+i*5?SY[Math.floor(Math.random()*6)]:fin[i]}try{tn(300+t*20,'square',.03,.04)}catch(e){}
-  if(t>=18){clearInterval(iv);SLOT.spin=false;SLOT.r=fin;let m=0;if(fin[0]===fin[1]&&fin[1]===fin[2])m=SM[fin[0]];else if(fin[0]===fin[1]||fin[1]===fin[2]||fin[0]===fin[2])m=1.5;else if(fin.includes('🍒'))m=.5;
+  if(t>=18){clearInterval(iv);SLOT.spin=false;SLOT.r=fin;let m=0;if(fin[0]===fin[1]&&fin[1]===fin[2])m=SM[fin[0]];else if(fin[0]===fin[1]||fin[1]===fin[2]||fin[0]===fin[2])m=.5;else if(fin.includes('🍒'))m=.5;
    const w=Math.round(b*m);pay(w);SLOT.res=w>0?'🎉 +'+w+' zseton':'Nem nyert.';if(m>=100){stat('jack');toast('7️⃣7️⃣7️⃣ FŐNYEREMÉNY!')}stat('slot');slDraw()}},70)};
 window._x10k={LIM,canBet,bet,pay,SLOT,SY,SM,rollSym,slDraw,stat,today,SV,toast,PK};
 
@@ -212,8 +212,8 @@ function interact(){if(!normal()||!W)return;if(window.x20near&&window.x20near())
  if(n.k==='zip'){W.zip={z:n.z,t:0};stat('zip');try{sfx('jump')}catch(e){}sayX('🪢 Wiiii! (SZÓKÖZ: leugrás)');return}
  if(n.k==='chest')openChest()}
 function exitVeh(){const v=W.drive,g=G;if(!v)return;if(v.k==='boat'){let ok=null;for(let r=3;r<12&&!ok;r+=1.5)for(let a=0;a<6.28;a+=.4){const x=v.x+Math.cos(a)*r,z=v.z+Math.sin(a)*r;if(hin(x,z)){ok=[x,z];break}}if(!ok){sayX('🌊 Itt nem tudsz kiszállni, menj közelebb a parthoz!');return}g.x=ok[0];g.z=ok[1]}
- else{g.x=v.x+Math.cos(v.a)*1.8;g.z=v.z-Math.sin(v.a)*1.8}
- g.y=0;g.vy=0;W.drive=null;v.v=0;v.lb.visible=true}
+ else{g.x=v.x+Math.cos(v.a)*1.8;g.z=v.z-Math.sin(v.a)*1.8;try{const o={x:g.x,z:g.z};pushOut(o,.5,1);if(!hin(o.x,o.z)){o.x=v.x;o.z=v.z}g.x=o.x;g.z=o.z}catch(e){}}
+ g.y=0;try{if(typeof window.hillH==='function')g.y=window.hillH(g.x,g.z)}catch(e){}g.vy=0;W.drive=null;v.v=0;v.lb.visible=true}
 function openChest(){const c=W.cave,g=G;c.open=true;c.lid.rotation.x=-1.1;c.lid.position.z=-.45;c.lid.position.y=1.3;
  g.cash+=8000;g.hp=g.mhp;g.sh=g.msh;g.ul=100;try{g.res=g.res.map((r,i)=>r+(WPN[i]?WPN[i].mag*2:20))}catch(e){}
  for(let i=0;i<WPN.length;i++)if(!g.own[i]){g.own[i]=true;g.mag[i]=WPN[i].mag;g.res[i]=(g.res[i]||0)+WPN[i].res;sayX('🏆 ARANYLÁDA! '+WPN[i].e+' '+WPN[i].n+' + teljes élet/pajzs + ulti + 8000 Ft');break}

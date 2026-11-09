@@ -6,8 +6,9 @@ module.exports = function (C) {
   // C: { db:()=>db, save, auth, send, body, limited }
   const DFILE = path.join(process.env.DATA_DIR || __dirname, 'mod_D.json');
   let D = { slot: {}, slotWin: {}, posts: [], maps: [], war: {}, seq: 1 };
-  try { D = Object.assign(D, JSON.parse(fs.readFileSync(DFILE, 'utf8'))); } catch (e) {}
-  let tm = null; const saveD = () => { clearTimeout(tm); tm = setTimeout(() => fs.writeFile(DFILE + '.tmp', JSON.stringify(D), e => { if (!e) fs.rename(DFILE + '.tmp', DFILE, () => {}); }), 400); };
+  const ST = C.store && C.store.ok ? C.store : null; // SQL (meta 'mod_D'), különben mod_D.json
+  try { D = Object.assign(D, JSON.parse((ST && ST.getMeta('mod_D')) || fs.readFileSync(DFILE, 'utf8'))); } catch (e) {}
+  let tm = null; const saveD = () => { clearTimeout(tm); tm = setTimeout(() => ST ? (() => { try { ST.setMeta('mod_D', JSON.stringify(D)); } catch (e) { console.log('[mod_D] SQL hiba', e.message); } })() : fs.writeFile(DFILE + '.tmp', JSON.stringify(D), e => { if (!e) fs.rename(DFILE + '.tmp', DFILE, () => {}); }), 400); };
   const send = C.send, num = (v, a, b) => Math.max(a, Math.min(b, Math.floor(+v || 0)));
   const weekKey = (t) => { const d = new Date(t || Date.now()); const m = new Date(d); m.setHours(0, 0, 0, 0); m.setDate(m.getDate() - ((m.getDay() + 6) % 7)); return m.getFullYear() + '-' + (m.getMonth() + 1) + '-' + m.getDate(); };
   const weekStart = (t) => { const d = new Date(t || Date.now()); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d.getTime(); };

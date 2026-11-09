@@ -10,10 +10,18 @@ const DB_FILE = path.join(DATA, 'users.json');
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css', '.png': 'image/png', '.jpg': 'image/jpeg', '.json': 'application/json' };
 
 // ---------- adatbázis ----------
+// SQL (store.js, DATA_DIR/kozpenz.db) az elsődleges; ha nem elérhető → users.json. A users.json tükörként továbbra is íródik.
+const store = require('./store');
 let db = { users: {} };
-try { db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8')); } catch (e) {}
+try { db = store.loadDb() || JSON.parse(fs.readFileSync(DB_FILE, 'utf8')); } catch (e) {}
+if (!db.users) db.users = {};
 let saveT = null;
-const save = () => { clearTimeout(saveT); saveT = setTimeout(() => fs.writeFile(DB_FILE + '.tmp', JSON.stringify(db, null, 1), err => { if (!err) fs.rename(DB_FILE + '.tmp', DB_FILE, () => {}); }), 300); };
+const save = () => { clearTimeout(saveT); saveT = setTimeout(() => {
+  try { store.saveDb(db); } catch (e) { console.log('[store] mentés hiba:', e.message); }
+  fs.writeFile(DB_FILE + '.tmp', JSON.stringify(db, null, 1), err => { if (!err) fs.rename(DB_FILE + '.tmp', DB_FILE, () => {}); });
+}, 300); };
+const flush = () => { clearTimeout(saveT); try { store.saveDb(db); } catch (e) {} try { fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 1)); } catch (e) {} };
+['SIGINT', 'SIGTERM'].forEach(sg => process.on(sg, () => { flush(); store.close(); process.exit(0); }));
 const sessions = new Map(); // token -> username
 const hashPw = (pw, salt) => crypto.scryptSync(pw, salt, 64).toString('hex');
 const pubUser = u => ({ name: u.name, created: u.created, level: u.level || 1, stats: u.stats, friends: u.friends || [], avatar: u.avatar || '😎', color: u.color || '#ffd23f', rang: u.rang | 0 });
@@ -34,7 +42,7 @@ const SAVE_DIR = path.join(DATA, 'saves'); try { fs.mkdirSync(SAVE_DIR, { recurs
 const SAVE_MAX = 2 * 1024 * 1024;
 const saveFile = u => path.join(SAVE_DIR, u.name.toLowerCase().replace(/[^a-z0-9_áéíóöőúüű]/g, '_') + '.json');
 
-require('./mod_D')({ db: () => db, save: () => save(), auth, send, body, limited }); // D: /api/d/* (bajnokság, gazdaság, klánháború, Közgram, promó-stat, pályák)
+require('./mod_D')({ store, db: () => db, save: () => save(), auth, send, body, limited }); // D: /api/d/* (bajnokság, gazdaság, klánháború, Közgram, promó-stat, pályák)
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
   try {
@@ -58,6 +66,7 @@ const server = http.createServer(async (req, res) => {
       if (!u || typeof pass !== 'string') return send(res, 401, { error: 'Hibás név vagy jelszó.' });
       const h = hashPw(pass, u.salt);
       if (!crypto.timingSafeEqual(Buffer.from(h, 'hex'), Buffer.from(u.hash, 'hex'))) return send(res, 401, { error: 'Hibás név vagy jelszó.' });
+      if (u.ban && (!u.ban.until || u.ban.until > Date.now())) return send(res, 403, { error: '⛔ Ki vagy tiltva' + (u.ban.until ? ' eddig: ' + new Date(u.ban.until).toLocaleString('hu-HU') : ' (végleg)') + '. Ok: ' + (u.ban.r || '-') }); // mod_admin
       const token = crypto.randomBytes(24).toString('hex'); sessions.set(token, u.name);
       return send(res, 200, { token, user: pubUser(u) });
     }
@@ -69,9 +78,10 @@ const server = http.createServer(async (req, res) => {
         let b; try { b = await body(req, SAVE_MAX); } catch (e) { return send(res, 413, { error: 'A mentés túl nagy (max 2 MB).' }); }
         const d = b && b.d; if (!d || typeof d !== 'object' || Array.isArray(d)) return send(res, 400, { error: 'Hibás mentés.' });
         const clean = {}; for (const k of Object.keys(d).slice(0, 2000)) { if (typeof d[k] === 'string' && k.length <= 80 && k !== 'ry_token') clean[k] = d[k]; }
-        const t = Date.now(); fs.writeFile(saveFile(u) + '.tmp', JSON.stringify({ t, d: clean }), err => { if (!err) fs.rename(saveFile(u) + '.tmp', saveFile(u), () => {}); });
+        const t = Date.now(); if (store.ok) { try { store.writeSave(u.name, JSON.stringify({ t, d: clean }), t); } catch (e) { return send(res, 500, { error: 'Mentési hiba.' }); } } else fs.writeFile(saveFile(u) + '.tmp', JSON.stringify({ t, d: clean }), err => { if (!err) fs.rename(saveFile(u) + '.tmp', saveFile(u), () => {}); });
         u.saveT = t; save(); return send(res, 200, { ok: true, t });
       }
+      if (store.ok) { const txt = store.readSave(u.name); if (!txt) return send(res, 200, { t: 0, d: null }); res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); return res.end(txt); }
       return fs.readFile(saveFile(u), 'utf8', (err, txt) => { if (err) return send(res, 200, { t: 0, d: null }); res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(txt); });
     }
     if (url.pathname === '/api/rang/top') {
@@ -235,7 +245,7 @@ const server = http.createServer(async (req, res) => {
     // statikus fájlok
     let p = decodeURIComponent(url.pathname); if (p === '/') p = '/index.html';
     const fp = path.normalize(path.join(ROOT, p));
-    if (!fp.startsWith(ROOT) || fp.includes(path.sep + 'server' + path.sep)) { res.writeHead(403); return res.end(); }
+    if (!fp.startsWith(ROOT + path.sep) || /[\\/](server|backup|mentesek|node_modules|\.git)([\\/]|$)/i.test(fp.slice(ROOT.length)) || /\.(db|db-wal|db-shm|zip|bat)$/i.test(fp)) { res.writeHead(403); return res.end(); }
     fs.readFile(fp, (err, data) => { if (err) { res.writeHead(404); return res.end('Nincs ilyen fájl'); } res.writeHead(200, { 'Content-Type': MIME[path.extname(fp)] || 'application/octet-stream', 'Cache-Control': /\.(jpg|png)$/.test(fp) ? 'max-age=86400' : 'no-cache' }); res.end(data); });
   } catch (e) { send(res, 400, { error: 'Hibás kérés.' }); }
 });
@@ -308,8 +318,10 @@ wss.on('connection', (ws, req) => {
   ws.on('close', () => { const c = online.get(name); if (c && c.ws === ws) { if (c.cs) online.forEach(o => { if (o.cs && o !== c) out(o.ws, { t: 'cs_leave', name }); }); leaveParty(name); online.delete(name); broadcastPresence(); } });
 });
 
-require('./mod_A')(server, db, wss); // A: /api/clientlog, napi users.json mentés, tesztfiók-takarítás
-require('./mod_B')({ server, wss, db, sessions, save, online, parties, sendParty, leaveParty, saveFile }); // B: többjátékos modul
+require('./mod_A')(server, db, wss, store); // A: /api/clientlog, napi users.json mentés, tesztfiók-takarítás
+require('./mod_B')({ server, wss, db, sessions, save, online, parties, sendParty, leaveParty, saveFile, store }); // B: többjátékos modul
+require('./mod_admin')({ server, db: () => db, sessions, online, save, store, send, body, saveFile, DATA }); // ADMIN: /api/admin/* (jog: users.admin, zalqn alap-admin), kitiltás, napló
+require('./mod_cplus')({ server, db: () => db, sessions, online, save, store, send, body, saveFile }); // KASZINÓ+ PIAC: /api/cp/* + /api/admin/cp/* (SQL táblák cp_*)
 server.listen(PORT, () => {
   const nets = require('os').networkInterfaces(); const ips = [];
   Object.values(nets).flat().forEach(n => { if (n && n.family === 'IPv4' && !n.internal) ips.push(n.address); });

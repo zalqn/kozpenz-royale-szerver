@@ -375,7 +375,7 @@ const css2=document.createElement('style');css2.textContent=`
 .k2lad span.on{color:#1a0d33;background:linear-gradient(#fde68a,#f59e0b);border-color:#fff;box-shadow:0 0 14px #facc15;transform:scale(1.15)}
 .k2lad.dim{opacity:.35}
 .k2combo{position:absolute;right:10px;top:-16px;z-index:5;padding:2px 10px;border-radius:12px;font:900 15px 'Luckiest Guy',Impact;color:#fff;background:linear-gradient(90deg,#db2777,#f59e0b);box-shadow:0 0 14px #f472b6;animation:k2pop .45s cubic-bezier(.2,1.6,.4,1)}
-.k2bonB{text-align:center;margin:-6px 0 6px;font:900 20px 'Luckiest Guy',Impact;letter-spacing:1px;background:linear-gradient(90deg,#f0abfc,#facc15,#67e8f9,#f0abfc);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:k2shine 1.4s linear infinite}
+.k2bonB{display:block!important;position:relative;z-index:3;text-align:center;margin:0 auto 8px;width:max-content;max-width:96%;padding:4px 20px;border-radius:999px;border:2px solid #facc15;background:linear-gradient(180deg,#3b1060,#1a0b2e);color:#fde047;text-shadow:0 0 8px #f0abfc,0 2px 0 #7c2d12;font:900 20px 'Luckiest Guy',Impact;letter-spacing:1px;animation:k2bonP 1s ease-in-out infinite alternate}@keyframes k2bonP{from{box-shadow:0 0 8px #f0abfc66}to{box-shadow:0 0 24px #facc15,0 0 40px #f0abfc88}}
 .k2h2{animation:k2ip 2.2s ease-in-out infinite;display:inline-block}
 @keyframes k2ip{50%{transform:scale(1.04);text-shadow:0 0 16px #f472b6,0 0 4px #fff}}
 #x10spinB.k2idle{animation:k2bt 1.8s ease-in-out infinite}
@@ -484,7 +484,7 @@ function spinSlot(free){const K=window._x10k;if(!K)return;const S=K.SLOT,L=K.LIM
   if(susp&&reels[2].ph!==3&&t-lastDrum>75){lastDrum=t;SND.drum();if(reels[2].el&&R()<.4){const[x,y]=center(reels[2].el);spark(x+rr(-50,50),y+rr(-55,55),120,.4);kick()}}
   if(alive)requestAnimationFrame(frame);else done()}
  requestAnimationFrame(frame);
- function done(){let m=0;if(fin[0]===fin[1]&&fin[1]===fin[2])m=K.SM[fin[0]];else if(fin[0]===fin[1]||fin[1]===fin[2]||fin[0]===fin[2])m=1.5;else if(fin.includes('🍒'))m=.5;
+ function done(){let m=0;if(fin[0]===fin[1]&&fin[1]===fin[2])m=K.SM[fin[0]];else if(fin[0]===fin[1]||fin[1]===fin[2]||fin[0]===fin[2])m=.5;else if(fin.includes('🍒'))m=.5;
   // szorzó: bónuszban a létra, egyébként ritka ×2/×5 robbanás
   let mul=1;if(bonus)mul=LAD[BON.lad];else if(m>0&&m<100){const r=R();mul=r<.01?5:r<.05?2:1}
   const w=Math.round(b*m*mul);K.pay(w);S.spin=false;S.r=fin;

@@ -13,7 +13,7 @@ const $=id=>document.getElementById(id);
 const fmt=n=>Math.round(n||0).toLocaleString('hu-HU');
 const K2=()=>window._k2||{};
 const KX=()=>window._x10k;
-const zs=()=>(window.BR&&BR.zs)|0, ft=()=>(window.S&&S.c)|0;
+const zs=()=>(window.BR&&BR.zs)|0, ft=()=>{try{return Math.floor((typeof S!=='undefined'&&S&&S.c)||0)}catch(e){return 0}};
 const LSG=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}};
 const LSS=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const R=Math.random;
@@ -228,7 +228,7 @@ function machine(){const r0=$('x10r0'),B=$('x10MB');if(!r0||!B)return;const box=
   '<button class="k3btn go" data-a="spin">'+(bonus?'🎁 BÓNUSZ ('+K2().BON.left+')':'PÖRGETÉS')+'</button><button class="k3btn '+(AUTO?'on':'')+'" data-a="auto">AUTO'+(AUTO?' '+AUTO:'')+'</button>'+(free?'<button class="k3btn grn" data-a="free">🎁 INGYEN</button>':'')+
   (K2().armed&&K2().armed()?'<span class="k2arm" style="display:inline-block">⚡ /444</span>':'');
  m.appendChild(ctl);
- const pay=document.createElement('div');pay.className='k3pay';pay.innerHTML=K.SY.map(s=>'<div><em>'+s+s+s+'</em>×'+K.SM[s]+'</div>').reverse().join('')+'<div><em>⭐⭐⭐</em>+5 FREE</div><div>2 egyforma ×1,5</div>';m.appendChild(pay);
+ const pay=document.createElement('div');pay.className='k3pay';pay.innerHTML=K.SY.map(s=>'<div><em>'+s+s+s+'</em>×'+K.SM[s]+'</div>').reverse().join('')+'<div><em>⭐⭐⭐</em>+5 FREE</div><div>2 egyforma ×0,5<br>🍒 ×0,5</div>';m.appendChild(pay);
  const sl=document.createElement('div');sl.className='k3slot';sl.innerHTML='<div class="k3coin" title="érmebedobó"></div><div class="k3tray">'+(won?Array.from({length:Math.min(14,2+Math.round(Math.log2(last+1)))},(_,i)=>'<i style="left:'+(6+i*6.5)+'%">🪙</i>').join(''):'')+'</div><div class="k3coin" style="transform:scaleX(-1)"></div>';m.appendChild(sl);
  led('k3lW',won?fmt(last):'0');ledUpd();
  ctl.onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,i=BETS.indexOf(S.bet);

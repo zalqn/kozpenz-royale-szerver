@@ -4,6 +4,8 @@ const $$=i=>document.getElementById(i),RN=(a,b)=>a+Math.random()*(b-a),fmt=n=>(+
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const LSg=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}},LSs=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}};
 const inMatch=()=>typeof G!=='undefined'&&G&&typeof run!=='undefined'&&run&&!G.over;
+// O letiltva: Sötét Program / 3D labor, droglabor2, teljes képernyős panelek alatt
+const blockO=()=>{const v=id=>{const x=document.getElementById(id);return x&&getComputedStyle(x).display!=='none'};return v('sp3')||v('dp')||v('dl2')||v('dpmg')||['sotet','sp3','drog'].some(m=>String(window.GAME_MODE||'').includes(m))};
 const typing=e=>{const t=e.target;return t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable)};
 const sayX=t=>{try{say(t)}catch(e){}};
 
@@ -38,7 +40,7 @@ const fl=document.createElement('div');fl.id='x90Flash';document.body.appendChil
 const CAM={on:false,fil:0,grid:false,wm:true,yaw:0,pit:-.15,pos:null,fov:60,drag:false,lx:0,ly:0,keys:{},lobby:false,selfie:false};
 function rig(){if(CAM.lobby&&window.LB3D)return{r:LB3D.r,sc:LB3D.sc,c:LB3D.cam};if(typeof ren!=='undefined'&&ren&&typeof scene!=='undefined')return{r:ren,sc:scene,c:cam};return null}
 function hint(){$$('x90Hint').innerHTML=(CAM.lobby?'📸 FOTÓMÓD (lobby)':'📸 FOTÓMÓD · a játék szünetel')+' · húzd az egeret: nézelődés · WASD: mozgás · Q/E: le/fel · görgő: zoom · Szóköz/Enter: fotó · O/Esc: kilépés'}
-function enter(){const R=rig();if(!R)return;CAM.lobby=!inMatch();CAM.on=true;const c=R.c;CAM.pos=c.position.clone();CAM.fov0=c.fov;CAM.fov=c.fov;const d=new THREE.Vector3();c.getWorldDirection(d);CAM.yaw=Math.atan2(d.x,-d.z);CAM.pit=Math.asin(Math.max(-1,Math.min(1,d.y)));CAM.q0=c.quaternion.clone();
+function enter(){CAM.lobby=!inMatch();const R=rig();if(!R)return;CAM.on=true;const c=R.c;CAM.pos=c.position.clone();CAM.fov0=c.fov;CAM.fov=c.fov;const d=new THREE.Vector3();c.getWorldDirection(d);CAM.yaw=Math.atan2(d.x,-d.z);CAM.pit=Math.asin(Math.max(-1,Math.min(1,d.y)));CAM.q0=c.quaternion.clone();
  if(!CAM.lobby&&G.gun){CAM.gunVis=G.gun.visible;G.gun.visible=false}CAM.hidC=[];c.children.forEach(o=>{if(o.visible&&!o.isLight){o.visible=false;CAM.hidC.push(o)}});CAM.hidCv=[];document.querySelectorAll('canvas').forEach(cv=>{if(cv!==R.r.domElement&&cv.style.visibility!=='hidden'){cv.style.setProperty('visibility','hidden','important');CAM.hidCv.push(cv)}});document.body.classList.add('x90ph');camUI.style.display='block';hint();if(document.pointerLockElement)document.exitPointerLock();
  try{const ph=$$('x60Ph');if(ph)ph.style.display='none';if(window._x60PH)_x60PH.open=false}catch(e){}applyFil();try{tn(1200,'sine',.05,.05)}catch(e){}}
 function exit(){if(!CAM.on)return;CAM.on=false;document.body.classList.remove('x90ph');camUI.style.display='none';const R=rig();if(R){R.c.fov=CAM.fov0;R.c.updateProjectionMatrix();if(CAM.q0&&CAM.lobby){R.c.position.copy(CAM.pos0||R.c.position)}}if(!CAM.lobby&&typeof G!=='undefined'&&G&&G.gun)G.gun.visible=CAM.gunVis!==false;R&&R.r.domElement&&(R.r.domElement.style.filter='');
@@ -56,7 +58,7 @@ addEventListener('mousemove',e=>{if(!CAM.on||!CAM.drag)return;CAM.yaw+=(e.client
 addEventListener('wheel',e=>{if(!CAM.on)return;e.stopImmediatePropagation();e.preventDefault();CAM.fov=Math.max(15,Math.min(100,CAM.fov+(e.deltaY>0?4:-4)))},{capture:true,passive:false});
 // billentyűk (elkapjuk, hogy a játék ne kapja meg)
 addEventListener('keydown',e=>{if(typing(e))return;const k=e.key.toLowerCase();
- if(!CAM.on){if(k==='o'&&!e.repeat){setTimeout(()=>{document.body.classList.remove('xph');const x=$$('xPhoto');if(x)x.style.display='none';enter()},0)}return}
+ if(!CAM.on){if(k==='o'&&!e.repeat&&!blockO()){setTimeout(()=>{document.body.classList.remove('xph');const x=$$('xPhoto');if(x)x.style.display='none';enter()},0)}return}
  e.stopImmediatePropagation();e.preventDefault();if(k==='o'||k==='escape'){exit();return}if((k===' '||k==='enter')&&!e.repeat){shot();return}CAM.keys[k]=true},true);
 addEventListener('keyup',e=>{if(!CAM.on)return;e.stopImmediatePropagation();CAM.keys[e.key.toLowerCase()]=false},true);
 // kamera mozgatása + a játék szüneteltetése
@@ -70,7 +72,7 @@ function camStep(dt){const R=rig();if(!R||CAM.lobby)return;const c=R.c;const K=C
  c.position.copy(CAM.pos);c.lookAt(CAM.pos.x+f.x,CAM.pos.y+f.y,CAM.pos.z+f.z);if(Math.abs(c.fov-CAM.fov)>.1){c.fov+=(CAM.fov-c.fov)*.3;c.updateProjectionMatrix()}}
 // fotó készítése
 const GAL=LSg('k3x90gal',[]);let lastFull=null;
-function shot(){const R=rig();if(!R)return;const prevF=R.r.domElement.style.filter;R.r.domElement.style.filter='';R.r.render(R.sc,R.c);
+function shot(){const R=rig();if(!R)return;try{window.x50AlbSnap&&x50AlbSnap()}catch(e){}const prevF=R.r.domElement.style.filter;R.r.domElement.style.filter='';R.r.render(R.sc,R.c);
  const W=1280,H=Math.round(1280*R.r.domElement.height/R.r.domElement.width);const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');x.filter=FIL[CAM.fil][1];x.drawImage(R.r.domElement,0,0,W,H);x.filter='none';R.r.domElement.style.filter=prevF;
  if(CAM.wm){const g=x.createLinearGradient(0,H-90,0,H);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.6)');x.fillStyle=g;x.fillRect(0,H-90,W,90);x.font='bold 34px "Luckiest Guy",Impact,sans-serif';x.fillStyle='#fde68a';x.textBaseline='bottom';x.fillText('KÖZPÉNZ ROYALE',24,H-18);x.font='600 20px Rajdhani,sans-serif';x.fillStyle='#fff';x.textAlign='right';x.fillText('📸 '+new Date().toLocaleString('hu-HU')+(inMatch()?' · 💀 '+(G.kills|0):''),W-24,H-22)}
  lastFull=cv.toDataURL('image/jpeg',.9);const th=document.createElement('canvas');th.width=480;th.height=Math.round(480*H/W);th.getContext('2d').drawImage(cv,0,0,th.width,th.height);const small=th.toDataURL('image/jpeg',.72);

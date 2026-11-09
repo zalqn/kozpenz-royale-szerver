@@ -4,6 +4,7 @@ const au=document.getElementById('auth');if(!au)return;
 const $=id=>document.getElementById(id);
 const css=document.createElement('style');css.textContent=`
 #auth{background:#05060f!important;overflow:hidden}
+body:has(#auth.on) #x14hub{display:none!important}
 #apCv{position:absolute;inset:0;width:100%;height:100%}
 #apGlow{position:absolute;inset:-20%;background:radial-gradient(700px 500px at 25% 30%,#7c3aed55,transparent 60%),radial-gradient(800px 600px at 80% 75%,#0ea5e955,transparent 60%),radial-gradient(500px 400px at 60% 10%,#ffd23f33,transparent 60%);animation:apHue 14s ease-in-out infinite alternate;pointer-events:none}
 @keyframes apHue{to{transform:translate(4%,-3%) scale(1.08);filter:hue-rotate(40deg)}}

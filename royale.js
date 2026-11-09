@@ -79,7 +79,7 @@ WP('go',null,a=>{if(a[0]==='menu')ui.style.display='none'});
 
 WP('update',null,()=>{const g=G;if(!g||!g.brMode||!g.ry)return;$('wv').textContent='KÖZPÉNZ ROYALE · '+(g.ry.ph+1)+'. FÁZIS · ★PREMIUM★';
  let nb=null,nd=1e9;g.en.forEach(e=>{if(!e.bot||e.dead)return;const d=Math.hypot(e.x-g.x,e.z-g.z);if(d<nd){nd=d;nb=e}});
- $('ms').innerHTML=(nb?'🎯 '+nb.name+' · '+Math.round(nd)+' m<div class="bar"><i style="width:'+Math.max(0,nb.hp)+'%;background:#ff4d6d"></i></div><div class="bar"><i style="width:'+Math.max(0,nb.sh/nb.msh*100)+'%;background:#38e1ff"></i></div>':'🏆 Nincs több ellenfél!')+(g.mis?'<div style="margin-top:4px;color:#fde68a">📱 '+g.mis+'</div>':'')});
+ $('ms').innerHTML=(!g.ry.started?'🚌 Buszfázis – ugorj ki! ('+(NBOT+1)+' játékos)':nb?'🎯 '+nb.name+' · '+Math.round(nd)+' m<div class="bar"><i style="width:'+Math.max(0,nb.hp)+'%;background:#ff4d6d"></i></div><div class="bar"><i style="width:'+Math.max(0,nb.sh/nb.msh*100)+'%;background:#38e1ff"></i></div>':'🏆 Nincs több ellenfél!')+(g.mis?'<div style="margin-top:4px;color:#fde68a">📱 '+g.mis+'</div>':'')});
 // Ritkaság-szín a lőszer-kijelzőn
 WP('update',null,()=>{const g=G;if(!g||!g.brMode)return;const r=RAR[g.ry.rar[g.wp]||0];g._dmgB=r.m;const am=$('brAmmo');if(am&&!g.buildMode){const i=am.querySelector('i');if(i)i.style.color=r.c}});
 })();

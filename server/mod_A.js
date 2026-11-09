@@ -1,7 +1,7 @@
 // mod_A.js – (A) kliens-hibanapló (/api/clientlog → server/logs/client.log), napi users.json mentés (server/backup/, 14 nap),
 // egyszeri tesztfiók-takarítás. Bekötés: server.js-ben require('./mod_A')(server, db, wss) a listen előtt.
 const fs = require('fs'), path = require('path');
-module.exports = function (server, db) {
+module.exports = function (server, db, wss, store) {
   const DIR = process.env.DATA_DIR || __dirname, LOGD = path.join(DIR, 'logs'), BKD = path.join(DIR, 'backup'), DB_FILE = path.join(DIR, 'users.json');
   try { fs.mkdirSync(LOGD, { recursive: true }); fs.mkdirSync(BKD, { recursive: true }); } catch (e) {}
 
@@ -20,8 +20,9 @@ module.exports = function (server, db) {
       const d = new Date(), day = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
       const f = path.join(BKD, 'users_' + day + '.json');
       if (!fs.existsSync(f) && fs.existsSync(DB_FILE)) fs.copyFileSync(DB_FILE, f);
+      if (store && store.ok) store.backup(path.join(BKD, 'kozpenz_' + day + '.db'));
       const lim = Date.now() - 14 * 864e5;
-      fs.readdirSync(BKD).forEach(n => { const p = path.join(BKD, n); try { if (/^users_/.test(n) && fs.statSync(p).mtimeMs < lim) fs.unlinkSync(p); } catch (e) {} });
+      fs.readdirSync(BKD).forEach(n => { const p = path.join(BKD, n); try { if (/^(users_|kozpenz_)/.test(n) && fs.statSync(p).mtimeMs < lim) fs.unlinkSync(p); } catch (e) {} });
     } catch (e) { console.log('[mod_A] mentés hiba', e.message); }
   }
   backup(); setInterval(backup, 3600e3).unref();

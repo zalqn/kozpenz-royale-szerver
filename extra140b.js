@@ -12,8 +12,8 @@ const LINES={idle:['Valaki látta a zoknim?','Ma csak nézelődöm.','Itt jó a 
 const ST=LS.g('k3x14bSet',{diff:'norm',bub:true,sq:true});
 const save=()=>LS.s('k3x14bSet',ST);
 const css=document.createElement('style');css.textContent=`
-.x14bBtn{width:46px;height:46px;border-radius:14px;border:1px solid #fbbf2466;background:linear-gradient(145deg,#1e1b4b,#0f172a);color:#fde68a;font-size:22px;cursor:pointer;box-shadow:0 6px 18px #0008,inset 0 1px 0 #ffffff22;transition:transform .15s}
-.x14bBtn:hover{transform:scale(1.08)}
+.x14bBtn{padding:8px 12px;border-radius:12px;border:1px solid #fbbf2466;background:linear-gradient(135deg,#1e1b4b,#4338ca);color:#fde68a;font:800 13px system-ui;letter-spacing:.5px;cursor:pointer;box-shadow:0 6px 18px #0008,inset 0 1px 0 #ffffff22;transition:transform .15s}
+.x14bBtn:hover{filter:brightness(1.15)}
 #x14bP{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:60;width:min(560px,94vw);max-height:86vh;overflow:auto;background:linear-gradient(160deg,#111827f2,#1e1b4bf2);border:1px solid #fbbf2455;border-radius:18px;color:#e5e7eb;font:14px system-ui,sans-serif;padding:18px 20px;box-shadow:0 20px 60px #000c;display:none}
 #x14bP h2{margin:0 0 4px;font:22px "Luckiest Guy",Impact,sans-serif;color:#fde68a;letter-spacing:1px}
 #x14bP .sub{opacity:.7;font-size:12px;margin-bottom:12px}
@@ -114,7 +114,7 @@ function openP(){draw();P.style.display='block'}function closeP(){P.style.displa
 W.open=openP;
 addEventListener('keydown',e=>{if(e.code==='F3'){e.preventDefault();if(P.style.display==='block')closeP();else if(!(typeof run!=='undefined'&&run))openP()}});
 function hub(){let h=document.getElementById('x14hub');if(!h){h=document.createElement('div');h.id='x14hub';h.style.cssText='position:fixed;right:12px;top:50%;transform:translateY(-50%);z-index:9;display:flex;flex-direction:column;gap:6px';document.body.appendChild(h)}
- if(!document.getElementById('x14bBtn')){const b=document.createElement('button');b.id='x14bBtn';b.className='x14bBtn';b.title='Ellenfél-AI (F3) – '+DIFF[ST.diff].n;b.textContent='🤖';b.onclick=openP;h.appendChild(b)}return h}
+ if(!document.getElementById('x14bBtn')){const b=document.createElement('button');b.id='x14bBtn';b.className='x14cbtn x14bBtn';b.title='Ellenfél-AI (F3) – '+DIFF[ST.diff].n;b.textContent='🤖 ELLENFÉL-AI';b.onclick=openP;h.appendChild(b)}return h}
 setTimeout(hub,800);
 setInterval(()=>{const h=document.getElementById('x14hub');if(h)h.style.display=(typeof run!=='undefined'&&run)?'none':'flex';if((typeof run!=='undefined'&&run)&&P.style.display==='block')closeP()},500);
 })();

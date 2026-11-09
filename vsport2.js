@@ -34,10 +34,9 @@ function win(k,s){const h=s.h,a=s.a,t=h+a;switch(k){case'1':return h>a;case'X':r
  return h===+k[2]&&a===+k[3]}
 // ---------- fordulók ----------
 const LIVE=45000,PAUSE=6000,FIRST=30000;let OPEN=null,CUR=null;
-function lam(hi,ai){const sh=DB.str[hi],sa=DB.str[ai];return[Math.max(.3,1.3+(sh-sa)/28+.18),Math.max(.25,1.08+(sa-sh)/28)]}
+function lam(hi,ai){const d=DB.str[hi]-DB.str[ai];return[Math.max(.55,1.42*Math.exp(d/85)),Math.max(.5,1.16*Math.exp(-d/85))]}
 const ALLK=[];GRP.forEach(g=>(g[1]||CSK).forEach(k=>ALLK.push(k)));
-function odds(x){const cnt={},N=2500,lh=x.lh,la=x.la;for(let n=0;n<N;n++){const hh=poi(lh*.45),ha=poi(la*.45),s={hh,ha,h:hh+poi(lh*.55),a:ha+poi(la*.55)};for(const k of ALLK)if(win(k,s))cnt[k]=(cnt[k]||0)+1}
- const o={};for(const k of ALLK){const p=(cnt[k]||1)/N;o[k]=Math.min(250,Math.max(1.02,+(0.92/p).toFixed(2)))}x.o=o}
+function odds(x){const pp=l=>{const r=[];let p=Math.exp(-l);for(let k=0;k<12;k++){r.push(p);p*=l/(k+1)}return r};const A=pp(x.lh*.45),B=pp(x.la*.45),C=pp(x.lh*.55),D=pp(x.la*.55),pr={};let tot=0;for(let hh=0;hh<12;hh++)for(let ha=0;ha<12;ha++){const q=A[hh]*B[ha];if(q<1e-9)continue;for(let h2=0;h2<12;h2++){const q2=q*C[h2];if(q2<1e-11)continue;for(let a2=0;a2<12;a2++){const w=q2*D[a2];if(w<1e-12)continue;tot+=w;const st={hh,ha,h:hh+h2,a:ha+a2};for(const k of ALLK)if(win(k,st))pr[k]=(pr[k]||0)+w}}}const o={};for(const k of ALLK){const p=Math.max(1e-4,(pr[k]||0)/tot);o[k]=Math.min(k.startsWith('CS')?80:40,Math.max(1.03,+(0.93/p).toFixed(2)))}x.o=o}
 function mkRound(kick){DB.rno++;const ms=[];
  LGN.forEach((_,lg)=>{const idx=TM.map((t,i)=>t[3]===lg?i:-1).filter(i=>i>=0).sort(()=>R()-.5);for(let i=0;i+1<idx.length;i+=2){const h=idx[i],a=idx[i+1],[lh,la]=lam(h,a);ms.push({h,a,lg,lh,la,o:null,st:{h:0,a:0,hh:0,ha:0},ev:[],mom:.5,done:false})}});
  const r={id:DB.rno,no:DB.rno,ms,state:'open',kick,t0:0,min:0};let q=0;(function step(){if(q>=ms.length){if(on())render(true);return}odds(ms[q++]);setTimeout(step,15)})();return r}

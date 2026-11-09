@@ -164,7 +164,7 @@ setInterval(async()=>{if(!tok()||inMatch())return;const r=await api('card/inbox'
 // =====================================================================
 const LM=[['⛲','Közpénz-szökőkút'],['🗽','Pályázati Szobor'],['🏛️','Kormányinfó Csarnok'],['🎡','Óriáskerék'],['🗼','Rezsi-torony'],['🏰','Stadion-vár'],['⛩️','Barátság-kapu'],['🗿','Sziget-fej'],['🚂','Kisvasút-emlékmű'],['🌉','Lombkorona-híd'],['🛕','Alapítvány-templom'],['⚓','Jacht-horgony']];
 const ALB=LSg('k3x50alb',{});window._x50ALB=ALB;window._x50LM=LM;
-function showAlb(){const n=Object.keys(ALB).length;openM('<h2>📸 TURISTA-ALBUM ('+n+'/12)</h2><div style="opacity:.8;font-size:14px">A Battle Royale szigeten 12 nevezetesség van, mindegyik fölött 📸 jel lebeg. Állj elé 60 méteren belül, nézz rá, és nyomd meg az <b>O</b> gombot (fotómód)! Teljes album: <b>50 000 Ft + 1000 🪙</b>.</div><div class="x50alb" style="margin-top:8px">'+LM.map(([e,nm],i)=>'<div class="'+(ALB[i]?'ok':'')+'"><b>'+(ALB[i]?e:'❔')+'</b>'+(ALB[i]?esc(nm)+'<br><small>'+ALB[i]+'</small>':'???')+'</div>').join('')+'</div>')}
+function showAlb(){const n=Object.keys(ALB).length;openM('<h2>📸 TURISTA-ALBUM ('+n+'/12)</h2><div style="opacity:.8;font-size:14px">A Battle Royale szigeten 12 nevezetesség van, mindegyik fölött 📸 jel lebeg. Állj elé 60 méteren belül, nézz rá, és nyisd meg a fotómódot (<b>O</b>) és készíts képet (<b>Enter</b>/📸)! Teljes album: <b>50 000 Ft + 1000 🪙</b>.</div><div class="x50alb" style="margin-top:8px">'+LM.map(([e,nm],i)=>'<div class="'+(ALB[i]?'ok':'')+'"><b>'+(ALB[i]?e:'❔')+'</b>'+(ALB[i]?esc(nm)+'<br><small>'+ALB[i]+'</small>':'???')+'</div>').join('')+'</div>')}
 window.x50alb=showAlb;
 
 // =====================================================================
@@ -215,11 +215,12 @@ WP('update',a=>{if(Q&&Q.mut==='speed'&&typeof G!=='undefined'&&G)G._spdB=Math.ma
  Q.drops.forEach(d=>{if(!d.landed){d.y=Math.max(0,d.y-dt*5);d.grp.position.y=d.y;d.grp.rotation.y+=dt*.5;if(d.y<=0){d.landed=true;d.chute.visible=false}}});
  let near='';const dn=Q.drops.find(d=>d.landed&&!d.open&&Math.hypot(d.x-g.x,d.z-g.z)<3.2);if(dn)near='<b>[E]</b> Ellátmány kinyitása';else if(Q.dig&&!Q.dig.done&&Math.hypot(Q.dig.x-g.x,Q.dig.z-g.z)<3)near='<b>[E]</b> Ásás ('+(Q.dig.hits||0)+'/3)';SH_(pr,near);SD_(pr,near?'block':'none');
  Q.lms.forEach(l=>{l.top.rotation.y+=dt})});
-// fotó a nevezetességekről (O gomb)
-addEventListener('keydown',e=>{if(e.key.toLowerCase()!=='o'||!Q||!normal())return;const t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'))return;const g=G;const fx=Math.cos(g.ang),fz=Math.sin(g.ang);let got=[];
+// fotó a nevezetességekről (fotómódban kép mentése)
+// (az O mostantól csak a fotómód; az album-kép a fotómód Enter/kép mentése gombjával készül – extra90 hívja)
+window.x50AlbSnap=()=>{if(!Q||!normal())return;const g=G;const fx=Math.cos(g.ang),fz=Math.sin(g.ang);let got=[];
  Q.lms.forEach(l=>{if(ALB[l.i])return;const dx=l.x-g.x,dz=l.z-g.z,d=Math.hypot(dx,dz);if(d>60)return;if((dx*fx+dz*fz)/(d||1)<.8)return;ALB[l.i]=new Date().toLocaleDateString('hu-HU');got.push(LM[l.i])});
  if(got.length){LSs('k3x50alb',ALB);got.forEach(x=>sayX('📸 Új album-kép: '+x[0]+' '+x[1]+'! ('+Object.keys(ALB).length+'/12)'));try{S.c+=2000*got.length;saveAll()}catch(er){}
-  if(Object.keys(ALB).length===12&&!LSg('k3x50albDone',0)){LSs('k3x50albDone',1);try{S.c+=50000;BR.zs+=1000;saveAll()}catch(er){}toast('📸 TELJES TURISTA-ALBUM! +50 000 Ft, +1000 🪙')}}});
+  if(Object.keys(ALB).length===12&&!LSg('k3x50albDone',0)){LSs('k3x50albDone',1);try{S.c+=50000;BR.zs+=1000;saveAll()}catch(er){}toast('📸 TELJES TURISTA-ALBUM! +50 000 Ft, +1000 🪙')}}};
 // meccs vége: mesterség (kill), kártyacsomag
 WP('kill',null,()=>{if(normal())mastKill()});
 WP('end',null,a=>{hud.style.display='none';pr.style.display='none';if(!Q)return;try{if(G)G.gv=undefined}catch(e){}

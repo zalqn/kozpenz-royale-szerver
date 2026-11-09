@@ -69,7 +69,7 @@ WP('dmgE',a=>{const m=cur();if(m&&m.one&&a[0])a[1]=Math.max(a[1],(a[0].hp||0)+1)
 let hd=null,hubT=0;
 function hud(){const m=cur();if(!hd){hd=document.createElement('div');hd.className='x14chud';document.body.appendChild(hd)}
  const t=m&&inMatch()?m.n+(X.dbl?' ×2':'')+(m.hud?' · '+m.hud():''):'';if(hd._t!==t){hd._t=t;hd.textContent=t;hd.style.display=t?'block':'none'}
- const now=performance.now();if(now-hubT>500){hubT=now;const h=$$('x14hub');if(h){const d=inMatch()?'none':'flex';if(h.style.display!==d)h.style.display=d}}}
+ const now=performance.now();if(now-hubT>500){hubT=now;const h=$$('x14hub');if(h){const au=document.getElementById('auth');const d=(inMatch()||(au&&au.classList.contains('on')))?'none':'flex';if(h.style.display!==d)h.style.display=d}}}
 
 // --- CSS + panel
 const st=document.createElement('style');st.textContent=`

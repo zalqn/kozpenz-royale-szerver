@@ -24,7 +24,7 @@ const RULES=[
 // a menübe sorolt ismert önálló lebegő gombok
 const SOLO=['x110k','x13cBtn','x13bEggBtn','x13dBtn'];
 // ezeket soha ne sorolja be (elrendezés-elemek, HUD)
-const KEEP=new Set(['lb2bar','lb2pan','gui','x14dJP','x70Vape','x60Ph','lbChat']);
+const KEEP=new Set(['lb2bar','lb2pan','gui','x14dJP','x70Vape','x60Ph','lbChat','kpBtn']); // kpBtn: a kopkodes.js _lb2.add-dal saját menüpontot ad (ne legyen dupla)
 const auto=new Set(); // ismeretlen, automatikusan besorolt elemek
 const EXTRA=[]; // virtuális menüpontok (lobbyE.js): {ic,tx,c,fn,kw}
 
@@ -33,7 +33,7 @@ css.textContent=`
 body.lb2on #soDock,body.lb2on #x14hub,body.lb2on #x110k,body.lb2on #x13cBtn,body.lb2on #x13bEggBtn,body.lb2on #x13dBtn,body.lb2on #x70KitB,body.lb2on .lb2hid{display:none!important}
 #lb2bar,#lb2pan{font-family:'Luckiest Guy',Impact,sans-serif;letter-spacing:.5px}
 #lb2bar{position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:9;display:none;gap:6px;padding:6px;border-radius:16px;
- background:linear-gradient(180deg,#0f172ae6,#0b1022e6);border:1px solid #ffffff24;box-shadow:0 10px 30px #0008,inset 0 1px 0 #ffffff1a;backdrop-filter:blur(6px);max-width:calc(100vw - 680px)}
+ background:linear-gradient(180deg,#0f172ae6,#0b1022e6);border:1px solid #ffffff24;box-shadow:0 10px 30px #0008,inset 0 1px 0 #ffffff1a;backdrop-filter:blur(6px);max-width:calc(100vw - 600px);flex-wrap:wrap;justify-content:center}
 body.lb2on #lb2bar{display:flex}
 #lb2bar button{all:unset;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;padding:8px 13px;border-radius:11px;color:#e2e8f0;
  font-size:clamp(11px,.78vw,15px);text-shadow:0 2px 0 #0008;transition:background .15s,transform .15s,color .15s}
@@ -77,7 +77,7 @@ body.lb2on #lbSide{right:24px!important}
 }
 @media (max-height:800px){ body.lb2on #x14eMotd{display:none!important} }
 @media (max-width:1500px){
- #lb2bar{max-width:calc(100vw - 40px)}
+ #lb2bar{max-width:calc(100vw - 560px)}
  #lb2pan{width:min(700px,calc(100vw - 40px))}
  #lb2bar button i{display:none}
 }
@@ -143,6 +143,8 @@ const norm=s=>(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
 let q='';
 function fill(){
  const c=cur==='_q'?{i:'🔎',n:'KERESÉS: „'+q+'”'}:CATS.find(x=>x.k===cur);
+ if(!c){cur=null;pan.classList.remove('on');return}
+ {const bb=document.getElementById('lb2bar');if(bb&&bb.offsetHeight)pan.style.top=Math.round(bb.getBoundingClientRect().bottom+6)+'px'}
  pan.innerHTML='<h3></h3><div class="g"></div>';pan.querySelector('h3').textContent=c.i+' '+c.n;
  const g=pan.querySelector('.g');
  const nq=norm(q).trim(),list=cur==='_q'?items.filter(it=>nq&&norm(it.tx+' '+(it.el.textContent||'')+' '+(it.el.getAttribute('title')||'')+' '+(CATS.find(x=>x.k===it.c)||{}).n).includes(nq)):items.filter(it=>it.c===cur);

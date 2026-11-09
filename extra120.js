@@ -282,7 +282,7 @@ const key=(k,c)=>{dispatchEvent(new KeyboardEvent('keydown',{key:k,code:c||''}))
 const fire=on=>{try{ms.on=on}catch(e){}if(A()&&A().fly()&&M)M.firing=on};
 $$('x12m1').addEventListener('touchstart',e=>{e.preventDefault();fire(true)});$$('x12m1').addEventListener('touchend',e=>{e.preventDefault();fire(false)});
 $$('x12m2').ontouchstart=e=>{e.preventDefault();key('e')};$$('x12m3').ontouchstart=e=>{e.preventDefault();key('é','Semicolon')};$$('x12m4').ontouchstart=e=>{e.preventDefault();key('r')};
-const isTouch=()=>('ontouchstart' in window)||navigator.maxTouchPoints>0;
+const isTouch=()=>{try{if(matchMedia('(pointer:coarse)').matches)return true;if(matchMedia('(pointer:fine)').matches)return false}catch(e){}return ('ontouchstart' in window)||navigator.maxTouchPoints>0};// asztali gép érintőképernyővel: egér az elsődleges → nincs mobilgomb
 
 // =====================================================================
 // HOOKOK

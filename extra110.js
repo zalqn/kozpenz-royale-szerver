@@ -142,7 +142,7 @@ function magStep(dt){const now=performance.now();MAG.mana=Math.min(MAG.max,MAG.m
  for(let i=MAG.fx.length-1;i>=0;i--){const f=MAG.fx[i];f.t-=dt;if(!f.line){const k=1-f.t/f.T;f.m.scale.setScalar(.5+k*f.s);f.m.material.opacity=Math.max(0,f.t/f.T)*.6}if(f.t<=0){scene.remove(f.m);MAG.fx.splice(i,1)}}}
 
 // =================== HUD + KIT-VÁLASZTÓ ===================
-const css=document.createElement('style');css.textContent=`#x110h{position:fixed;right:14px;bottom:150px;z-index:40;background:rgba(15,23,42,.82);color:#fff;border:1px solid #6d28d9;border-radius:12px;padding:8px 10px;font:600 12px sans-serif;min-width:190px;display:none;pointer-events:none}
+const css=document.createElement('style');css.textContent=`#x110h{position:fixed;right:14px;bottom:270px;z-index:40;background:rgba(15,23,42,.82);color:#fff;border:1px solid #6d28d9;border-radius:12px;padding:8px 10px;font:600 12px sans-serif;min-width:190px;display:none;pointer-events:none}
 #x110h .bar{height:8px;background:#1e1b4b;border-radius:4px;overflow:hidden;margin:4px 0}#x110h .bar i{display:block;height:100%;background:linear-gradient(90deg,#7c3aed,#22d3ee)}
 #x110h .sl{display:flex;gap:3px;margin-top:4px}#x110h .sl b{flex:1;text-align:center;font-size:15px;padding:2px 0;border-radius:6px;background:#312e81;opacity:.55}#x110h .sl b.on{opacity:1;outline:2px solid #facc15}
 #x110k{position:fixed;left:14px;top:200px;z-index:60;background:linear-gradient(135deg,#7c3aed,#db2777);color:#fff;border:0;border-radius:12px;padding:10px 14px;font:800 14px sans-serif;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.4);display:none}

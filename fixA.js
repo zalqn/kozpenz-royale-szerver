@@ -101,3 +101,13 @@ function news(force){if(!force&&(LG('k3Aver','')===VER||headless))return;
 X.news=()=>news(true);
 setTimeout(()=>news(false),2500);
 })();
+// 11-09 hibajavítás: (1) a böngésző automatikus kitöltése key nélküli keydown/keyup-ot küld → sok modul e.key.toLowerCase()-a elszállt.
+// Ablak-szintű capture-figyelő elnyeli ezeket, mielőtt a többi figyelőhöz érnének. (2) belépő képernyőn (#auth.on) a jobb oldali x14hub
+// és a lebegő lobby-gombok rejtve (CSS :has – nem függ az extra140c 500 ms-os időzítőjétől).
+(function(){
+ const drop=e=>{if(typeof e.key!=='string'){e.stopImmediatePropagation()}};
+ addEventListener('keydown',drop,true);addEventListener('keyup',drop,true);addEventListener('keypress',drop,true);
+ const st=document.createElement('style');
+ st.textContent='body:has(#auth.on) #x14hub,body:has(#auth.on) #soDock,body:has(#auth.on) #x110k,body:has(#auth.on) #x13cBtn,body:has(#auth.on) #x13bEggBtn,body:has(#auth.on) #x13dBtn,body:has(#auth.on) #kpBtn,body:has(#auth.on) #mbBtn,body:has(#auth.on) #kdBtn,body:has(#auth.on) #lb2bar,body:has(#auth.on) #lb2pan{display:none!important}';
+ document.head.appendChild(st);
+})();
