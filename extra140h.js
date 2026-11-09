@@ -238,7 +238,7 @@ WP('update',null,a=>{if(!inMatch()||!X)return;if(X.G!==G){clearAll();return}if(!
 {const oc=window.extraCmd;window.extraCmd=function(c){const n=String(c).trim().split(/\s+/)[0].toLowerCase();
  const M={auto:'car',motor:'moto',robogo:'moto',deszka:'board',rampa:'ramp',katapult:'cat',kut:'pump',benzinkut:'pump',lada:'chest'};
  if(M[n]){if(!inMatch())return'🚗 Csak meccsben!';spawnFront(M[n]);return'✅ Lerakva előtted: '+n}
- if(n==='cipo'){if(!inMatch()||!X)return'Csak meccsben!';X.boots=1;X.dj=0;return'🚀 Rakétacipő felvéve.'}
+ if(['auto','autó','car'].includes(n)||['robogo','robogó','moto'].includes(n)||['deszka','gordeszka','gördeszka','board'].includes(n)){if(!inMatch())return'Csak meccsben!';const k=/^(auto|autó|car)$/.test(n)?'car':/^(robog|moto)/.test(n)?'moto':'board';spawnFront(k);return k==='car'?'🚗 Autó előtted ([E] beszáll)':k==='moto'?'🛵 Robogó előtted ([E] felül)':'🛹 Gördeszka előtted ([E] rááll)'}if(n==='cipo'){if(!inMatch()||!X)return'Csak meccsben!';X.boots=1;X.dj=0;return'🚀 Rakétacipő felvéve.'}
  return oc?oc.apply(this,arguments):undefined}}
 window._x14h=()=>X;window._x14hApi={wallNear,spawnFront,setup,skins:SKINS,shop:_shopOpen};
 })();

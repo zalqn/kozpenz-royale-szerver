@@ -34,7 +34,7 @@ let DEV=false;
 function cmd(c){{const zr=window.zalqnCheat&&zalqnCheat(c);if(zr!==null&&zr!==undefined){msg(zr,'dev');return}}{const xr=window.extraCmd&&extraCmd(c);if(xr!==null&&xr!==undefined){msg(xr,'dev');return}}const n=c.split(/\s+/)[0].toLowerCase();const g=G;
  if(n==='999'){if(!g.brMode){msg('🚌 A buszt csak Battle Royale-ban vezetheted.','sys');return}if(g.phase==='drop')becomeDriver('parancs');else{msg('🚌 A következő meccsen te vezeted a buszt!','sys');window._nextDriver=1}return}
  if(n==='developer'||n==='dev'){DEV=!DEV;msg(DEV?'🛠️ Fejlesztői mód BE · /fly · /additem · /heal':'🛠️ Fejlesztői mód KI','dev');if(!DEV)g.fly=false;return}
- if(n==='help'||n==='parancsok'){msg('Parancsok: /999 · /developer · /fps · /god · /spawn [db] · /tp x z · /time nap|éj · /weather eső|tiszta · /reset igen · /zalqntoken · /zalqnft · /repcsi · /heli · /kit név · /mana'+(DEV?' · /fly · /additem · /heal':''),'sys');return}
+ if(n==='help'||n==='parancsok'){msg('Parancsok: /999 · /developer · /fps · /god · /spawn [db] · /tp x z · /time nap|éj · /weather eső|tiszta · /reset igen · /zalqntoken · /zalqnft · /repcsi · /heli · /auto · /robogo · /deszka · /kit név · /mana'+(DEV?' · /fly · /additem · /heal':''),'sys');return}
  if(!DEV){msg('⛔ Ismeretlen parancs vagy nincs jogod. (/developer)','sys');return}
  if(n==='fly'){g.fly=!g.fly;if(g.fly){g.gl=false;if(g.gs)g.gs.visible=false;g._flyY=Math.max(g.y,2)}msg(g.fly?'🕊️ Repülés BE · Space: fel · Shift: le · WASD: irány':'🕊️ Repülés KI','dev');return}
  if(n==='additem'||n==='items'){openAdd();return}
