@@ -92,7 +92,7 @@ window.vsPlace=()=>{const c=slipCalc();if(!c.n)return;if(c.dup&&mode!=='single')
  DB.st.bets++;DB.st.stake+=c.need;store();try{sfx('buy')}catch(e){}toast('✅ Szelvény leadva: '+ft(c.need)+(mode==='single'&&c.n>1?' ('+c.n+' fogadás)':''),true);SLIP=[];render(true)};
 // ---------- megjelenés ----------
 const css=document.createElement('style');css.textContent=`
-#vs2{position:fixed;inset:0;z-index:11;display:none;font-family:Rajdhani,Arial;color:#fff;background:radial-gradient(1200px 700px at 20% -10%,#14532d 0%,#06140d 50%,#020604 100%)}
+#vs2{position:fixed;inset:0;z-index:2147483000;display:none;font-family:Rajdhani,Arial;color:#fff;background:radial-gradient(1200px 700px at 20% -10%,#14532d 0%,#06140d 50%,#020604 100%)}
 #vs2.on{display:flex;flex-direction:column}
 #v2Top{display:flex;align-items:center;gap:12px;padding:10px 18px;background:linear-gradient(#000c,#0000);flex-wrap:wrap}
 #v2Top .lg{font:32px 'Luckiest Guy',Impact;background:linear-gradient(180deg,#bbf7d0,#22c55e);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 #052e16)}
