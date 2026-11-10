@@ -82,11 +82,11 @@ new MutationObserver(()=>{const mb=document.getElementById('x20MB');if(!mb)retur
  const close=[...mb.querySelectorAll('button')].pop();if(close&&close.parentNode)close.parentNode.before(wrap);else mb.appendChild(wrap)}).observe(document.body,{childList:true,subtree:true});
 
 // ---------- 2 + 9: billentyűk ----------
-addEventListener('keydown',e=>{if(!okG())return;const k=e.key.toLowerCase();if(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;
+addEventListener('keydown',e=>{if(!okG())return;const k=(e.key||'').toLowerCase();if(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;
  if(k===','||k==='.'){X.lk[k]=1;return}
  if(e.repeat||!'wasd'.includes(k)||k.length!==1)return;const now=performance.now();
  if(now-(X.lastTap[k]||0)<260&&X.dashCd<=0)dash(k);X.lastTap[k]=now});
-addEventListener('keyup',e=>{const k=e.key.toLowerCase();if(k===','||k==='.')X.lk[k]=0});
+addEventListener('keyup',e=>{const k=(e.key||'').toLowerCase();if(k===','||k==='.')X.lk[k]=0});
 function dash(k){const g=G;let vx=k==='d'?1:k==='a'?-1:0,vz=k==='s'?1:k==='w'?-1:0;if(g.fp){const sx=vx,sz=vz,c=Math.cos(g.ang),s=Math.sin(g.ang);vx=-sz*c-sx*s;vz=-sz*s+sx*c}
  X.dash={vx,vz,t:.18};X.dashCd=2.5;X.lastTap={};g.ef.push({k:'inv',t:.25});beep(300,.15,.06,'sawtooth');beep(600,.1,.04)}
 

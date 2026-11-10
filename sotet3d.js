@@ -354,7 +354,7 @@ function stepNear(){near=null;let bd=INSIDE?1.6:(INCAR?5.5:3.2);const fx=-Math.s
  ST.forEach(s=>{const on=s===near,w=s.sp.userData.w||1.6;s.sp.material.opacity=on?1:.6;s.sp.scale.set(w*(on?1.15:1),w*.19*(on?1.15:1),1);if(/^drop/.test(s.id))s.sp.visible=!INSIDE});
  const pr=$$('sp3p');const hn=near&&(HINT[near.id]||(/^drop/.test(near.id)?'rendelés leadása':/^shop_/.test(near.id)?'bolt':/^pot_/.test(near.id)?'ültetés / szüret':''));const h=near?'<b>['+(near.id==='car'?'F':'E')+']</b> '+near.label.replace(/ \[[EF]\]/,'')+(hn?' <span style="font-weight:500;opacity:.8;font-size:14px">– '+hn+'</span>':''):'';if(pr._h!==h){pr._h=h;pr.innerHTML=h;pr.style.display=h?'block':'none'}}
 function interact(){if(!near)return;if(near.id==='car'){toggleCar();return}PAUSE=true;try{document.exitPointerLock()}catch(e){}if(near.act){PAUSE=false;near.act();return}window.openSotetProgram(near.tab)}
-function loop(t){if(!ON)return;raf=requestAnimationFrame(loop);if(window.spmgOn&&spmgOn()){last=t;return}const dt=Math.min(.05,(t-(last||t))/1000);last=t;clock+=dt;const d=DD();
+function loop(t){if(!ON)return;raf=requestAnimationFrame(loop);if(window.spmgOn&&spmgOn()){last=t;return}const dt=Math.min(.05,(t-(last||t))/1000);last=t;clock+=dt;const d=DD();if(window._sp3fx)try{window._sp3fx(dt,{SC,CAM,INSIDE,INCAR,HEMI,MOON,px,pz,car,clock,beep})}catch(e){}
  const busy=PAUSE||(window.sotetPanelOpen&&sotetPanelOpen())||($$('dpmg')&&$$('dpmg').style.display==='flex')||ovlOpen();
  if(!busy){const a=accB();
   if(INCAR){const v=veh(),mxs=v.sp*(1+a.car)*(K.shift?1.35:1);if(K.w||K.arrowup)car.v+=dt*mxs*.9;else if(K.s||K.arrowdown)car.v-=dt*mxs*(car.v>0?1.6:.6);else car.v*=1-dt*1.2;car.v=cl(car.v,-mxs*.4,mxs);

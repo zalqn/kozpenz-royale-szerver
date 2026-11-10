@@ -111,3 +111,20 @@ setTimeout(()=>news(false),2500);
  st.textContent='body:has(#auth.on) #x14hub,body:has(#auth.on) #soDock,body:has(#auth.on) #x110k,body:has(#auth.on) #x13cBtn,body:has(#auth.on) #x13bEggBtn,body:has(#auth.on) #x13dBtn,body:has(#auth.on) #kpBtn,body:has(#auth.on) #mbBtn,body:has(#auth.on) #kdBtn,body:has(#auth.on) #lb2bar,body:has(#auth.on) #lb2pan{display:none!important}';
  document.head.appendChild(st);
 })();
+// BUG1 (11-09): Esc a lobbyban bezárja a legfelső nyitott panelt (sok panelnek nem volt Esc-kezelése)
+(function(){
+ const CL=/^(✕|×|X|✖|❌|((✕|✖|×|❌)\s*)?(Bezár|BEZÁR|BEZÁRÁS|Bezárás))$/;
+ const lbOn=()=>{const l=document.getElementById('lb');return !!(l&&l.classList.contains('on')&&!(typeof run!=='undefined'&&run))};
+ addEventListener('keydown',e=>{
+  if(e.key!=='Escape'||!lbOn()||(window._setal&&_setal.on))return;
+  let best=null,bz=-1;
+  for(const el of document.querySelectorAll('body > *')){
+   const s=getComputedStyle(el);if(s.position!=='fixed'||s.display==='none'||s.visibility==='hidden'||+s.opacity<0.1||s.pointerEvents==='none')continue;
+   const b=el.getBoundingClientRect();if(b.width*b.height<innerWidth*innerHeight*0.25)continue;
+   const z=parseInt(s.zIndex)||0;if(z<=bz)continue;
+   const btn=[...el.querySelectorAll('button,span,a,div')].find(x=>x.children.length===0&&x.offsetParent&&CL.test(x.textContent.trim()));
+   if(btn){best=btn;bz=z}
+  }
+  if(best){e.preventDefault();e.stopImmediatePropagation();best.click()}
+ },true);
+})();

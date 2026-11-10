@@ -27,7 +27,7 @@ function limLeft(){const L=limDay();return L.lim>0?Math.max(0,L.lim-Math.max(0,L
 function canBet(b){const L=limDay();if(typeof BR==='undefined'||!BR)return'Nincs zseton-rendszer';if(!(b>0))return'Érvénytelen tét';if(zs()<b)return'Nincs elég zseton!';
  if(L.lim>0&&L.lost+b>L.lim)return'⛔ Napi veszteséghatár ('+fmt(L.lim)+' zseton) elérve. Holnap folytathatod!';return''}
 function bet(b){const L=limDay();BR.zs-=b;L.lost+=b;limSave(L);D.lost=L.lost;D.turn+=b;D.jp+=Math.ceil(b*0.05)+5;log(0,b);saveAll();jpBar();chipFx(b,false)}
-function pay(w){if(w>0){const L=limDay();BR.zs+=w;L.lost=Math.max(-1e9,L.lost-w);limSave(L);D.lost=L.lost;log(w,0);saveAll();chipFx(w,true)}}
+function pay(w){if(w>0){try{window._k2&&_k2.earn&&_k2.earn('casino',0,w)}catch(e){}const L=limDay();BR.zs+=w;L.lost=Math.max(-1e9,L.lost-w);limSave(L);D.lost=L.lost;log(w,0);saveAll();chipFx(w,true)}}
 function tryJP(chance){if(R()<chance){const w=Math.floor(D.jp/10);pay(w);D.jpWins++;D.jp=50000;save();toast('💎 JACKPOT! +'+fmt(w)+' zseton');jpBar();jpBoom(w);return w}return 0}
 // ---- VIP ----
 const VIP=[['Bronz',0,0,'#cd7f32'],['Ezüst',5000,0.02,'#c0c0c0'],['Arany',25000,0.04,'#facc15'],['Platina',100000,0.07,'#a5f3fc'],['Gyémánt',400000,0.10,'#e879f9']];
@@ -95,7 +95,7 @@ function jpBar(){jpEl.textContent='💎 JACKPOT: '+fmt(D.jp)+' zseton';const v=d
 let tab='bj',timers=[];
 function clr(){timers.forEach(t=>{clearInterval(t);clearTimeout(t)});timers=[]}
 const TABS=[['bj','🃏 Blackjack'],['dice','🎲 Kockapóker'],['scr','🪙 Kaparós'],['horse','🏇 Lóverseny'],['stock','📈 Tőzsde'],['coin','⛏️ KözCoin'],['prop','🏠 Ingatlan'],['vip','👑 VIP'],['fin','📊 Kimutatás'],['cp3','🌐 PIAC+ (online)']];
-function open(t){if(t)tab=t;tickEco();M.classList.add('on');try{window.guiOpen&&guiOpen()}catch(e){}render()}
+function open(t){if(t)tab=t;tickEco();M.classList.add('on');try{window.guiOpen&&guiOpen('')}catch(e){}render()}
 function close(){clr();M.classList.remove('on');try{window.guiClose&&guiClose()}catch(e){}}
 function head(){const v=VIP[vip()];const LL=limLeft();
  return '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px"><h2>🎰 KASZINÓ+ & GAZDASÁG</h2><button class="x14dB" onclick="_x14d.close()">✕ BEZÁR</button></div>'+

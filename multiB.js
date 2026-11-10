@@ -5,7 +5,7 @@
   'use strict';
   const RUN = () => { try { return run; } catch (e) { return false; } }, GG = () => { try { return G; } catch (e) { return null; } };
   const K = () => window.KR, A = () => (K() ? K().acc() : {}), logged = () => { const a = A(); return a && a.token && !a.guest && a.ws && a.ws.readyState === 1; };
-  const ws = o => { if (K()) K().wsend(o); };
+  const ws = o => { try { const M = window._mb && _mb.m; if (M && M.team && /^mb_(pos|shot|hit|dead|leave)$/.test(o.t)) o = Object.assign({}, o, { t: 'mb2_' + o.t.slice(3) }); } catch (e) {} if (K()) K().wsend(o); };
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const toast = (h, b) => { if (K()) K().toast(h, b); };
   const me = () => (A().user || {}).name;
@@ -62,12 +62,12 @@ body:has(#lb.on) #mbBtn{display:block}
     bd().innerHTML = '<p>Valódi játékosok <b>ugyanazon a pályán</b> – a hiányzó helyeket botok töltik. Max 8 valódi játékos, a sor 8 mp után indít (egyedül 30 mp után botokkal).</p>' +
       (p ? '<p>👥 Partiban vagy (' + a.party.members.length + ' fő). ' + (lead ? 'Vezetőként az egész partit sorba állítod.' : 'A parti vezetője állít sorba.') + '</p>' : '') +
       (ST.q ? '<p style="color:#facc15">⏳ Sorban: ' + ST.q.n + ' játékos, ' + ST.q.w + ' mp</p><button class="b r" id="mbUnq">Kilépés a sorból</button>' :
-        '<button class="b y" id="mbQ0">⚔️ SIMA KÖZÖS MECCS</button> <button class="b g" id="mbQ1">🎖️ RANGSOROLT (RP)</button>') +
+        '<button class="b y" id="mbQ0">⚔️ SIMA KÖZÖS MECCS</button> <button class="b g" id="mbQ1">🎖️ RANGSOROLT (RP)</button><br><button class="b y" id="mbQ2">👥 DUÓ (2 fős csapat)</button> <button class="b y" id="mbQ4">👥 SQUAD (4 fős csapat)</button><p style="opacity:.8;font-size:12px">Duó/squad: a partid egy csapatba kerül, a hiányzó helyekre más játékosok jönnek; közös busz, a csapattársakat nem sebezheted. Az utolsó élő csapat nyer.</p>') +
       '<h3>🎖️ Divíziók</h3><p>' + (ST.me ? ST.me.divs.map(d => (d[0] === ST.me.div.n ? '<b style="color:#facc15">▶ ' : '<b>') + d[0] + '</b> ' + d[1] + '+').join(' · ') : '') + '</p>' +
       '<p style="opacity:.8">Rangsorolt pont: helyezés (1. hely ≈ +60, utolsó −15) + 10 RP/kiesés valódi játékos ellen. Bot-meccs: kis pont (győzelem +18, max 1×/perc). Meccsben: <b>V nyomva = hangchat</b> (ilyenkor a nézetváltás a V-n szünetel).</p>' +
       (ST.me && ST.me.st ? '<p>Közös meccsek: ' + (ST.me.st.g | 0) + ' · győzelem: ' + (ST.me.st.w | 0) + ' · valódi kiesés: ' + (ST.me.st.k | 0) + '</p>' : '');
     const q0 = $('mbQ0'), q1 = $('mbQ1'), u = $('mbUnq');
-    if (q0) q0.onclick = () => ws({ t: 'mb_q', ranked: false }); if (q1) q1.onclick = () => ws({ t: 'mb_q', ranked: true }); if (u) u.onclick = () => { ws({ t: 'mb_unq' }); ST.q = null; render(); };
+    const q2 = $('mbQ2'), q4 = $('mbQ4'); if (q2) q2.onclick = () => ws({ t: 'mb2_q', mode: 'duo' }); if (q4) q4.onclick = () => ws({ t: 'mb2_q', mode: 'squad' }); if (q0) q0.onclick = () => ws({ t: 'mb_q', ranked: false }); if (q1) q1.onclick = () => ws({ t: 'mb_q', ranked: true }); if (u) u.onclick = () => { ws({ t: 'mb_unq' }); ws({ t: 'mb2_unq' }); ST.q = null; render(); };
   }
   // ---------------- BARÁTOK ----------------
   function rFriends() {
@@ -179,7 +179,7 @@ body:has(#lb.on) #mbBtn{display:block}
     const pl = (MB.m.players || []).find(p => p.name === n) || {};
     try { e = sp('nav', x, z); } catch (er) { return null; }
     e.mp = n; e.hp = 1e9; e.mhp = 1e9; e.sp = 0; e.cd = 99; e.fz = 9; e.b = false; e.buf = [];
-    try { e.m.add(tag('🎮 ' + n, pl.color)); } catch (er) {}
+    const ally = MB.m.team && pl.team === MB.myTeam; e.mAlly = ally; try { e.m.add(tag((ally ? '🤝 ' : '🎮 ') + n, ally ? '#4ade80' : pl.color)); } catch (er) {}
     G.en.push(e); MB.R[n] = e; return e;
   }
   function interp(e) {
@@ -201,6 +201,7 @@ body:has(#lb.on) #mbBtn{display:block}
         for (const n in MB.R) { const e = MB.R[n]; if (!e.dead) interp(e); }
         const t = performance.now();
         if (t - sendT > 66) { sendT = t; ws({ t: 'mb_pos', x: +G.x.toFixed(2), y: +((G.y || 0)).toFixed(2), z: +G.z.toFixed(2), a: +fwd().toFixed(3), hp: G.hp | 0 }); }
+        botSync(t);
         if (mouseDown && document.pointerLockElement && t - shotT > 120) { shotT = t; ws({ t: 'mb_shot', x: G.x, z: G.z, a: fwd() }); }
         const al = Object.values(MB.R).filter(e => !e.dead).length;
         hud.style.display = 'block'; hud.textContent = (MB.m.ranked ? '🎖️ RANGSOROLT' : '⚔️ KÖZÖS MECCS') + ' · valódi ellenfél: ' + al + '/' + (MB.m.players.length - 1) + ' · 🎙️ V';
@@ -208,7 +209,8 @@ body:has(#lb.on) #mbBtn{display:block}
       return r;
     };
     const oD = window.dmgE; window.dmgE = function (e, d, ct) {
-      if (!e || !e.mp) return oD.apply(this, arguments);
+      if (e && e.bot && MB.m && !MB.isHost && !e.dead) { const h0 = (e.hp || 0) + (e.sh || 0), r0 = oD.apply(this, arguments); const dd = Math.max(0, h0 - (e.hp || 0) - (e.sh || 0)); if (dd > 0) { const bi = botList().indexOf(e); if (bi >= 0) ws({ t: 'mb2_bhit', i: bi, d: Math.round(dd), host: MB.host }); } return r0; }
+      if (!e || !e.mp) return oD.apply(this, arguments); if (e.mAlly) return;
       if (e.dead) return; e.hp = 1e9; const r = oD.apply(this, arguments); const dealt = Math.max(0, 1e9 - e.hp); e.hp = 1e9; e.dead = false;
       if (dealt > 0) ws({ t: 'mb_hit', to: e.mp, d: Math.round(dealt) }); return r;
     };
@@ -220,6 +222,25 @@ body:has(#lb.on) #mbBtn{display:block}
     return true;
   }
   const wi = setInterval(() => { if (wrapAll()) clearInterval(wi); }, 500);
+  // ---- 7) BOT-SZINKRON + közös busz (duó/squad): a host dönt, a többiek interpolálnak ----
+  const botList = () => (GG() && G.en ? G.en.filter(e => e.bot && !e.ally && !e.mp) : []);
+  const peers = () => MB.m && !MB.m.team ? MB.m.players.map(p => p.name).filter(n => n !== me()) : undefined;
+  let botT = 0, busT = 0; MB.bs = null; MB.bus = null;
+  function botSync(t) {
+    if (MB.isHost) {
+      if (G.phase === 'drop' && G.car && t - busT > 150) { busT = t; ws({ t: 'mb2_bus', to: peers(), x: +G.car.position.x.toFixed(1), y: +G.car.position.y.toFixed(1), z: +G.car.position.z.toFixed(1), ph: 'drop' }); }
+      if (t - botT > 200) { botT = t; ws({ t: 'mb2_bots', to: peers(), b: botList().map((e, i) => [i, +e.x.toFixed(1), +e.z.toFixed(1), Math.round((e.hp || 0) + (e.sh || 0)), e.dead ? 1 : 0, +((e._face || 0).toFixed(2))]) }); }
+    } else if (MB.bs && t - MB.bs.t < 1500) { // ha a host elnémul, a helyi bot-AI veszi át
+      const L = botList(), S0 = MB.bs.a, S1 = MB.bs.b, k = Math.min(1, (t - MB.bs.t) / 200);
+      S1.forEach(s => { const e = L[s[0]]; if (!e) return; const p = S0 && S0.find(q => q[0] === s[0]) || s;
+        e.x = p[1] + (s[1] - p[1]) * k; e.z = p[2] + (s[2] - p[2]) * k; e._face = s[5];
+        const hp = s[3]; if (hp < (e.hp || 0) + (e.sh || 0)) { e.sh = Math.max(0, hp - (e.hp || 0)); if (!e.sh) e.hp = Math.max(1, hp); }
+        if (s[4] && !e.dead) { try { window._ryAPI && _ryAPI.hitBot(e, 1e6, null); } catch (er) { e.dead = true; } }
+        if (e.m) e.m.position.set(e.x, 0, e.z); });
+    }
+  }
+  (function wrapBus() { const o = window.busPos; if (typeof o !== 'function' && !window.update) { setTimeout(wrapBus, 600); return; }
+    window.busPos = function (g) { if (MB.m && !MB.isHost && MB.bus && g && g.car && g.phase === 'drop') { const b = MB.bus; g.car.position.x += (b.x - g.car.position.x) * .25; g.car.position.z += (b.z - g.car.position.z) * .25; g.car.position.y = b.y; return true; } return typeof o === 'function' ? o.apply(this, arguments) : false; }; })();
   function cleanup() { if (!MB.m || !MB.sentDead) return; MB.m = null; MB.R = {}; hud.style.display = 'none'; }
   function tracer(x, z, a) {
     try { const g = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x, 1.4, z), new THREE.Vector3(x + Math.sin(a) * 40, 1.4, z + Math.cos(a) * 40)]);
@@ -251,14 +272,24 @@ body:has(#lb.on) #mbBtn{display:block}
 
   // ================= WS üzenetek =================
   addEventListener('krws', ev => {
-    const m = ev.detail; if (!m || typeof m.t !== 'string') return;
+    let m = ev.detail; if (!m || typeof m.t !== 'string') return;
     if (m.t === 'presence' || m.t === 'friends' || m.t === 'party') { if (P.classList.contains('on') && (tab === 'fr' || tab === 'mod' || tab === 'royale')) render(); return; }
+    if (m.t.startsWith('mb2_')) {
+      if (m.t === 'mb2_bots') { if (MB.m && !MB.isHost) MB.bs = { a: MB.bs ? MB.bs.b : null, b: m.b || [], t: performance.now() }; return; }
+      if (m.t === 'mb2_bus') { if (MB.m && !MB.isHost) MB.bus = m; return; }
+      if (m.t === 'mb2_bhit') { if (MB.isHost && GG()) { const e = botList()[m.i | 0]; if (e && !e.dead) try { window._ryAPI.hitBot(e, Math.min(200, +m.d || 0), { name: m.from }); } catch (er) {} } return; }
+      if (m.t === 'mb2_host') { MB.host = m.host; MB.isHost = m.host === me(); if (MB.isHost) toast('🤖 Mostantól te irányítod a botokat (host).'); return; }
+      if (m.t === 'mb2_win') { if (MB.m && (m.names || []).includes(me())) { try { say('🏆 A CSAPATOD NYERT! (' + m.names.join(', ') + ')'); } catch (e) {} } return; }
+      if (m.t === 'mb2_rl' || m.t === 'mb2_rl_spin' || m.t === 'mb2_rl_chat') return; // rulett: kaszino3.js kezeli
+      m = Object.assign({}, m, { t: 'mb_' + m.t.slice(4) });
+      if (m.t === 'mb_qs') { m.n = m.n + ' (' + (m.mode === 'squad' ? 'squad' : 'duó') + ')'; }
+    }
     if (!m.t.startsWith('mb_')) return;
     const t = m.t;
     if (t === 'mb_note') toast(esc(m.text));
     else if (t === 'mb_qs') { ST.q = m; if (tab === 'royale' && P.classList.contains('on')) render(); }
     else if (t === 'mb_start') {
-      ST.q = null; MB.m = m; MB.R = {}; MB.sentDead = false; P.classList.remove('on');
+      ST.q = null; MB.m = m; MB.R = {}; MB.sentDead = false; MB.bs = null; MB.bus = null; P.classList.remove('on'); if (m.team) { const mp = m.players.find(p => p.name === me()); MB.myTeam = mp ? mp.team : -1; MB.host = m.host; } else { MB.myTeam = -1; MB.host = (m.players[0] || {}).name; } MB.isHost = MB.host === me();
       toast((m.ranked ? '🎖️ Rangsorolt' : '⚔️ Közös') + ' meccs indul! Valódi játékosok: ' + m.players.map(p => esc(p.name)).join(', '));
       if (!(GG() && RUN())) { window.GAME_MODE = 'royale'; window.GAME_TEAM = 'solo'; try { typeof teamUI === 'function' && teamUI(); } catch (e) {} setTimeout(() => { try { startMatch(); } catch (e) { try { launch(); } catch (e2) {} } }, 600); }
     }

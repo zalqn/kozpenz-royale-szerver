@@ -15,6 +15,8 @@ const store = require('./store');
 let db = { users: {} };
 try { db = store.loadDb() || JSON.parse(fs.readFileSync(DB_FILE, 'utf8')); } catch (e) {}
 if (!db.users) db.users = {};
+const NP = o => Object.assign(Object.create(null), o || {}); // BUG4: prototípus-szennyezés ellen (__proto__/constructor nevek)
+db.users = NP(db.users); if (db.clans) db.clans = NP(db.clans); if (db.promos) db.promos = NP(db.promos);
 let saveT = null;
 const save = () => { clearTimeout(saveT); saveT = setTimeout(() => {
   try { store.saveDb(db); } catch (e) { console.log('[store] mentés hiba:', e.message); }
@@ -166,7 +168,7 @@ const server = http.createServer(async (req, res) => {
     // ---- EXTRA20: profil, klánok, rangsorolt ranglista, lottó ----
     if (url.pathname.startsWith('/api/x20/')) {
       const u = auth(req); if (!u) return send(res, 401, { error: 'Előbb jelentkezz be!' });
-      const P = url.pathname.slice(9); db.clans = db.clans || {}; const today = () => { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
+      const P = url.pathname.slice(9); db.clans = db.clans || NP(); const today = () => { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
       const clanOf = n => { const x = db.users[String(n).toLowerCase()]; return x && x.clan && db.clans[x.clan] ? db.clans[x.clan] : null; };
       const prof = x => ({ ...pubUser(x), x20: x.x20 || {}, clan: clanOf(x.name) ? { tag: clanOf(x.name).tag, name: clanOf(x.name).name, emb: clanOf(x.name).emb } : null });
       const weekK = names => { const since = Date.now() - 7 * 864e5, s = new Set(names); return (db.feed || []).filter(f => f.t > since && s.has(f.n)).reduce((a, f) => a + (f.k || 0), 0); };
@@ -205,7 +207,7 @@ const server = http.createServer(async (req, res) => {
     // ---- PROMÓCIÓS KÓDOK ----
     if (url.pathname.startsWith('/api/promo/')) {
       const u = auth(req); if (!u) return send(res, 401, { error: 'Előbb jelentkezz be!' });
-      db.promos = db.promos || {}; ['zalqn111', 'zalqn222', 'zalqn333', 'zalqn444', 'zalqn555'].forEach(c => { if (!db.promos[c]) db.promos[c] = { by: null, uses: [], t: Date.now() }; });
+      db.promos = db.promos || NP(); ['zalqn111', 'zalqn222', 'zalqn333', 'zalqn444', 'zalqn555'].forEach(c => { if (!db.promos[c]) db.promos[c] = { by: null, uses: [], t: Date.now() }; });
       const roll = big => { const r = Math.random(), m = big ? 1 : .5; if (r < .4) return { k: 'ft', n: Math.round((5000 + Math.random() * 45000) * m / 1000) * 1000 }; if (r < .75) return { k: 'zs', n: Math.round((100 + Math.random() * 900) * m / 10) * 10 }; return { k: 'cos' }; };
       if (url.pathname === '/api/promo/redeem' && req.method === 'POST') {
         if (limited('promo:' + u.name, 10, 60000)) return send(res, 429, { error: 'Túl sok próbálkozás, várj egy percet!' });
@@ -322,6 +324,8 @@ require('./mod_A')(server, db, wss, store); // A: /api/clientlog, napi users.jso
 require('./mod_B')({ server, wss, db, sessions, save, online, parties, sendParty, leaveParty, saveFile, store }); // B: többjátékos modul
 require('./mod_admin')({ server, db: () => db, sessions, online, save, store, send, body, saveFile, DATA }); // ADMIN: /api/admin/* (jog: users.admin, zalqn alap-admin), kitiltás, napló
 require('./mod_cplus')({ server, db: () => db, sessions, online, save, store, send, body, saveFile }); // KASZINÓ+ PIAC: /api/cp/* + /api/admin/cp/* (SQL táblák cp_*)
+require('./mod_kozos')({ server, db: () => db, sessions, online, save, store, send, body, saveFile, DATA }); // KÖZÖSSÉG2: pénz-őr, /api/reset, /api/k2/* (levél, meghívó, esemény, verseny, perf), mentés-feltöltés
+require('./mod_B2')({ wss, sessions, parties }); // B2: duó/squad royale, bot-szinkron, többjátékos rulett (mb2_*)
 server.listen(PORT, () => {
   const nets = require('os').networkInterfaces(); const ips = [];
   Object.values(nets).flat().forEach(n => { if (n && n.family === 'IPv4' && !n.internal) ips.push(n.address); });

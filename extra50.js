@@ -153,8 +153,8 @@ function showCards(msg){const C=cardDefs();const tot=C.filter(c=>CD.own[c.id]>0)
  SER.map((s,i)=>'<h3>'+s+(CD.done[i]?' ✅':'')+'</h3><div class="x50cards">'+C.filter(c=>c.s===i).map(c=>{const n=CD.own[c.id]||0;return'<div class="x50c r'+c.r+(n?'':' no')+'">'+(n>1?'<i>×'+n+'</i>':'')+'<b>'+esc(c.e)+'</b>'+esc(c.n)+'<br><small>'+['közönséges','ritka','epikus'][c.r]+'</small>'+(n>1?'<br><button style="padding:2px 6px;font-size:12px" onclick="x50send(\''+c.id+'\')">KÜLDÉS</button>':'')+'</div>'}).join('')+'</div>').join('')+
  '<div style="margin-top:8px"><button class="b" onclick="x50inbox()">📥 BEÉRKEZETT KÁRTYÁK</button></div>')}
 window.x50cards=showCards;
-window.x50send=async id=>{const to=prompt('Kinek küldöd? (játékosnév)');if(!to)return;if(!(CD.own[id]>1)){showCards('Csak duplát küldhetsz.');return}
- const r=await api('card/send',{to:to.trim(),card:id});if(r.error){showCards('❌ '+esc(r.error));return}CD.own[id]--;cSave();showCards('✅ Elküldve neki: '+esc(to))};
+window.x50send=async id=>{const to=prompt('Kinek küldöd? (játékosnév)');if(!to)return;if(!(CD.own[id]>1)){showCards('Csak duplát küldhetsz.');return}CD.own[id]--;
+ const r=await api('card/send',{to:to.trim(),card:id});if(r.error){CD.own[id]++;showCards('❌ '+esc(r.error));return}cSave();showCards('✅ Elküldve neki: '+esc(to))};
 window.x50inbox=async()=>{const r=await api('card/inbox');if(r.error){showCards('❌ '+esc(r.error));return}const C=cardDefs();(r.list||[]).forEach(x=>{CD.own[x.c]=(CD.own[x.c]||0)+1});cSave();checkSeries();
  showCards((r.list||[]).length?'📥 '+(r.list||[]).map(x=>{const c=C.find(y=>y.id===x.c);return(c?c.e+' '+esc(c.n):x.c)+' ('+esc(x.from)+')'}).join(', '):'Nincs új kártya.')};
 setInterval(async()=>{if(!tok()||inMatch())return;const r=await api('card/inbox');if(r.list&&r.list.length){r.list.forEach(x=>{CD.own[x.c]=(CD.own[x.c]||0)+1});cSave();checkSeries();toast('🃏 '+r.list.length+' kártyát kaptál ('+esc(r.list.map(x=>x.from).join(', '))+')!')}},90000);

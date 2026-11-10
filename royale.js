@@ -16,6 +16,12 @@ ui.innerHTML='<span id="ryAl" style="background:#0b1022cc;border:1px solid #ffff
 $('hud').appendChild(ui);
 const ann=t=>{if(G)say(t)};
 const alive=()=>G?G.en.filter(e=>e.bot&&!e.dead).length+(G.allies||[]).filter(e=>!e.dead).length:0;
+// Viharzóna-variációk (B30): klasszikus / mozgó / ugráló / iker (2 kisebb zóna); k3b30zone: auto=random
+const ZV=['klasszikus','mozgo','ugralo','iker'],ZVN={klasszikus:'🌀 Klasszikus',mozgo:'🌪️ Mozgó vihar',ugralo:'⚡ Ugráló vihar',iker:'♊ Ikerzóna'};
+let sm2=null;
+const zd=(x,z)=>{const ry=G&&G.ry;if(!ry)return Math.hypot(x,z);let d=Math.hypot(x-ry.cx,z-ry.cz);if(ry.zv==='iker'&&ry.ph>=1)d=Math.min(d,Math.hypot(x-ry.c2x,z-ry.c2z));return d};
+const zc=(x,z)=>{const ry=G.ry;if(ry.zv==='iker'&&ry.ph>=1&&Math.hypot(x-ry.c2x,z-ry.c2z)<Math.hypot(x-ry.cx,z-ry.cz))return[ry.c2x,ry.c2z];return[ry.cx,ry.cz]};
+window._ryAPI={hitBot:(v,d,k)=>hitBot(v,d,k),ann:t=>ann(t)};window._ryZone={list:ZV,set:v=>{try{localStorage.setItem('k3b30zone',v)}catch(e){}},get:()=>{try{return localStorage.getItem('k3b30zone')||'auto'}catch(e){return'auto'}},zd};
 const TS=()=>({solo:1,duo:2,trio:3,squad:4})[window.GAME_TEAM||'solo']||1;
 
 function mkBot(i){const g=G;let p;for(let k=0;k<80;k++){p=[rnd(-240,240),rnd(-140,140)];if(hin(p[0],p[1])&&Math.hypot(p[0]-g.x,p[1]-g.z)>35)break}
@@ -24,12 +30,12 @@ function mkBot(i){const g=G;let p;for(let k=0;k<80;k++){p=[rnd(-240,240),rnd(-14
  return{t:'nav',bot:true,name:nm,x:p[0],z:p[1],m,hp:100,mhp:100,sh:50,msh:50,sp:rnd(5.5,7),r:1,cd:rnd(1,3),fz:1e9,b:false,dead:false,qT:0,slow:1,
   acc:rnd(.25,.55),dmg:rnd(7,11),rof:rnd(.55,1),st:'loot',goal:null,tgt:null,think:0,y:0,strafe:R()<.5?1:-1}}
 function tracer(x1,y1,z1,x2,y2,z2,c){const geo=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x1,y1,z1),new THREE.Vector3(x2,y2,z2)]);const l=new THREE.Line(geo,new THREE.LineBasicMaterial({color:c||0xfff1a8,transparent:true,opacity:.9}));scene.add(l);G.ef.push({k:'trc',t:.07,end:()=>{scene.remove(l);geo.dispose()}})}
-function botDie(v,killer){const g=G;if(v.dead)return;v.dead=true;if(window.killBubble)killBubble(v.x,v.z,4.6,lastWords());v.hp=0;if(v.ally){scene.remove(v.m);say('💔 Csapattársad kiesett: '+v.name)}else g.left=Math.max(0,g.left-1);pk(v.x,v.z,'chest');g.pk[g.pk.length-1].ry=1;
+function botDie(v,killer){const g=G;if(v.dead)return;v.dead=true;if(window.killBubble)killBubble(v.x,v.z,4.6,lastWords());v.hp=0;if(v.ally){scene.remove(v.m);say('💔 Csapattársad kiesett: '+v.name)}else g.left=Math.max(0,g.left-1);{const n0=g.pk.length;pk(v.x,v.z,'chest');if(g.pk.length>n0)g.pk[g.pk.length-1].ry=1}
  const kf=$('prKF');if(kf){const n=document.createElement('div');n.innerHTML=(killer?killer.name:'🌀 VIHAR')+' ➜ 💀 '+v.name;kf.prepend(n);while(kf.children.length>5)kf.lastChild.remove();setTimeout(()=>n.remove(),4100)}}
 function hitBot(v,d,killer){if(v.dead)return;if(v.sh>0){const t=Math.min(v.sh,d);v.sh-=t;d-=t}v.hp-=d;if(v.hp<=0)botDie(v,killer)}
 
 // ---------- Indítás ----------
-WP('launch',null,()=>{const g=G;if((window.GAME_MODE||'royale')!=='royale'){ui.style.display='none';return}g.brMode=true;g.maxW=1;g.ry={ph:0,st:'wait',tm:PH[0].w,from:420,sto:420,started:false,kills:0,rar:[0,0,0,0,0]};g.sto=420;ui.style.display='flex'});
+WP('launch',null,()=>{const g=G;if((window.GAME_MODE||'royale')!=='royale'){ui.style.display='none';return}g.brMode=true;g.maxW=1;let zv=_ryZone.get();if(!ZV.includes(zv))zv=pick(ZV);g.ry={ph:0,st:'wait',tm:PH[0].w,from:420,sto:420,started:false,kills:0,rar:[0,0,0,0,0],zv,cx:0,cz:0,fx:0,fz:0,tx:0,tz:0,c2x:0,c2z:0};g.sto=420;if(g.sm)g.sm.position.set(0,20,0);if(sm2)sm2.visible=false;setTimeout(()=>ann('Vihar: '+ZVN[zv]),1500);ui.style.display='flex'});
 const _sw=window.spawnWave;window.spawnWave=function(){const g=G;if(g&&g.brMode){g.wave=Math.max(g.wave,1);return}return _sw.apply(this,arguments)};
 WP('land',null,()=>{const g=G;if(!g||!g.brMode||g.ry.started)return;g.ry.started=true;const S=TS();g.allies=[];
  for(let i=0;i<S-1;i++){const a=mkBot(NBOT+i);g.left--;g.tot--;a.ally=true;a.team=0;a.name='🤝 '+a.name;a.x=g.x+rnd(-6,6);a.z=g.z+rnd(-6,6);if(!hin(a.x,a.z)){a.x*=.9;a.z*=.9}a.m.children.forEach(c=>{if(c.isSprite&&c.position.y>4){c.material=c.material.clone();c.material.color.setHex(0x4ade80)}});g.allies.push(a)}
@@ -46,21 +52,24 @@ WP('kill',a=>a[0],(a,e)=>{const g=G;if(!g||!g.brMode||!e||!e.bot)return;g.ry.kil
 WP('update',null,a=>{const g=G,dt=a[0];if(!g||!g.brMode||g.phase!=='play'||g.over)return;const ry=g.ry;
  // vihar-fázisok
  const P=PH[Math.min(ry.ph,PH.length-1)];ry.tm-=dt;
- if(ry.st==='wait'&&ry.tm<=0){ry.st='shrink';ry.tm=P.s;ry.from=ry.sto;ann('🌀 A VIHAR ZÁRUL! Menj a körbe!');sfx('wave')}
- else if(ry.st==='shrink'){const f=1-Math.max(0,ry.tm)/P.s;ry.sto=ry.from+(P.to-ry.from)*f;if(ry.tm<=0){ry.sto=P.to;if(ry.ph<PH.length-1){ry.ph++;ry.st='wait';ry.tm=PH[ry.ph].w}else ry.st='end'}}
- g.sto=ry.sto;g.sm.scale.set(g.sto,1,g.sto);
- if(Math.hypot(g.x,g.z)>g.sto)hurt(P.d*dt,true);
+ if(ry.st==='wait'&&ry.tm<=0){ry.st='shrink';ry.tm=P.s;ry.from=ry.sto;ry.fx=ry.cx;ry.fz=ry.cz;{const m=Math.max(0,ry.sto-P.to)*(ry.zv==='klasszikus'?.35:.7),a=R()*6.28,rr=R()*m;ry.tx=ry.cx+Math.cos(a)*rr;ry.tz=ry.cz+Math.sin(a)*rr;if(ry.zv==='ugralo'&&ry.ph>0){ry.cx=ry.fx=ry.tx;ry.cz=ry.fz=ry.tz;ann('⚡ A vihar középpontja elugrott!')}
+  if(ry.zv==='iker'&&ry.ph===0){ry.c2x=-ry.tx*.6+rnd(-60,60);ry.c2z=-ry.tz*.6+rnd(-40,40);ann('♊ Két kisebb biztonságos zóna lesz!')}}ann('🌀 A VIHAR ZÁRUL! Menj a körbe!');sfx('wave')}
+ else if(ry.st==='shrink'){const f=1-Math.max(0,ry.tm)/P.s;ry.sto=ry.from+(P.to-ry.from)*f;ry.cx=ry.fx+(ry.tx-ry.fx)*f;ry.cz=ry.fz+(ry.tz-ry.fz)*f;if(ry.tm<=0){ry.sto=P.to;if(ry.ph<PH.length-1){ry.ph++;ry.st='wait';ry.tm=PH[ry.ph].w}else ry.st='end'}}
+ if(ry.zv==='mozgo'&&ry.st==='wait'&&ry.ph>0){ry.cx+=Math.cos(ry.ph*1.7+performance.now()/9000)*dt*2.2;ry.cz+=Math.sin(ry.ph*1.3+performance.now()/9000)*dt*2.2}
+ g.sto=ry.sto;g.sm.scale.set(g.sto,1,g.sto);g.sm.position.x=ry.cx;g.sm.position.z=ry.cz;
+ if(ry.zv==='iker'&&ry.ph>=1){if(!sm2){sm2=g.sm.clone();scene.add(sm2)}if(sm2.parent!==scene)scene.add(sm2);sm2.visible=true;sm2.position.set(ry.c2x,20,ry.c2z);sm2.scale.copy(g.sm.scale)}else if(sm2)sm2.visible=false;
+ if(zd(g.x,g.z)>g.sto)hurt(P.d*dt,true);
  const mm=Math.floor(Math.max(0,ry.tm)/60),ss=String(Math.floor(Math.max(0,ry.tm))%60).padStart(2,'0');
  $('ryStorm').textContent=ry.st==='wait'?'🌀 ZÁRUL: '+mm+':'+ss:ry.st==='shrink'?'🌀 SZŰKÜL! '+mm+':'+ss:'🌀 VÉGSŐ KÖR';
  const n=alive();$('ryAl').textContent='👥 '+(n+1);$('ryKi').textContent='💀 '+ry.kills;$('al').textContent='ÉLŐK: '+(n+1)+' · ELIM: '+g.kills;
  // botok
  const bots=g.en.filter(e=>e.bot&&!e.dead),allies=(g.allies||[]).filter(e=>!e.dead),every=[...bots,...allies];
  every.forEach(b=>{b.fz=1e9;b.think-=dt;b.cd-=dt;
-  if(Math.hypot(b.x,b.z)>g.sto)hitBot(b,P.d*dt,null);if(b.dead)return;
+  if(zd(b.x,b.z)>g.sto)hitBot(b,P.d*dt,null);if(b.dead)return;
   if(b.think<=0){b.think=rnd(.4,.9);let best=null,bd=32;const cands=[...every,{isP:1,x:g.x,z:g.z,team:0}];cands.forEach(o=>{if(o===b||(o.team||0)===(b.team||0))return;const d=Math.hypot(o.x-b.x,o.z-b.z);if(d<bd){bd=d;best=o}});b.tgt=best;
-   if(Math.hypot(b.x,b.z)>g.sto-8)b.st='storm';else if(best)b.st='fight';else if(b.ally&&Math.hypot(g.x-b.x,g.z-b.z)>7){b.st='loot';b.goal=[g.x+rnd(-4,4),g.z+rnd(-4,4)]}else{b.st='loot';if(!b.goal||Math.hypot(b.goal[0]-b.x,b.goal[1]-b.z)<3){let gp;for(let k=0;k<20;k++){const an=R()*6.28,r=R()*Math.max(5,g.sto-10);gp=[Math.cos(an)*r,Math.sin(an)*r];if(hin(gp[0],gp[1]))break}b.goal=gp}}}
+   if(zd(b.x,b.z)>g.sto-8)b.st='storm';else if(best)b.st='fight';else if(b.ally&&Math.hypot(g.x-b.x,g.z-b.z)>7){b.st='loot';b.goal=[g.x+rnd(-4,4),g.z+rnd(-4,4)]}else{b.st='loot';if(!b.goal||Math.hypot(b.goal[0]-b.x,b.goal[1]-b.z)<3){let gp;for(let k=0;k<20;k++){const an=R()*6.28,r=R()*Math.max(5,g.sto-10);gp=[G.ry.cx+Math.cos(an)*r,G.ry.cz+Math.sin(an)*r];if(hin(gp[0],gp[1]))break}b.goal=gp}}}
   let mx=0,mz=0,face=null;
-  if(b.st==='storm'){const d=Math.hypot(b.x,b.z)||1;mx=-b.x/d;mz=-b.z/d}
+  if(b.st==='storm'){const c=zc(b.x,b.z),d=Math.hypot(b.x-c[0],b.z-c[1])||1;mx=(c[0]-b.x)/d;mz=(c[1]-b.z)/d}
   else if(b.st==='loot'&&b.goal){const dx=b.goal[0]-b.x,dz=b.goal[1]-b.z,d=Math.hypot(dx,dz)||1;mx=dx/d;mz=dz/d}
   else if(b.st==='fight'&&b.tgt){const t=b.tgt,dx=t.x-b.x,dz=t.z-b.z,d=Math.hypot(dx,dz)||1;face=Math.atan2(dz,dx);const want=b.hp<40?28:14;const fw=d>want+4?1:d<want-4?-1:0;mx=dx/d*fw-dz/d*.6*b.strafe;mz=dz/d*fw+dx/d*.6*b.strafe;if(R()<dt*.4)b.strafe*=-1;
    if(b.cd<=0&&d<38){b.cd=t.isP?b.rof:b.rof*1.6;const hy=1.6;if(t.isP){const er=(1-b.acc)*.35*(d/20);eFire(b,face+rnd(-er,er),34,b.dmg);sfx('shot',1)}else{const hitP=Math.max(.04,b.acc*.55-d/140);tracer(b.x,hy,b.z,t.x+rnd(-1,1),hy+rnd(-.5,.5),t.z+rnd(-1,1));if(R()<hitP)hitBot(t,b.dmg*rnd(.8,1.3),b)}}}
@@ -74,7 +83,7 @@ WP('update',null,a=>{const g=G,dt=a[0];if(!g||!g.brMode||g.phase!=='play'||g.ove
 // botok forgatása (a fő kód a játékos felé fordítja őket)
 WP('update',null,()=>{const g=G;if(!g||!g.brMode)return;g.en.forEach(e=>{if(e.bot&&!e.dead&&e.m)e.m.rotation.y=-(e._face||0)+Math.PI/2})});
 // a játékos sebzése a botokon (pajzs + élet), a fő dmgE kezeli; a botokat ne fagyassza le a varázslat
-WP('end',null,a=>{ui.style.display='none';const g=G;if(!g||!g.brMode)return;const rt=$('rt');if(!a[0]&&rt){rt.textContent='#'+(alive()+1)+' HELYEZÉS'}});
+WP('end',null,a=>{ui.style.display='none';if(sm2)sm2.visible=false;if(G&&G.sm)G.sm.position.set(0,20,0);const g=G;if(!g||!g.brMode)return;const rt=$('rt');if(!a[0]&&rt){rt.textContent='#'+(alive()+1)+' HELYEZÉS'}});
 WP('go',null,a=>{if(a[0]==='menu')ui.style.display='none'});
 
 WP('update',null,()=>{const g=G;if(!g||!g.brMode||!g.ry)return;$('wv').textContent='KÖZPÉNZ ROYALE · '+(g.ry.ph+1)+'. FÁZIS · ★PREMIUM★';
@@ -83,3 +92,7 @@ WP('update',null,()=>{const g=G;if(!g||!g.brMode||!g.ry)return;$('wv').textConte
 // Ritkaság-szín a lőszer-kijelzőn
 WP('update',null,()=>{const g=G;if(!g||!g.brMode)return;const r=RAR[g.ry.rar[g.wp]||0];g._dmgB=r.m;const am=$('brAmmo');if(am&&!g.buildMode){const i=am.querySelector('i');if(i)i.style.color=r.c}});
 })();
+// BUG2 (11-10): GPU-szivárgás meccsek között – a jelenetből kivett objektumok geometriáját/textúráját launch előtt felszabadítjuk (three.js újrafeltölti, ha mégis újra kell)
+(function(){const RM=new Set(),orm=THREE.Scene.prototype.remove;THREE.Scene.prototype.remove=function(){for(const o of arguments)if(o&&RM.size<60000)RM.add(o);return orm.apply(this,arguments)};
+const disp=o=>{try{o.traverse(c=>{if(c.geometry&&c.geometry.dispose)c.geometry.dispose();const ms=c.material?[].concat(c.material):[];ms.forEach(m=>{if(m&&m.map&&m.map.dispose)m.map.dispose()})})}catch(e){}};
+const o=window.launch;if(typeof o==='function')window.launch=function(){try{if(window.scene)disp(scene);RM.forEach(disp);RM.clear()}catch(e){}return o.apply(this,arguments)}})();

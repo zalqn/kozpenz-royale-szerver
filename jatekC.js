@@ -156,7 +156,7 @@ WP('end',a=>{const g=G;if(!g||g._k3Cend)return;g._k3Cend=1;if(localStorage.getIt
 WP('update',null,a=>{const g=G;if(!g||!inM())return;const dt=a[0];C.t+=dt;
  if(C.ev){const R=RULES[C.ev.rule];try{R.tick&&R.tick(g,dt)}catch(e){}}
  if(g._k3noB){if(g.buildMode)g.buildMode=false}
- for(let i=C.gr.length-1;i>=0;i--){const it=C.gr[i];it.s.position.y=1.1+Math.sin(C.t*2.5+i)*.15;if(Math.hypot(it.x-g.x,it.z-g.z)<1.8&&(g.y||0)<3){if(take(it)){scene.remove(it.s);C.gr.splice(i,1)}}}
+ if(!C.gr)C.gr=[];for(let i=C.gr.length-1;i>=0;i--){const it=C.gr[i];it.s.position.y=1.1+Math.sin(C.t*2.5+i)*.15;if(Math.hypot(it.x-g.x,it.z-g.z)<1.8&&(g.y||0)<3){if(take(it)){scene.remove(it.s);C.gr.splice(i,1)}}}
  if(C.use){C.use.t-=dt;useB.style.display='block';useB.firstChild.style.width=(100-C.use.t/C.use.T*100)+'%';if(g.hurt>1.45){C.use=null;tell('❌ Megszakítva (sebzés)')}else if(C.use.t<=0){const k=C.use.k;C.inv[k]--;ITEMS[k].u(g);tell('✔️ '+ITEMS[k].n);C.use=null}}else useB.style.display='none';
  if(C.snow){C.snow.position.set(g.x,0,g.z);const p=C.snow.geometry.attributes.position;for(let i=1;i<p.array.length;i+=3){p.array[i]-=dt*3;if(p.array[i]<0)p.array[i]=40}p.needsUpdate=true}
  C.rocks.forEach(r=>{if(r.ring)r.ring.visible=r.n>0});

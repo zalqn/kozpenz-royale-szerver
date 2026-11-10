@@ -203,7 +203,7 @@ function bindForms(c){
  c.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const d=b.dataset,a=d.a,o={a};
   if(d.id)o.id=d.id;if(d.k)o.k=d.k;
   if(a==='trade'){o.act=d.act;o.item=d.item;o.qty=+($('#cp3q_'+d.item,c)||{}).value||0}
-  if(a==='deposit'){const q=prompt('Mennyit fizetsz be a fiókodba? (a helyi tőzsdéről levonódik)',d.q);if(q==null)return;o.item=d.item;o.qty=+q;
+  if(a==='deposit'){const q=prompt('Mennyit fizetsz be a fiókodba? (a helyi tőzsdéről levonódik)',d.q);if(q==null)return;o.item=d.item;o.qty=Math.floor(+q);if(!(o.qty>0))return;
    act(o).then(r=>{if(!r)return;try{const D=_x14d.D;if(d.item==='KC')D.coin=Math.max(0,(D.coin||0)-o.qty);else D.stocks[d.item]=Math.max(0,(D.stocks[d.item]||0)-o.qty);localStorage.setItem('k3x14d',JSON.stringify(D))}catch(e){}draw()});return}
   if(a==='bid'){o.amt=+($('#cp3B_'+d.id,c)||{}).value||0}
   act(o,d.c||null)});

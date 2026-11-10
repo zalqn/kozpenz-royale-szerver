@@ -67,9 +67,9 @@ window.x10ch=showCh;
 // =====================================================================
 const LIM=LS('k3x10lim',{day:'',lost:0,lim:3000,free:''});
 function limDay(){if(LIM.day!==today()){LIM.day=today();LIM.lost=0;SV('k3x10lim',LIM)}}
-function canBet(b){limDay();if(typeof BR==='undefined')return'Nincs zseton-rendszer';if(BR.zs<b)return'Nincs elég zseton!';if(LIM.lim>0&&LIM.lost+b>LIM.lim)return'⛔ Elérted a napi veszteséghatárt ('+LIM.lim+' zseton). Holnap folytathatod!';return''}
+function canBet(b){limDay();if(typeof BR==='undefined')return'Nincs zseton-rendszer';if(!(b>0))return'Érvénytelen tét';if(BR.zs<b)return'Nincs elég zseton!';if(LIM.lim>0&&LIM.lost+b>LIM.lim)return'⛔ Elérted a napi veszteséghatárt ('+LIM.lim+' zseton). Holnap folytathatod!';return''}
 function bet(b){BR.zs-=b;LIM.lost+=b;SV('k3x10lim',LIM);saveAll()}
-function pay(w){if(w>0){BR.zs+=w;LIM.lost=Math.max(-1e9,LIM.lost-w);SV('k3x10lim',LIM);saveAll()}}
+function pay(w){if(w>0){try{window._k2&&_k2.earn&&_k2.earn('casino',0,w)}catch(e){}BR.zs+=w;LIM.lost=Math.max(-1e9,LIM.lost-w);SV('k3x10lim',LIM);saveAll()}}
 window.x10lim=v=>{LIM.lim=v;SV('k3x10lim',LIM);casMenu()};
 function casMenu(){limDay();const left=LIM.lim>0?Math.max(0,LIM.lim-LIM.lost):'∞';
  openM('<h2>🎰 EXTRA KASZINÓ</h2><div>Zseton: <b style="color:#facc15">'+BR.zs+'</b> · mai nettó veszteség: <b>'+Math.max(0,LIM.lost)+'</b> · még tehető: <b>'+left+'</b></div><div style="opacity:.7;font-size:13px">Csak játékbeli zsetonnal. Valódi pénz nincs benne.</div>'+

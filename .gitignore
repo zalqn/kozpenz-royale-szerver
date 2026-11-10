@@ -5,3 +5,5 @@ server/saves/
 server/logs/
 server/backup/
 server/mod_D.json
+server/kozpenz.db*
+*.db

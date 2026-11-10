@@ -2,6 +2,34 @@ services:
   - type: web
     name: kozpenz-royale
     runtime: node
-    plan: free
+    plan: free            # TARTÓS ADATBÁZISHOZ: plan: starter (fizetős) – a free csomagon NINCS disk, újraindításkor az adat elvész!
     buildCommand: npm install
     startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: "22.12.0"
+      # --- tartós adat (csak fizetős csomaggal, a lenti disk blokkal együtt kapcsold be) ---
+      # - key: DATA_DIR
+      #   value: /var/data
+      # --- opcionális: jelszó-visszaállító e-mail (ha nincs, a link a szerver konzolra / admin panelbe kerül) ---
+      # - key: PUBLIC_URL        # pl. https://kozpenz-royale.onrender.com
+      #   sync: false
+      # - key: SMTP_HOST         # pl. smtp.gmail.com
+      #   sync: false
+      # - key: SMTP_PORT         # 465 (TLS) vagy 587 (STARTTLS)
+      #   sync: false
+      # - key: SMTP_USER
+      #   sync: false
+      # - key: SMTP_PASS
+      #   sync: false
+      # - key: SMTP_FROM
+      #   sync: false
+      # --- opcionális: napi adatbázis-mentés feltöltése (PUT; {file} = fájlnév) ---
+      # - key: BACKUP_URL
+      #   sync: false
+      # - key: BACKUP_TOKEN
+      #   sync: false
+    # disk:                 # FIZETŐS csomag kell hozzá (starter vagy nagyobb)
+    #   name: kozpenz-data
+    #   mountPath: /var/data
+    #   sizeGB: 1

@@ -168,7 +168,7 @@ async function showLotto(msg){const r=await api('lotto');if(r.wins&&r.wins.lengt
 window.x20lotto=showLotto;
 window.x20ln=n=>{const i=LT.indexOf(n);if(i>=0)LT.splice(i,1);else if(LT.length<5)LT.push(n);showLotto()};
 window.x20lr=()=>{LT=[];while(LT.length<5){const n=1+Math.floor(Math.random()*30);if(!LT.includes(n))LT.push(n)}showLotto()};
-window.x20lb=async()=>{if(BR.zs<100){showLotto('Nincs elég zseton!');return}const r=await api('lotto/buy',{nums:LT});if(r.error){showLotto(r.error);return}BR.zs-=100;saveAll();LT=[];toast('🎟️ Szelvény megvéve! Sorsolás 20:00-kor.');showLotto()};
+window.x20lb=async()=>{if(BR.zs<100){showLotto('Nincs elég zseton!');return}BR.zs-=100;const r=await api('lotto/buy',{nums:LT});if(r.error){BR.zs+=100;showLotto(r.error);return}saveAll();LT=[];toast('🎟️ Szelvény megvéve! Sorsolás 20:00-kor.');showLotto()};
 // nyeremény-ellenőrzés a lobbyban
 setInterval(async()=>{if(!tok()||inMatch())return;const r=await api('lotto');if(r.wins&&r.wins.length)r.wins.forEach(w=>{BR.zs=(BR.zs|0)+w.prize;saveAll();toast('🎰 LOTTÓ ('+esc(w.day)+'): '+w.h+' találat!<br>+'+fmt(w.prize)+' 🪙')})},120000);
 

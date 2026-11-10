@@ -21,7 +21,7 @@ function ensure(){const L=window.LB3D,lb=document.getElementById('lb');if(!L||ma
   face:{skin:'#f0c8a8',eye:'#3b2a1a',brow:'#2b1a10',mouth:'grin',glasses:'#111',shades:1,stubble:1}};
  man=window.charModel?charModel(def,1):person(0x0f0f14,'',1);
  const chain=new THREE.Mesh(new THREE.TorusGeometry(.2,.035,6,18),new THREE.MeshStandardMaterial({color:0xd4af37,metalness:1,roughness:.2}));chain.position.set(0,1.8,.24);chain.rotation.x=.3;man.add(chain);
- const lb2=spr('Matolcsy Ádám',2.4,'x');lb2.position.y=3.5;lb2.material.depthTest=false;man.add(lb2);
+ const lb2=spr('Bújós Bálint',2.4,'x');lb2.position.y=3.5;lb2.material.depthTest=false;man.add(lb2);
  man.visible=false;L.sc.add(man);
  bub=document.createElement('div');bub.id='bjBub';lb.appendChild(bub);hot=document.createElement('div');hot.id='bjHot';hot.title='Kapd el!';lb.appendChild(hot);
  ctr=document.createElement('div');ctr.id='bjCnt';lb.appendChild(ctr);updCnt();

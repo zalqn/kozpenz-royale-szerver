@@ -160,7 +160,7 @@ function open(){R.classList.add('on');try{if(document.pointerLockElement)documen
 function close(){R.classList.remove('on');R.querySelectorAll('.modal').forEach(m=>m.remove());try{const sp=document.getElementById('dp');if(window.sp3On&&sp3On()&&!(sp&&sp.style.display!=='none'&&sp.offsetParent))window.sp3Resume&&sp3Resume()}catch(e){}}
 addEventListener('keydown',e=>{if(e.key==='Escape'&&R.classList.contains('on')&&!R.querySelector('.modal')){close();e.stopPropagation()}},true);
 // lebegő gomb (lobby2 automatikusan besorolja)
-const btn=document.createElement('button');btn.id='dl2Btn';btn.textContent='🧪 Közpénz-labor';btn.onclick=open;document.body.appendChild(btn);
+const btn=document.createElement('button');btn.id='dl2Btn';btn.textContent='🧪 Közpénz-labor';btn.title='Közpénz-labor 2.0 – a Sötét Program Labor fülén nyílik';btn.onclick=()=>{if(window.openSotetProgram){if(window.openSotet3D){openSotet3D();setTimeout(()=>openSotetProgram('lab'),400)}else openSotetProgram('lab')}else open()};document.body.appendChild(btn);
 setInterval(()=>{const lb=document.getElementById('lb');btn.style.display=lb&&lb.classList.contains('on')?'':'none'},1000);
 // Sötét Program (11-09 egységesítés): EGY belépési pont – a Sötét Program 🧪 Labor fülén a „Közpénz-labor 2.0” kártya nyitja.
 // A labor-fül/állomás már NEM ugrik át ide (a 3D keverés-minijáték a sotetmg3d.js-ben). Innen „⬅ Sötét Program” gomb visz vissza.

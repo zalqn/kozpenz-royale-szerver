@@ -85,7 +85,7 @@
   }
 
   // ======================= ADMIN PANEL =======================
-  const AP = mkPanel('admPanel', '🛡️ ADMIN PANEL', [['ov', '📊 Áttekintés'], ['pl', '👥 Játékosok'], ['on', '🟢 Online'], ['bc', '📢 Rendszerüzenet'], ['pr', '🎟️ Promókódok'], ['cp', '🎰 Kaszinó+ piac'], ['lg', '📜 Admin-napló'], ['cl', '🐞 Kliens-hibák'], ['bk', '💾 Mentés']]);
+  const AP = mkPanel('admPanel', '🛡️ ADMIN PANEL', [['ov', '📊 Áttekintés'], ['pl', '👥 Játékosok'], ['on', '🟢 Online'], ['bc', '📢 Rendszerüzenet'], ['pr', '🎟️ Promókódok'], ['cp', '🎰 Kaszinó+ piac'], ['rs', '🔑 Jelszó / mentés'], ['pf', '⚡ Teljesítmény'], ['lg', '📜 Admin-napló'], ['cl', '🐞 Kliens-hibák'], ['bk', '💾 Mentés']]);
   let selUser = null;
   const aGo = tabs(AP, async (k, m) => {
     try {
@@ -125,6 +125,21 @@
       if (k === 'lg') { const r = await api('/api/admin/log'); m.innerHTML = '<h3>📜 Admin-napló (utolsó 200)</h3><table><tr><th>Idő</th><th>Admin</th><th>Művelet</th><th>Cél</th><th>Részlet</th></tr>' + r.list.map(l => '<tr><td>' + dt(l.t) + '</td><td>' + esc(l.by) + '</td><td><span class="tag ad">' + esc(l.act) + '</span></td><td>' + esc(l.target) + '</td><td>' + esc(l.info) + '</td></tr>').join('') + '</table>' + (r.list.length ? '' : '<i>Még üres.</i>'); }
       if (k === 'cl') { const r = await api('/api/admin/clientlog'); m.innerHTML = '<div class="row"><h3 style="margin:0">🐞 client.log (legújabb felül, max 200)</h3><input id="aClQ" placeholder="szűrés…"></div><div class="box"><pre id="aClP"></pre></div>';
         const f = () => { const q = $('#aClQ', m).value.toLowerCase(); $('#aClP', m).textContent = r.lines.filter(l => !q || l.toLowerCase().includes(q)).join('\n') || '(üres)'; }; $('#aClQ', m).oninput = f; f(); }
+      if (k === 'rs') { // server/mod_kozos.js: jelszó-visszaállító link, SMTP / BACKUP_URL állapot
+        const r = await api('/api/admin/k2/resets');
+        m.innerHTML = '<div class="box"><h3>🔑 Jelszó-visszaállító link generálása</h3><input id="k2rn" placeholder="Játékos neve"> <button class="b" data-a="gen">Link generálása</button><div id="k2rl" style="margin-top:8px;word-break:break-all"></div><small>A link 1 óráig érvényes; a játékos ezen állít be új jelszót. SMTP: ' + (r.smtp ? '✅ beállítva (e-mailt küld)' : '❌ nincs (a kérések linkje lent és a szerver konzolon)') + '</small></div>' +
+          '<div class="box"><h3>📨 Utolsó visszaállítás-kérések</h3><table><tr><th>Idő</th><th>Játékos</th><th>Link / állapot</th></tr>' + r.list.map(x => '<tr><td>' + new Date(x.t).toLocaleString('hu-HU') + '</td><td>' + esc(x.n) + '</td><td style="word-break:break-all">' + (x.mail ? 'e-mailben elküldve' : esc(x.link)) + '</td></tr>').join('') + '</table></div>' +
+          '<div class="box"><h3>💾 Adatbázis</h3>DATA_DIR: <b>' + esc(r.dataDir) + '</b><br>Külső mentés (BACKUP_URL): ' + (r.backup.url ? '✅ be' : '❌ ki') + ' · utolsó: ' + esc(r.backup.last && r.backup.last.t ? new Date(r.backup.last.t).toLocaleString('hu-HU') : '–') + (r.backup.last && r.backup.last.err ? ' · hiba: ' + esc(r.backup.last.err) : '') + (r.backup.url ? ' <button class="b" data-a="bk">Feltöltés most</button>' : '') + '</div>';
+        m.onclick = async e => { const b = e.target.closest('[data-a]'); if (!b) return;
+          if (b.dataset.a === 'gen') { const x = await act('/api/admin/k2/resetlink', { name: $('#k2rn').value.trim() }, 'Link kész'); if (x) { const L = x.link.startsWith('/') ? location.origin + x.link : x.link; $('#k2rl').innerHTML = '<b>' + esc(L) + '</b>'; try { navigator.clipboard.writeText(L); } catch (er) {} } }
+          if (b.dataset.a === 'bk') { await act('/api/admin/k2/backupnow', {}, 'Feltöltés lefutott'); aGo('rs'); } };
+        return;
+      }
+      if (k === 'pf') { // teljesítmény-napló (alacsony FPS-ű gépek)
+        const r = await api('/api/admin/k2/perf');
+        m.innerHTML = '<div class="box"><h3>⚡ Alacsony FPS jelentések (' + r.list.length + ')</h3><table><tr><th>Idő</th><th>Játékos</th><th>FPS</th><th>GPU</th><th>Felbontás</th><th>Mód</th><th>Eszköz</th></tr>' + r.list.map(x => '<tr><td>' + new Date(x.t).toLocaleString('hu-HU') + '</td><td>' + esc(x.n) + '</td><td><b>' + x.fps + '</b></td><td>' + esc(x.gpu) + '</td><td>' + esc(x.res) + ' @' + (+x.dpr || 1).toFixed(2) + '</td><td>' + esc(x.mode) + '</td><td title="' + esc(x.ua) + '">' + (x.mob ? '📱' : '💻') + ' ' + (x.cores || '?') + ' mag, ' + (x.mem || '?') + ' GB</td></tr>').join('') + '</table></div>';
+        return;
+      }
       if (k === 'cp') { // Kaszinó+ piac moderálás (server/mod_cplus.js)
         const KN = { stock: '📈', coin: '💠', veh: '🚗', parcel: '🏠', zs: '🪙', ft: '💵', skin: '🎁' };
         const draw = async () => { const r = await api('/api/admin/cp/ov'); const it = o => (KN[o.kind] || '') + ' ' + esc(o.kind) + ':' + esc(o.item) + ' ×' + o.qty;

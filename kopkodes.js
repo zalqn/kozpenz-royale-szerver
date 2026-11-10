@@ -5,8 +5,9 @@
 const $=id=>document.getElementById(id);
 const KEY='k3kp';
 const ST=(()=>{try{return Object.assign({win:0,games:0,elim:0,hits:0,shots:0,falls:0,best:0,diff:1,bots:5,isl:'palma'},JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return{win:0,games:0,elim:0,hits:0,shots:0,falls:0,best:0,diff:1,bots:5,isl:'palma'}}})();
+const KH=n=>{const h=window._kpHook;return h&&h[n]};
 const saveST=()=>{try{localStorage.setItem(KEY,JSON.stringify(ST))}catch(e){}};
-const pay=n=>{try{if(window.S){S.c=(S.c||0)+n;try{save()}catch(e){}}}catch(e){}};
+const pay=n=>{try{if(typeof S!=='undefined'){S.c=(S.c||0)+n;try{save()}catch(e){}}}catch(e){}};
 const ftf=n=>{try{return ftx(n)}catch(e){return n.toLocaleString('hu-HU')+' Ft'}};
 
 const DIFF=[{n:'Könnyű',err:.22,react:.9,dodge:.15,charge:.25,mult:.7},{n:'Normál',err:.11,react:.55,dodge:.35,charge:.45,mult:1},{n:'Nehéz',err:.05,react:.3,dodge:.6,charge:.6,mult:1.5},{n:'Őrült',err:.02,react:.15,dodge:.85,charge:.75,mult:2.2}];
@@ -77,15 +78,16 @@ function initR(){
 <div class="pl" id="kpMe" style="left:14px;bottom:14px;min-width:230px"></div>
 <div class="pl" id="kpList" style="right:14px;top:60px;min-width:190px"></div>
 <div id="kpFeed" style="position:absolute;right:14px;top:12px;z-index:3;color:#fff;text-align:right"></div>
-<div class="pl" id="kpHelp" style="bottom:14px;left:50%;transform:translateX(-50%);font:600 12px system-ui;color:#cbd5e1;white-space:nowrap">Kattints a célzáshoz · WASD mozgás · BAL KLIKK köpés (nyomva tartva: nagy köpés) · SZÓKÖZ ugrás · SHIFT kitérés · 1–4 beszólás · ESC szünet</div>
+<div class="pl" id="kpHelp" style="bottom:14px;left:50%;transform:translateX(-50%);font:600 12px system-ui;color:#cbd5e1;white-space:nowrap">Kattints a célzáshoz · WASD mozgás · BAL KLIKK köpés (nyomva tartva: nagy köpés) · SZÓKÖZ ugrás (levegőben még 1×) · SHIFT kitérés · 1–4 beszólás · ESC szünet</div>
 <button class="k g" id="kpX" style="position:absolute;top:10px;left:12px;z-index:5;padding:7px 12px">✖ Kilépés</button>
 <div id="kpM"><div class="box"><h1>💦 KÖPKÖDŐS</h1><div style="color:#a5f3fc;margin-bottom:8px">Nincs fegyver, nincs építés. Köpd le a többieket a kis szigetről!<br><small style="color:#94a3b8">Minél nyálasabb valaki (%), annál messzebbre repül. Aki vízbe esik, életet veszít. 2 nyert kör = győzelem.</small></div>
 <div class="row"><div class="lbl">Sziget</div><div id="kpIsl"></div><div id="kpIslD" style="font-size:12px;color:#94a3b8;margin-top:3px"></div></div>
+<div class="row"><div class="lbl">Mód</div><div id="kpMode"></div><div style="font-size:12px;color:#94a3b8;margin-top:3px">💨 Fingdobálós: csak a SZÁJBA dobott fing számít!</div></div>
 <div class="row"><div class="lbl">Ellenfelek</div><div id="kpBots"></div></div>
 <div class="row"><div class="lbl">Nehézség</div><div id="kpDiff"></div></div>
 <div class="row" style="font-size:13px;color:#cbd5e1">${Object.values(PU).map(p=>p.e+' '+p.n).join(' · ')}</div>
 <div class="row" id="kpStat" style="font-size:13px;color:#94a3b8"></div>
-<button class="k" id="kpGo" style="font-size:20px;padding:12px 34px">▶ INDULÁS</button></div></div>
+<div class="row" id="kpX"></div><button class="k" id="kpGo" style="font-size:20px;padding:12px 34px">▶ INDULÁS</button></div></div>
 <div id="kpPause"><div class="box"><h1>⏸ Szünet</h1><button class="k" id="kpRes">▶ Folytatás</button><button class="k g" id="kpQuit">✖ Feladás</button></div></div>
 <div id="kpEnd"><div class="box" id="kpEndB"></div></div>`;
  document.body.appendChild(w);
@@ -161,7 +163,7 @@ function taunt(p,t){if(!p||!p.alive)return;p.bub.material.map.dispose();p.bub.ma
 // ---------- köpés ----------
 const SPITS=[],PARTS=[],PUDDLES=[],PUS=[];
 let GEO_S,MAT_S,MAT_C,MAT_F,GEO_P;
-function mats(){GEO_S=new THREE.SphereGeometry(.16,10,8);MAT_S=new THREE.MeshPhongMaterial({color:0xb5f5a0,transparent:true,opacity:.85,shininess:120,specular:0xffffff});MAT_C=new THREE.MeshPhongMaterial({color:0x8be36c,transparent:true,opacity:.9,shininess:120,specular:0xffffff});MAT_F=new THREE.MeshBasicMaterial({color:0xff6a1a});GEO_P=new THREE.SphereGeometry(.07,6,5)}
+let MAT_FG;function mats(){GEO_S=new THREE.SphereGeometry(.16,10,8);MAT_S=new THREE.MeshPhongMaterial({color:0xb5f5a0,transparent:true,opacity:.85,shininess:120,specular:0xffffff});MAT_C=new THREE.MeshPhongMaterial({color:0x8be36c,transparent:true,opacity:.9,shininess:120,specular:0xffffff});MAT_F=new THREE.MeshBasicMaterial({color:0xff6a1a});GEO_P=new THREE.SphereGeometry(.07,6,5);MAT_FG=new THREE.MeshLambertMaterial({color:0x9a8a3a,transparent:true,opacity:.7})}
 function mouth(p){return new THREE.Vector3(p.x+Math.sin(p.face)*.35,p.y+1.5,p.z+Math.cos(p.face)*.35)}
 function startCharge(p){if(!p.alive||p.cd>0||p.sal<8||p.stun>0)return;p.charging=true;p.chg=0}
 function release(p){if(!p.charging){if(p===W.me)quick(p);return}p.charging=false;const c=p.chg;p.chg=0;if(c<.18){quick(p);return}fire(p,Math.min(1,c),null)}
@@ -174,32 +176,32 @@ function fire(p,c,dirOverride){
  const spd=big?20+c*10:24,pow=big?1.3+c*1.7:1;
  const fan=p.pu==='fokhagyma'?[-.16,0,.16]:[0];
  fan.forEach(off=>{const d=dir.clone().applyAxisAngle(new THREE.Vector3(0,1,0),off);
-  const m=new THREE.Mesh(GEO_S,big?MAT_C:MAT_S);const s=big?1.3+c*1.4:1;m.scale.set(s,s,s*1.6);m.position.copy(mouth(p));SC.add(m);
-  SPITS.push({m,o:p,vx:d.x*spd,vy:d.y*spd+(big?1.2:.6),vz:d.z*spd,g:big?9:5,pow,life:2.2,big,r:.32*s,fire:p.pu==='chili',gum:p.pu==='gumi',trail:0})});
+  const m=new THREE.Mesh(GEO_S,ST.fing?MAT_FG:(big?MAT_C:MAT_S));const s=(big?1.3+c*1.4:1)*(ST.fing?1.6:1);m.scale.set(s,s,s*1.6);m.position.copy(mouth(p));SC.add(m);
+  SPITS.push({m,o:p,vx:d.x*spd,vy:d.y*spd+(big?1.2:.6),vz:d.z*spd,g:big?9:5,pow,life:2.2,big,r:.32*s,fire:p.pu==='chili',gum:p.pu==='gumi',trail:0});if(KH('spit'))try{KH('spit')(SPITS[SPITS.length-1],p,W)}catch(e){}});
  p.shots++;if(p===W.me){ST.shots++;shake=Math.max(shake,big?.12:.04)}
- const dme=W.me?Math.hypot(p.x-W.me.x,p.z-W.me.z):0;SND.spit(big,p===W.me?1:Math.max(.08,1-dme/30));
+ const dme=W.me?Math.hypot(p.x-W.me.x,p.z-W.me.z):0;{const v=p===W.me?1:Math.max(.08,1-dme/30);if(ST.fing){noise(big?.7:.35,big?160:240,60,6,.5*v,'lowpass');tone(big?90:130,45,big?.6:.3,.25*v,'sawtooth')}else SND.spit(big,v)}
  // köpés-animáció: fej előre
  p.spitAnim=.18}
-function burst(x,y,z,col,n,sp){for(let i=0;i<n;i++){const m=new THREE.Mesh(GEO_P,new THREE.MeshBasicMaterial({color:col,transparent:true}));m.position.set(x,y,z);SC.add(m);PARTS.push({m,vx:(Math.random()-.5)*sp,vy:Math.random()*sp*.8,vz:(Math.random()-.5)*sp,l:.6+Math.random()*.5})}}
-function puddle(x,z,s){if(Math.hypot(x,z)>W.R)return;const m=new THREE.Mesh(new THREE.CircleGeometry(.35*s,12),new THREE.MeshBasicMaterial({color:0x9be37a,transparent:true,opacity:.55,depthWrite:false}));m.rotation.x=-Math.PI/2;m.position.set(x,.025+Math.random()*.005,z);SC.add(m);PUDDLES.push({m,l:7});if(PUDDLES.length>40){const o=PUDDLES.shift();SC.remove(o.m)}}
+function burst(x,y,z,col,n,sp){n=Math.min(n,260-PARTS.length);for(let i=0;i<n;i++){const m=new THREE.Mesh(GEO_P,new THREE.MeshBasicMaterial({color:col,transparent:true}));m.position.set(x,y,z);SC.add(m);PARTS.push({m,vx:(Math.random()-.5)*sp,vy:Math.random()*sp*.8,vz:(Math.random()-.5)*sp,l:.6+Math.random()*.5})}}
+function puddle(x,z,s){if(Math.hypot(x,z)>W.R)return;const m=new THREE.Mesh(new THREE.CircleGeometry(.35*s,12),new THREE.MeshBasicMaterial({color:0x9be37a,transparent:true,opacity:.55,depthWrite:false}));m.rotation.x=-Math.PI/2;m.position.set(x,.025+Math.random()*.005,z);SC.add(m);PUDDLES.push({m,l:7});if(PUDDLES.length>40){const o=PUDDLES.shift();SC.remove(o.m);o.m.geometry.dispose();o.m.material.dispose()}}
 function hit(s,t){
  if(t.inv>0)return;
  if(t.pu==='buborek'){t.pu=null;t.put=0;burst(t.x,t.y+1,t.z,0x7dd3fc,18,6);SND.pick();feed(`🫧 ${t.name} buborékja kipukkadt`);return}
- const pow=s.pow*(s.fire?1.8:1)*(t.pu==='kokusz'?.5:1);
+ const pow=s.pow*(s.fire?1.8:1)*(t.pu==='kokusz'?.5:1)*(ST.fing?1.5:1);if(ST.fing){if(s.o===W.me)banner('💨 SZÁJBA!',.7,40);if(t.bot&&Math.random()<.4)taunt(t,['Fúj! 🤢','Ez mi volt?!','Bűzlik! 😵'][Math.random()*3|0])}
  const dmg=(s.big?7+s.pow*5:5)*(s.fire?1.4:1);t.pct=Math.min(300,t.pct+dmg);
  const sp=Math.hypot(s.vx,s.vz)||1;const kb=(3.2+t.pct*.075)*pow;
  t.vx+=s.vx/sp*kb;t.vz+=s.vz/sp*kb;t.vy=Math.max(t.vy,(1.6+t.pct*.02)*Math.min(1.6,pow));t.ground=false;
  t.stun=.18+Math.min(.5,t.pct*.002)*pow;t.lastHit=s.o;t.lastHitT=4;if(s.gum)t.slow=3;
- s.o.hits++;if(s.o===W.me){ST.hits++;hitmark()}
+ s.o.hits++;if(s.big)hstop=Math.max(hstop,.06+s.pow*.03);if(s.o===W.me){ST.hits++;hitmark();combo=(T_now-comboT<1.6)?combo+1:1;comboT=T_now;if(combo>=3)banner('🔥 '+combo+'× KOMBÓ',.8,34)}
  burst(t.x,t.y+1.3,t.z,s.fire?0xff7a1a:0xa3f07a,s.big?22:10,s.big?7:4);
  const dme=Math.hypot(t.x-W.me.x,t.z-W.me.z);SND.splat(t===W.me?1:Math.max(.1,1-dme/25));
- if(t===W.me){slime(s.big?.85:.45);shake=Math.max(shake,s.big?.35:.15)}
+ if(t===W.me){if(ST.fing){const z=$('kpSlime');z.style.background='radial-gradient(circle,rgba(150,140,50,.15),rgba(120,110,30,.6))';z.style.transition='none';z.style.opacity=s.big?.9:.55;requestAnimationFrame(()=>{z.style.transition='opacity 1.6s';z.style.opacity=0})}else slime(s.big?.85:.45);shake=Math.max(shake,s.big?.35:.15)}
  setPctLabel(t)}
 let hmT=0;function hitmark(){const c=$('kpCross');c.style.transform='scale(1.35)';clearTimeout(hmT);hmT=setTimeout(()=>c.style.transform='',90)}
 function slime(a){const s=$('kpSlime');let h='';for(let i=0;i<5;i++){const x=Math.random()*100,y=Math.random()*100,r=8+Math.random()*16;h+=`radial-gradient(circle at ${x}% ${y}%,rgba(160,240,110,.55) 0,rgba(160,240,110,.35) ${r*.5}%,transparent ${r}%),`}s.style.background=h.slice(0,-1);s.style.transition='none';s.style.opacity=a;requestAnimationFrame(()=>{s.style.transition='opacity 1.4s';s.style.opacity=0})}
 
 // ---------- mozgás ----------
-function jump(p){if(!p||!p.alive||!p.ground||p.stun>0||!W.live)return;p.vy=6.2;p.ground=false;if(p===W.me)SND.jump()}
+function jump(p){if(!p||!p.alive||p.stun>0||!W.live)return;if(p.ground){p.vy=6.2;p.ground=false;p.air2=1}else if(p.air2){p.air2=0;p.vy=5.6;burst(p.x,p.y+.2,p.z,0xd9fbc5,8,3)}else return;if(p===W.me)SND.jump()}
 function dash(p){if(!p||!p.alive||p.dashCd>0||p.stun>0||!W.live)return;let dx=0,dz=0;
  if(p===W.me){const f=(keys.w?1:0)-(keys.s?1:0),r=(keys.d?1:0)-(keys.a?1:0);dx=Math.sin(yaw)*f-Math.cos(yaw)*r*-1;dz=Math.cos(yaw)*f+Math.sin(yaw)*r*-1;
   // jobb = (−cos yaw, sin yaw) a kamera-irányhoz
@@ -247,7 +249,7 @@ function botShoot(p,t,c){const big=c>0,spd=big?20+c*10:24,g=big?9:5;const m=mout
  const tx=t.x+t.vx*0,tz=t.z+t.vz*0;let d=Math.hypot(tx-m.x,tz-m.z);let tt=d/spd;
  const lx=t.x+t.vx*tt*.85,lz=t.z+t.vz*tt*.85;const e=DIFF[ST.diff].err;
  let dx=lx-m.x,dz=lz-m.z;d=Math.hypot(dx,dz)||1;tt=d/spd;const ang=Math.atan2(dx,dz)+(Math.random()-.5)*e*2.4;
- const vy=((t.y+1.2)-m.y)/tt+.5*g*tt-(big?1.2:.6);
+ const vy=((t.y+(ST.fing?1.6:1.2))-m.y)/tt+.5*g*tt-(big?1.2:.6);
  const dir=new THREE.Vector3(Math.sin(ang),vy/spd,Math.cos(ang));const hl=Math.hypot(dir.x,dir.z);// normalizálás úgy, hogy a vízszintes rész = 1
  dir.x/=hl;dir.z/=hl;const n=dir.length();dir.multiplyScalar(1/n);// így spd*dir: vízszintes kicsit kisebb – elfogadható
  p.face=ang;fire(p,c,dir)}
@@ -260,23 +262,23 @@ function startMatch(){
  $('kpM').style.display='none';$('kpEnd').style.display='none';
  if(SC){SC.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
  W={R:10,R0:10,round:0,live:false,P:[],gulls:[],t:0,windA:0,matchStart:performance.now()};
- buildScene();mats();
- const n=ST.bots+1;const myCol=0x22d3ee;const used=new Set();
- W.me=mkP((window.ACC&&ACC.user&&ACC.user.name)||(window.S&&S.name)||'Te',myCol,'😎',false,0,n);W.P.push(W.me);
- for(let i=1;i<n;i++){let nm;do{nm=NAMES[Math.random()*NAMES.length|0]}while(used.has(nm));used.add(nm);W.P.push(mkP(nm,COLS[(i-1)%COLS.length],EMO[(i+Math.random()*3|0)%EMO.length],true,i,n))}
+ buildScene();mats();if(KH('build'))try{KH('build')(SC,W)}catch(e){}
+ const n=(KH('nbots')?KH('nbots')():ST.bots)+1;const HN=KH('names')?KH('names')():null;const myCol=0x22d3ee;const used=new Set();
+ W.me=mkP((typeof ACC!=='undefined'&&ACC.user&&ACC.user.name)||(typeof S!=='undefined'&&S.name)||'Te',myCol,'😎',false,0,n);W.P.push(W.me);
+ for(let i=1;i<n;i++){let nm;if(HN&&HN[i-1])nm=HN[i-1];else do{nm=NAMES[Math.random()*NAMES.length|0]}while(used.has(nm));used.add(nm);W.P.push(mkP(nm,COLS[(i-1)%COLS.length],EMO[(i+Math.random()*3|0)%EMO.length],true,i,n))}
  ST.games++;saveST();nextRound();
  try{lockP()}catch(e){}
 }
 function nextRound(){
- clearWorld();W.round++;W.R=W.R0*(W.P.length>6?1.2:1);W.Rbase=W.R;W.t=0;W.puT=4;W.live=false;W.order=[];
+ clearWorld();W.round++;W.R=W.R0*(W.P.length>6?1.2:1)*(KH('rmul')?KH('rmul')():1);W.Rbase=W.R;W.t=0;W.puT=4;W.live=false;W.order=[];
  const n=W.P.length;W.P.forEach((p,i)=>{const a=i/n*Math.PI*2;p.x=Math.cos(a)*W.R*.6;p.z=Math.sin(a)*W.R*.6;p.y=0;p.vx=p.vz=p.vy=0;p.face=Math.atan2(-p.x,-p.z);p.pct=0;p.lives=2;p.alive=true;p.falling=false;p.inv=0;p.stun=0;p.sal=100;p.pu=null;p.charging=false;p.chg=0;p.g.visible=true;p.g.userData.sh.visible=true;p.shownPct=-1;setPctLabel(p)});
  yaw=W.me.face;pit=-.12;
  let c=3;banner(`${W.round}. KÖR`,1,64);SND.bell();
- const tick=()=>{if(!ON||!W)return;if(c>0){setTimeout(()=>{banner(String(c),.7,90);tone(520,520,.12,.2,'square');c--;tick()},900)}else setTimeout(()=>{banner('KÖPJ! 💦',.9,80);tone(880,880,.3,.25,'square');W.live=true},900)};tick();
+ const tick=()=>{if(!ON||!W)return;if(c>0){setTimeout(()=>{banner(String(c),.7,90);tone(520,520,.12,.2,'square');c--;tick()},900)}else setTimeout(()=>{banner('KÖPJ! 💦',.9,80);tone(880,880,.3,.25,'square');if(W)W.live=true},900)};tick();
 }
 function eliminate(p){p.lives--;ST.falls+=p===W.me?1:0;
  const k=p.lastHitT>0&&p.lastHit&&p.lastHit!==p?p.lastHit:null;
- if(k){k.elims++;if(k===W.me){ST.elim++;banner('💦 LEKÖPVE!',1,44)}feed(`<b style="color:#${new THREE.Color(k.col).getHexString()}">${k.name}</b> 💦 → 🌊 <b style="color:#${new THREE.Color(p.col).getHexString()}">${p.name}</b>`);if(k.bot&&Math.random()<.5)taunt(k,TAUNT[Math.random()*TAUNT.length|0])}
+ if(k){k.elims++;if(k===W.me){ST.elim++;banner(ST.fing?'💨 BEFINGOLVA!':'💦 LEKÖPVE!',1,44)}feed(`<b style="color:#${new THREE.Color(k.col).getHexString()}">${k.name}</b> 💦 → 🌊 <b style="color:#${new THREE.Color(p.col).getHexString()}">${p.name}</b>`);if(k.bot&&Math.random()<.5)taunt(k,TAUNT[Math.random()*TAUNT.length|0])}
  else feed(`🌊 <b>${p.name}</b> beleesett a vízbe`);
  SND.splash();splash(p.x,p.z);
  if(p.lives>0){p.respawn=2;p.g.visible=false;p.g.userData.sh.visible=false;p.alive=false;if(p===W.me)banner('🌊 Még 1 életed van!',1.4,36)}
@@ -297,7 +299,7 @@ function endMatch(won,quit){
  if(!W)return;W.live=false;W.done=true;try{document.exitPointerLock()}catch(e){}
  const m=DIFF[ST.diff].mult;const el=W.me.elims;const acc=W.me.shots?Math.round(W.me.hits/W.me.shots*100):0;
  let pr=quit?0:Math.round((el*400+(won?5000:500))*m);if(pr)pay(pr);
- if(won){ST.win++;ST.best=Math.max(ST.best,el)}saveST();
+ if(won){ST.win++;ST.best=Math.max(ST.best,el)}saveST();if(!quit&&KH('end'))try{KH('end')(won,W)}catch(e){}
  const rows=W.P.slice().sort((a,b)=>b.roundWins-a.roundWins||b.elims-a.elims).map((p,i)=>`<tr style="${p===W.me?'background:#0e3a4a':''}"><td>${i+1}.</td><td style="text-align:left"><i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#${new THREE.Color(p.col).getHexString()}"></i> ${p.name}</td><td>${p.roundWins}</td><td>${p.elims}</td><td>${p.shots?Math.round(p.hits/p.shots*100):0}%</td></tr>`).join('');
  $('kpEndB').innerHTML=`<h1>${quit?'🏳️ Feladtad':won?'🏆 GYŐZTÉL!':'🌊 Vége a meccsnek'}</h1>
  <div style="font-size:15px;color:#a5f3fc;margin:6px 0 12px">${quit?'Nincs jutalom.':`Jutalom: <b style="color:#fde047">${ftf(pr)}</b> (${DIFF[ST.diff].n} ×${m})`}</div>
@@ -311,7 +313,8 @@ function pause(v){PAUSE=v;$('kpPause').style.display=v?'flex':'none';if(v){try{d
 
 // ---------- fő ciklus ----------
 const _v=new THREE.Vector3();
-function loop(t){if(!ON)return;raf=requestAnimationFrame(loop);const dt=Math.min(.05,last?(t-last)/1000:.016);last=t;if(!PAUSE&&W&&W.P.length)step(dt,t/1000);if(W&&W.P.length){cam(dt);R.render(SC,CAM)}}
+let hstop=0,combo=0,comboT=-9,T_now=0;
+function loop(t){if(!ON)return;raf=requestAnimationFrame(loop);let dt=Math.min(.05,last?(t-last)/1000:.016);last=t;T_now=t/1000;if(hstop>0){hstop-=dt;dt*=.12}if(!PAUSE&&W&&W.P.length)step(dt,t/1000);if(W&&W.P.length){cam(dt);R.render(SC,CAM)}}
 function step(dt,T){
  const I=ISL[ST.isl];
  // víz hullámzás
@@ -351,6 +354,8 @@ function step(dt,T){
   const onIsl=Math.hypot(p.x,p.z)<W.R+.15;
   p.vy-=18*dt;p.y+=p.vy*dt;
   if(onIsl&&p.y<=0&&p.y>-.6){p.y=0;if(p.vy<0)p.vy=0;p.ground=true}else p.ground=false;
+  if(KH('pstep'))try{KH('pstep')(p,dt,W)}catch(e){}
+  if(p.bot&&!onIsl&&p.y<.6&&p.vy<0&&p.air2&&p.stun<=0){const d=Math.hypot(p.x,p.z)||1;p.vx=-p.x/d*5;p.vz=-p.z/d*5;jump(p)}
   if(!onIsl&&p.y<=0)p.falling=true;
   if(p.y<-1.6){eliminate(p);continue}
   // ütközés más játékossal (gyenge lökés)
@@ -368,13 +373,13 @@ function step(dt,T){
  // köpések
  for(let i=SPITS.length-1;i>=0;i--){const s=SPITS[i];s.life-=dt;s.vy-=s.g*dt;s.vx+=wx*dt*.8;s.vz+=wz*dt*.8;s.m.position.x+=s.vx*dt;s.m.position.y+=s.vy*dt;s.m.position.z+=s.vz*dt;
   _v.set(s.vx,s.vy,s.vz);s.m.lookAt(_v.add(s.m.position));
-  s.trail-=dt;if(s.trail<=0){s.trail=.03;burst(s.m.position.x,s.m.position.y,s.m.position.z,s.fire?0xff7a1a:0xd9fbc5,1,.4)}
+  s.trail-=dt;if(s.trail<=0){s.trail=.03;burst(s.m.position.x,s.m.position.y,s.m.position.z,s.fire?0xff7a1a:ST.fing?0xb5c45a:(s.tc?s.tc(W.t):0xd9fbc5),1,.4)}
   let gone=false;
-  for(const p of W.P){if(p===s.o||!p.alive)continue;const dy=s.m.position.y-p.y;if(dy<0||dy>1.95)continue;if(Math.hypot(s.m.position.x-p.x,s.m.position.z-p.z)<.45+s.r){hit(s,p);gone=true;break}}
+  for(const p of W.P){if(p===s.o||!p.alive)continue;const dy=s.m.position.y-p.y;if(dy<(ST.fing?1.25:0)||dy>(ST.fing?2.05:1.95))continue;if(Math.hypot(s.m.position.x-p.x,s.m.position.z-p.z)<.45+s.r){hit(s,p);gone=true;break}}
   if(!gone&&s.m.position.y<=.05){const onI=Math.hypot(s.m.position.x,s.m.position.z)<W.R;if(onI){puddle(s.m.position.x,s.m.position.z,s.big?1.6:1);burst(s.m.position.x,.1,s.m.position.z,0xa3f07a,5,2)}else if(s.m.position.y<-.4)burst(s.m.position.x,-.4,s.m.position.z,0xe0f7ff,4,2);if(onI||s.m.position.y<-.4)gone=true}
   if(gone||s.life<=0){SC.remove(s.m);SPITS.splice(i,1)}}
  for(let i=PARTS.length-1;i>=0;i--){const q=PARTS[i];q.l-=dt;if(q.ring){q.m.scale.addScalar(dt*5);q.m.material.opacity=q.l/1.2}else{q.vy-=14*dt;q.m.position.x+=q.vx*dt;q.m.position.y+=q.vy*dt;q.m.position.z+=q.vz*dt;q.m.material.opacity=Math.min(1,q.l*2)}if(q.l<=0){SC.remove(q.m);q.m.material.dispose();PARTS.splice(i,1)}}
- for(let i=PUDDLES.length-1;i>=0;i--){const q=PUDDLES[i];q.l-=dt;q.m.material.opacity=Math.min(.55,q.l*.2);if(q.l<=0||Math.hypot(q.m.position.x,q.m.position.z)>W.R){SC.remove(q.m);PUDDLES.splice(i,1)}}
+ for(let i=PUDDLES.length-1;i>=0;i--){const q=PUDDLES[i];q.l-=dt;q.m.material.opacity=Math.min(.55,q.l*.2);if(q.l<=0||Math.hypot(q.m.position.x,q.m.position.z)>W.R){SC.remove(q.m);q.m.geometry.dispose();q.m.material.dispose();PUDDLES.splice(i,1)}}
  // kör vége?
  if(W.live){const left=W.P.filter(p=>p.lives>0&&(p.alive||p.respawn>0));if(left.length<=1)roundOver()}
  hud(T)}
@@ -395,12 +400,15 @@ function hud(T){if(T-hudT<.08)return;hudT=T;const me=W.me;
  $('kpList').innerHTML=W.P.map(p=>`<div class="r ${p.lives<=0?'out':''}"><i style="background:#${new THREE.Color(p.col).getHexString()}"></i>${p===me?'<b>'+p.name+'</b>':p.name}<span style="margin-left:auto">${Math.round(p.pct)}% ${'♥'.repeat(Math.max(0,p.lives))}</span></div>`).join('');
  $('kpChg').setAttribute('stroke-dashoffset',113-113*Math.min(1,me.chg));$('kpChg').setAttribute('stroke',me.chg>=1?'#f43f5e':'#a3e635');
  $('kpCross').style.display=me.alive?'':'none';
+ {const ed=W.R-Math.hypot(me.x,me.z),dg=me.alive&&ed<2.2&&me.pct>60;let eg=$('kpEdge');if(!eg){eg=document.createElement('div');eg.id='kpEdge';eg.style.cssText='position:absolute;inset:0;z-index:2;pointer-events:none';$('kpw').appendChild(eg)}eg.style.boxShadow=dg?'inset 0 0 '+(40+me.pct*.3|0)+'px rgba(239,68,68,.75)':''}
  $('kpHelp').style.display=W.t<20&&W.round===1?'':'none'}
 
 // ---------- menü / nyitás ----------
 function opts(id,list,cur,set){const el=$(id);el.innerHTML='';list.forEach(([v,t])=>{const b=document.createElement('button');b.className='o'+(v===cur?' on':'');b.textContent=t;b.onclick=()=>{set(v);menu()};el.appendChild(b)})}
 function menu(){$('kpEnd').style.display='none';$('kpM').style.display='flex';
  opts('kpIsl',Object.entries(ISL).map(([k,v])=>[k,v.n]),ST.isl,v=>{ST.isl=v;saveST()});$('kpIslD').textContent=ISL[ST.isl].desc;
+ if(KH('menu'))try{KH('menu')($('kpX'))}catch(e){}
+ opts('kpMode',[[0,'💦 Köpködős'],[1,'💨 Fingdobálós']],ST.fing|0,v=>{ST.fing=v;saveST()});$('kpM').querySelector('h1').textContent=ST.fing?'💨 FINGDOBÁLÓS':'💦 KÖPKÖDŐS';
  opts('kpBots',[[3,'3'],[5,'5'],[7,'7']],ST.bots,v=>{ST.bots=v;saveST()});
  opts('kpDiff',DIFF.map((d,i)=>[i,d.n+' ×'+d.mult]),ST.diff,v=>{ST.diff=v;saveST()});
  $('kpStat').textContent=`Meccsek: ${ST.games} · Győzelem: ${ST.win} · Leköpések: ${ST.elim} · Pontosság: ${ST.shots?Math.round(ST.hits/ST.shots*100):0}% · Legtöbb leköpés egy győztes meccsen: ${ST.best}`;
@@ -419,8 +427,8 @@ const btn=document.createElement('button');btn.id='kpBtn';btn.textContent='💦 
 btn.style.cssText='position:fixed;left:14px;bottom:190px;z-index:50;font:800 14px system-ui;color:#fff;background:linear-gradient(180deg,#22d3ee,#0e7490);border:2px solid #a5f3fc;border-radius:12px;padding:9px 14px;cursor:pointer;box-shadow:0 0 16px rgba(34,211,238,.5);display:none';
 btn.onclick=open;document.body.appendChild(btn);
 setInterval(()=>{const lb=$('lb');const on=lb&&lb.classList.contains('on')&&!ON&&!document.body.classList.contains('lb2on');btn.style.display=on?'':'none'},1000);
-(function reg(){if(!window._lb2||!_lb2.add){setTimeout(reg,500);return}_lb2.add({ic:'💦',hu:'Köpködős mód',tx:'Köpködős mód',c:'play',fn:open,kw:'kopkodes kopi sziget nyal mod'})})();
+(function reg(){if(!window._lb2||!_lb2.add){setTimeout(reg,500);return}_lb2.add({ic:'💦',hu:'Köpködős mód',tx:'Köpködős mód',c:'play',fn:()=>{ST.fing=0;saveST();open()},kw:'kopkodes kopi sziget nyal mod'});_lb2.add({ic:'💨',hu:'Fingdobálós mód',tx:'Fingdobálós mód',c:'play',fn:()=>{ST.fing=1;saveST();open()},kw:'fing fingdobalos szaj buz mod'})})();
 // chat parancs /kopi
 try{const o=window.extraCmd;window.extraCmd=function(c){if(/^\/(kopi|kopkodes|köpi)\b/i.test(String(c||'').trim())){open();return '💦 Köpködős mód megnyitva'}return o?o.apply(this,arguments):null}}catch(e){}
-window._kp={open,close,menu,ST,get W(){return W},start:startMatch,win:()=>{if(W)W.P.forEach(p=>{if(p.bot){p.lives=0;p.alive=false;p.g.visible=false}})}};
+window._kp={open,close,menu,ST,get SC(){return SC},startMatch,get W(){return W},start:startMatch,win:()=>{if(W)W.P.forEach(p=>{if(p.bot){p.lives=0;p.alive=false;p.g.visible=false}})}};
 })();

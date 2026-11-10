@@ -281,7 +281,7 @@ function tableHTML(){let h='<div class="k3g">'+cellHTML('n0','z','0','grid-row:1
 function roul(){openX('<h2>🎡 RULETT <span style="font-size:14px;opacity:.6">– európai, egy nullás</span></h2><div class="k3bal">'+balHTML()+'</div><div class="k3rl"><div style="text-align:center"><canvas id="k3rw" width="600" height="600"></canvas><div class="k3hist" id="k3rh"></div></div>'+
  '<div><div class="k3tab" id="k3rt">'+tableHTML()+'</div><div style="margin-top:10px;display:flex;flex-wrap:wrap;align-items:center;gap:6px">Zseton: '+[10,25,50,100,250].map(v=>'<span data-c="'+v+'" style="cursor:pointer;outline:'+(RL.chip===v?'3px solid #facc15':'none')+';border-radius:50%">'+chip(v)+'</span>').join('')+
  '<span style="flex:1"></span><span>Tét: <b id="k3rT" style="color:#fde68a">'+fmt(total())+'</b></span></div>'+
- '<div style="margin-top:8px"><button class="k3btn" id="k3rC">TÖRLÉS</button><button class="k3btn" id="k3rD">DUPLÁZ</button><button class="k3btn go" id="k3rS">PÖRGETÉS</button></div>'+
+ '<div style="margin-top:8px"><button class="k3btn" id="k3rC">TÖRLÉS</button><button class="k3btn" id="k3rD">DUPLÁZ</button><button class="k3btn go" id="k3rS">'+(RL.mp?'TÉT LEADÁSA':'PÖRGETÉS')+'</button><button class="k3btn" id="k3rMp">'+(RL.mp?'🌐 KÖZÖS ASZTAL: BE':'🌐 Közös asztal')+'</button></div><div id="k3rMP" style="font-size:12px;color:#a5f3fc;min-height:16px">'+(RL.mp?mpLine():'')+'</div>'+
  '<div id="k3rM" style="min-height:24px;margin-top:6px;font:900 18px \'Luckiest Guy\',Impact;color:#fde68a">'+RL.res+'</div>'+
  '<div style="font-size:12px;opacity:.7">Szám 35:1 · tucat/oszlop 2:1 · piros/fekete/páros/páratlan/1–18/19–36 1:1</div></div></div>'+
  '<div style="text-align:right"><button class="k3btn" onclick="x10cas()">◀ KASZINÓ</button></div>',true);
@@ -289,13 +289,22 @@ function roul(){openX('<h2>🎡 RULETT <span style="font-size:14px;opacity:.6">�
  B.querySelector('#k3rt').onclick=e=>{const c=e.target.closest('[data-b]');if(!c||RL.spin)return;const k=c.dataset.b;RL.bets[k]=(RL.bets[k]||0)+RL.chip;try{K2().SND.tick(600)}catch(x){}tblRefresh()};
  B.querySelector('#k3rt').oncontextmenu=e=>{const c=e.target.closest('[data-b]');if(!c||RL.spin)return;e.preventDefault();delete RL.bets[c.dataset.b];tblRefresh()};
  B.querySelectorAll('[data-c]').forEach(s=>s.onclick=()=>{RL.chip=+s.dataset.c;B.querySelectorAll('[data-c]').forEach(z=>z.style.outline=+z.dataset.c===RL.chip?'3px solid #facc15':'none')});
- $('k3rC').onclick=()=>{if(!RL.spin){RL.bets={};tblRefresh()}};$('k3rD').onclick=()=>{if(!RL.spin){for(const k in RL.bets)RL.bets[k]*=2;tblRefresh()}};$('k3rS').onclick=rSpin}
+ $('k3rC').onclick=()=>{if(!RL.spin){RL.bets={};tblRefresh()}};$('k3rD').onclick=()=>{if(!RL.spin){for(const k in RL.bets)RL.bets[k]*=2;tblRefresh()}};$('k3rS').onclick=()=>rSpin();$('k3rMp').onclick=mpToggle}
 function tblRefresh(){const t=$('k3rt');if(t)t.innerHTML=tableHTML();const e=$('k3rT');if(e)e.textContent=fmt(total())}
+// ---- 🌐 TÖBBJÁTÉKOS RULETT (server/mod_B2: mb2_rl_*) – közös pörgetés, mindenki a saját tétjét fizeti/kapja ----
+const MPK=()=>window.KR,mpOn=()=>{try{const a=MPK().acc();return a&&a.token&&!a.guest&&a.ws&&a.ws.readyState===1}catch(e){return false}};
+RL.mp=false;RL.mpS=null;RL.mine=null;
+function mpLine(){const s=RL.mpS;if(!s)return'Csatlakozás…';return(s.phase==='bet'?'⏳ Tétek: '+s.tm+' mp':'🎡 Pörgetés…')+' · Asztalnál: '+s.players.map(p=>p.n+(p.b?' ('+p.b+')':'')).join(', ')+(RL.mine?' · a téted: '+Object.values(RL.mine).reduce((a,b)=>a+b,0):'')}
+function mpToggle(){if(!RL.mp&&!mpOn()){rMsg('A közös asztalhoz jelentkezz be!');return}RL.mp=!RL.mp;try{MPK().wsend({t:RL.mp?'mb2_rl_sit':'mb2_rl_leave'})}catch(e){}const b=$('k3rMp');if(b)b.textContent=RL.mp?'🌐 KÖZÖS ASZTAL: BE':'🌐 Közös asztal';const s=$('k3rS');if(s)s.textContent=RL.mp?'TÉT LEADÁSA':'PÖRGETÉS';const l=$('k3rMP');if(l)l.textContent=RL.mp?mpLine():''}
+function mpBet(K,tb){if(RL.mine)return rMsg('Már leadtad a tétet – várd a pörgetést.');if(!RL.mpS||RL.mpS.phase!=='bet')return rMsg('Várd meg a következő kört!');const e=K.canBet(tb);if(e)return rMsg(e);K.bet(tb);RL.mine=Object.assign({},RL.bets);for(const k in RL.mine)try{MPK().wsend({t:'mb2_rl_bet',k,v:RL.mine[k]})}catch(x){}rMsg('✅ Tét leadva: '+tb+' zseton – közös pörgetés hamarosan');const l=$('k3rMP');if(l)l.textContent=mpLine()}
+addEventListener('krws',ev=>{const m=ev.detail;if(!m||!RL.mp)return;if(m.t==='mb2_rl'){RL.mpS=m;const l=$('k3rMP');if(l)l.textContent=mpLine()}
+ else if(m.t==='mb2_rl_spin'){if(RL.mine){RL.bets=RL.mine;RL.mine=null;rSpin(m.r,true)}else if($('k3rt')&&!RL.spin){const sv=RL.bets;RL.bets={};rSpin(m.r,true);RL.bets=sv}}});
 function histDraw(){const h=$('k3rh');if(h)h.innerHTML=RL.hist.slice(-12).map(n=>'<span style="background:'+(n===0?'#15803d':RED.has(n)?'#b91c1c':'#111827')+'">'+n+'</span>').join('')}
 function rMsg(t){RL.res=t;const m=$('k3rM');if(m)m.textContent=t}
-function rSpin(){const K=KX();if(RL.spin||!K)return;const tb=total();if(!tb)return rMsg('Tegyél zsetont a táblára!');const e=K.canBet(tb);if(e){rMsg(e);K2().loseFx&&K2().loseFx($('k3rt'));return}
- K.bet(tb);RL.spin=true;rMsg('Nincs több tét!');$('k3rS').disabled=true;try{K2().ac()}catch(x){}
- const res=ORD[R()*37|0],idx=ORD.indexOf(res),da=6.283/37,pocket=idx*da-Math.PI/2;// a zseb szöge a kerékhez képest
+function rSpin(forced,pre){const K=KX();if(RL.spin||!K)return;const tb=total();if(!tb){if(pre)return;return rMsg('Tegyél zsetont a táblára!')}
+ if(!pre&&RL.mp){return mpBet(K,tb)}
+ if(!pre){const e=K.canBet(tb);if(e){rMsg(e);K2().loseFx&&K2().loseFx($('k3rt'));return}K.bet(tb)}RL.spin=true;rMsg('Nincs több tét!');{const sb=$('k3rS');if(sb)sb.disabled=true}try{K2().ac()}catch(x){}
+ const res=forced!=null?forced:ORD[R()*37|0],idx=ORD.indexOf(res),da=6.283/37,pocket=idx*da-Math.PI/2;// a zseb szöge a kerékhez képest
  const t0=performance.now(),D=6200,w0=RL.wa,wTurn=6.283*(2.2+R()*.6),rel0=RL.ba-RL.wa,relEnd=pocket+6.283*Math.round((rel0-pocket)/6.283)-6.283*7;let lastS=0,lastP=-1;
  (function fr(){const t=performance.now(),k=Math.min(1,(t-t0)/D),ew=1-Math.pow(1-k,3);RL.wa=w0+wTurn*ew;
   const kb=Math.min(1,k/.86),eb=1-Math.pow(1-kb,2.4);const rel=rel0+(relEnd-rel0)*eb;RL.ba=RL.wa+rel;

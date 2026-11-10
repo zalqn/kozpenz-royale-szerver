@@ -1,19 +1,24 @@
-# KÖZPÉNZ ROYALE – GitHub Pages változat
+# KÖZPÉNZ ROYALE – Render (Node szerver + játék) változat
 
-Ez a mappa csak a játék futtatásához szükséges statikus fájlokat tartalmazza
-(index.html, a betöltött scriptek, `tex_opt/` textúrák). Szerver-adat (felhasználók, jelszavak) NINCS benne.
+A mappát a `node build.js --bundle` állítja elő (index.html + bundle.min.js + tex_opt + server/*.js). Szerver-adat
+(users.json, kozpenz.db, saves, backup, logs) NINCS benne – ne is másold bele.
 
-## Feltöltés
-1. Hozz létre egy új GitHub repót (pl. `kozpenz-royale`).
-2. Töltsd fel ennek a mappának a TARTALMÁT a repó gyökerébe (a `.nojekyll` fájlt is).
-3. Settings → Pages → Source: *Deploy from a branch* → Branch: `main` / `(root)` → Save.
-4. Pár perc múlva: `https://<felhasználónév>.github.io/kozpenz-royale/`
+## Telepítés Renderre
+1. Töltsd fel a mappa tartalmát egy (privát) GitHub repóba, Renderen: New → Blueprint → a repó (a `render.yaml` alapján).
+2. Node ≥ 22.5 kell (node:sqlite) – a render.yaml beállítja.
 
-## Mi működik Pages-en?
-- Minden egyjátékos tartalom **vendég (offline) módban**: Battle Royale, Mentsd meg a világot, flakon, kaszinó,
-  telefon, fotómód, Közszörnyek, kártyák, bank, naptár stb. A mentés a böngésző localStorage-ában marad.
-- **Szerver kell hozzá (Pages-en nem megy):** belépés/regisztráció, barátok, parti, Teakert (közösségi tér),
-  promókódok, lottó, klánok, kutyakiállítás, rangsorolt lista, kártyaküldés. Ezekhez a `server/server.js`-t
-  egy Node-tárhelyen (pl. Render, Railway) kell futtatni.
+## ⚠️ Tartós adatbázis
+A **free** csomagon a lemez ideiglenes: minden deploy/újraindítás TÖRLI a fiókokat és mentéseket.
+Tartós adathoz: `plan: starter` (fizetős) + a `render.yaml` végén lévő `disk:` blokk és a `DATA_DIR=/var/data`
+env bekapcsolása (kommentek eltávolítása). A szerver induláskor kiírja a konzolra, ha a DATA_DIR hiányzik vagy új (nem tartós).
 
-A fotótextúrák a Poly Haven CC0 (szabadon használható) gyűjteményéből származnak – a források listája: `tex_opt/forras.json`.
+## Opcionális környezeti változók
+| Változó | Mire jó |
+|---|---|
+| `DATA_DIR` | adatkönyvtár (kozpenz.db, saves, backup, logs) – tartós disk mount helye |
+| `PUBLIC_URL` | a játék címe (pl. `https://kozpenz-royale.onrender.com`) – a jelszó-visszaállító linkhez |
+| `SMTP_HOST`, `SMTP_PORT` (465 TLS / 587 STARTTLS), `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` | jelszó-visszaállító e-mail. Ha nincs megadva, a link a szerver konzolra és az admin panel 🔑 fülére kerül |
+| `BACKUP_URL` | napi adatbázis-mentés feltöltése HTTP PUT-tal (a `{file}` helyére a fájlnév kerül), pl. egy S3 presigned / WebDAV / webhook cím. Alapból KI |
+| `BACKUP_TOKEN`, `BACKUP_METHOD` | opcionális `Authorization: Bearer` fejléc, ill. PUT helyett POST |
+
+A fotótextúrák a Poly Haven CC0 gyűjteményéből származnak – források: `tex_opt/forras.json`.

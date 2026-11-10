@@ -66,7 +66,7 @@ function tagEl(i){const x=R[i],s=document.createElement('span');s.className='rkT
 const P=document.createElement('div');P.id='rkP';P.innerHTML='<div class="pn"></div>';document.body.appendChild(P);
 P.onclick=e=>{if(e.target===P)close()};
 function close(){P.classList.remove('on');try{window.guiClose&&guiClose()}catch(e){}}
-function open(){autoLv();draw();loadTop();P.classList.add('on');try{window.guiOpen&&guiOpen()}catch(e){}}
+function open(){autoLv();draw();loadTop();P.classList.add('on');try{window.guiOpen&&guiOpen('')}catch(e){}}
 function draw(m){const c=R[D.r],n=R[D.r+1],l=lv(),pn=P.querySelector('.pn');pn.style.setProperty('--rc',c[2]);
  let h='<button class="x" id="rkX">✕</button><h2>🏅 RANGOK</h2><div class="m">Rangot játékpénzzel (Ft), zsetonnal vagy fiókszinttel szerezhetsz – sorban, egymás után.</div>';
  h+='<div class="cur"><div class="big">'+c[1]+'</div><div><div style="font-size:22px;font-weight:800">Jelenlegi rangod: <span class="rkTag g'+D.r+'" style="background:'+c[2]+'">['+c[0]+']</span></div>';
