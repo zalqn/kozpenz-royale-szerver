@@ -33,6 +33,7 @@ const MODES={
  viz:{e:'🌊',n:'Emelkedő víz',d:'Emelkedik a víz – ugorj fel a tornyokra (dupla ugrás!) és lökd le a többieket.',go:'FEL! 🌊'},
  torta:{e:'🥧',n:'Tortacsata',d:'Csak töltött dobás van. A teljesen feltöltött, telibe talált torta azonnal kiröpít.',go:'TORTÁT! 🥧'},
  domb:{e:'🎯',n:'Királya a dombnak',d:'Állj a körben egyedül 15 mp-ig! Ha többen vagytok bent, senki nem kap pontot.',go:'FOGLALD! 🎯'}};
+const MH=(n,...a)=>{const m=window._kpMode&&window._kpMode[ST.mode||'kop'];if(m&&m[n])try{return m[n](...a)}catch(e){console.error('[kpMode '+(ST.mode)+'.'+n+']',e)}};
 const MD=()=>ST.mode||'kop',SCM=()=>MD()==='csirke'||MD()==='domb';
 const TGT=()=>MD()==='csirke'?20:15;
 const TOW=[{x:0,z:0,r:1.15,h:4},{x:2.6,z:0,r:1.1,h:.8},{x:0,z:2.6,r:1.1,h:1.6},{x:-2.6,z:0,r:1.1,h:2.4},{x:0,z:-2.6,r:1.1,h:3.2},{x:6.4,z:3,r:1.2,h:.8},{x:-6,z:-3.4,r:1.2,h:.8},{x:-3.2,z:6,r:1.2,h:1},{x:3.4,z:-6,r:1.2,h:1}];
@@ -234,7 +235,7 @@ function fire(p,c,dirOverride){
  p.spitAnim=.18}
 function burst(x,y,z,col,n,sp){n=Math.min(n,260-PARTS.length);for(let i=0;i<n;i++){const m=new THREE.Mesh(GEO_P,new THREE.MeshBasicMaterial({color:col,transparent:true}));m.position.set(x,y,z);SC.add(m);PARTS.push({m,vx:(Math.random()-.5)*sp,vy:Math.random()*sp*.8,vz:(Math.random()-.5)*sp,l:.6+Math.random()*.5})}}
 function puddle(x,z,s){if(Math.hypot(x,z)>W.R)return;const m=new THREE.Mesh(new THREE.CircleGeometry(.35*s,12),new THREE.MeshBasicMaterial({color:0x9be37a,transparent:true,opacity:.55,depthWrite:false}));m.rotation.x=-Math.PI/2;m.position.set(x,.025+Math.random()*.005,z);SC.add(m);PUDDLES.push({m,l:7});if(PUDDLES.length>40){const o=PUDDLES.shift();SC.remove(o.m);o.m.geometry.dispose();o.m.material.dispose()}}
-function hit(s,t){
+function hit(s,t){if(MH('hit',s,t)===false)return;
  if(t.inv>0)return;
  if(MD()==='paradi'&&s.o.team===t.team)return;
  if(MD()==='csirke'&&W.ck&&W.ck.holder===t){W.ck.holder=null;W.ck.vx=s.vx*.3;W.ck.vz=s.vz*.3;W.ck.cool=.6;feed('🐔 '+t.name+' elejtette a csirkét!');if(s.o===W.me)banner('🐔 KIÜTVE!',.8,36)}
@@ -339,6 +340,7 @@ function nextRound(){
  if(MD()==='csirke'){const m=MO(new THREE.Sprite(new THREE.SpriteMaterial({map:texEmoji('🐔'),transparent:true})));m.scale.set(1.2,1.2,1);W.ck={m,x:0,z:0,y:.6,vx:0,vz:0,t:0,holder:null,cool:1}}
  if(MD()==='domb'){const m=MO(new THREE.Mesh(new THREE.RingGeometry(1.9,2.3,40),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.6,side:THREE.DoubleSide})));m.rotation.x=-Math.PI/2;const fl=new THREE.Mesh(new THREE.CircleGeometry(1.9,40),new THREE.MeshBasicMaterial({color:0xfacc15,transparent:true,opacity:.15,side:THREE.DoubleSide}));m.add(fl);W.zone={m,x:0,z:0,r:2.1,t:15}}
  W.P.forEach(p=>{const sh=p.g.userData.sh;if(MD()==='paradi'){sh.material.color.setHex(p.team?0x3b82f6:0xef4444);sh.material.opacity=.6}else{sh.material.color.setHex(0);sh.material.opacity=.28}});
+ MH('round',W,SC);
  yaw=W.me.face;pit=-.12;
  let c=3;banner(`${W.round}. KÖR`,1,64);SND.bell();
  const tick=()=>{if(!ON||!W)return;if(c>0){setTimeout(()=>{banner(String(c),.7,90);tone(520,520,.12,.2,'square');c--;tick()},900)}else setTimeout(()=>{banner(MODES[MD()].go,.9,80);tone(880,880,.3,.25,'square');if(W)W.live=true},900)};tick();
@@ -456,6 +458,7 @@ function step(dt,T){
   if(SCM()){modeTick(dt,T);const wn=W.P.find(p=>(p.sc||0)>=TGT());if(wn)roundOver(wn)}
   else if(MD()==='paradi'){if(new Set(left.map(p=>p.team)).size<=1)roundOver(left[0])}
   else if(left.length<=1)roundOver()}
+ MH('tick',dt,T,W);
  hud(T)}
 function modeTick(dt,T){
  if(MD()==='csirke'&&W.ck){const c=W.ck;c.cool=Math.max(0,c.cool-dt);
@@ -485,7 +488,7 @@ function hud(T){if(T-hudT<.08)return;hudT=T;const me=W.me;
  $('kpChg').setAttribute('stroke-dashoffset',113-113*Math.min(1,me.chg));$('kpChg').setAttribute('stroke',me.chg>=1?'#f43f5e':'#a3e635');
  $('kpCross').style.display=me.alive?'':'none';
  {const ed=W.R-Math.hypot(me.x,me.z),dg=me.alive&&ed<2.2&&me.pct>60;let eg=$('kpEdge');if(!eg){eg=document.createElement('div');eg.id='kpEdge';eg.style.cssText='position:absolute;inset:0;z-index:2;pointer-events:none';$('kpw').appendChild(eg)}eg.style.boxShadow=dg?'inset 0 0 '+(40+me.pct*.3|0)+'px rgba(239,68,68,.75)':''}
- $('kpHelp').style.display=W.t<20&&W.round===1?'':'none'}
+ $('kpHelp').style.display=W.t<20&&W.round===1?'':'none';MH('hud',W)}
 
 // ---------- menü / nyitás ----------
 function opts(id,list,cur,set){const el=$(id);el.innerHTML='';list.forEach(([v,t])=>{const b=document.createElement('button');b.className='o'+(v===cur?' on':'');b.textContent=t;b.onclick=()=>{set(v);menu()};el.appendChild(b)})}
@@ -514,5 +517,6 @@ setInterval(()=>{const lb=$('lb');const on=lb&&lb.classList.contains('on')&&!ON&
 (function reg(){if(!window._lb2||!_lb2.add){setTimeout(reg,500);return}_lb2.add({ic:'💦',hu:'Köpködős mód',tx:'Köpködős mód',c:'play',fn:()=>{ST.mode='kop';saveST();open()},kw:'kopkodes kopi sziget nyal mod'});_lb2.add({ic:'💨',hu:'Fingdobálós mód',tx:'Fingdobálós mód',c:'play',fn:()=>{ST.mode='fing';saveST();open()},kw:'fing fingdobalos szaj buz mod'})})();
 // chat parancs /kopi
 try{const o=window.extraCmd;window.extraCmd=function(c){if(/^\/(kopi|kopkodes|köpi)\b/i.test(String(c||'').trim())){open();return '💦 Köpködős mód megnyitva'}return o?o.apply(this,arguments):null}}catch(e){}
+window._kpI={get W(){return W},get SC(){return SC},get CAM(){return CAM},ST,MODES,TOW,CRATES,PU,SND,tone,noise,burst,splash,puddle,banner,feed,taunt,hitmark,eliminate,respawn,roundOver,jump,dash,fire,startCharge,texEmoji,texLabel,setPctLabel,MD,gH,get shake(){return shake},set shake(v){shake=v}};
 window._kp={open,close,menu,ST,get SC(){return SC},startMatch,get W(){return W},start:startMatch,win:()=>{if(W)W.P.forEach(p=>{if(p.bot){p.lives=0;p.alive=false;p.g.visible=false}})}};
 })();
