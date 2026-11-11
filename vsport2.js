@@ -190,7 +190,7 @@ function drawPitch(){const c=$$('v2Pitch');if(!c||!CUR)return;const g=c.getConte
  g.fillStyle='#fff';g.beginPath();g.arc(ball.x*W,ball.y*H,5,0,6.283);g.fill();
  g.fillStyle='#000a';g.fillRect(W/2-150,6,300,34);g.font='bold 20px Rajdhani';g.textAlign='center';g.fillStyle='#fff';g.fillText(TM[x.h][1]+'  '+x.st.h+' : '+x.st.a+'  '+TM[x.a][1]+'   '+(CUR.state==='done'?'VÉGE':CUR.min+"'"),W/2,30);
  if(goalFlash){flashT=1.2;goalFlash=0;ball={x:.5,y:.5,vx:0,vy:0}}if(flashT>0){flashT-=.03;g.globalAlpha=Math.min(1,flashT);g.font='bold 64px Impact';g.fillStyle='#facc15';g.strokeStyle='#000';g.lineWidth=6;g.strokeText('GÓÓÓL!',W/2,H/2+20);g.fillText('GÓÓÓL!',W/2,H/2+20);g.globalAlpha=1}}
-(function anim(){requestAnimationFrame(anim);if(on()&&tab==='live')drawPitch()})();
+(function anim(){if(on()&&tab==="live"){drawPitch();requestAnimationFrame(anim)}else setTimeout(anim,300)})();// zárva nem fut RAF
 let lastFull=0;
 function tickUI(){const now=Date.now();$$('v2Bal').textContent='💵 '+ft(bal());
  const lv=$$('v2Live');if(CUR&&CUR.state==='live'){lv.className='v2chip live';lv.innerHTML='<b></b> ÉLŐ · '+CUR.no+'. forduló · '+(CUR.min===45?'FÉLIDŐ':CUR.min+"'")}else if(CUR&&CUR.state==='done'){lv.className='v2chip';lv.innerHTML='🏁 '+CUR.no+'. forduló vége'}else{lv.className='v2chip';lv.innerHTML='⏳ Hamarosan kezdünk'}

@@ -96,7 +96,8 @@ let gear=0;
 function engineStep(v,dt){const e=engine();if(!e)return;const t=AC.currentTime;
  if(!v||v.dead){e.g.gain.setTargetAtTime(0,t,.08);return}
  const k=K[v.k],r=Math.min(1,Math.abs(v.sp)/k.max);
- if(v.k==='golf'||v.k==='hover'){// elektromos zümmögés
+ if(k.quiet){e.g.gain.setTargetAtTime(0,t,.08);return}
+ if(v.k==='golf'||v.k==='hover'||k.elec){// elektromos zümmögés
   e.o.type='sine';e.o.frequency.setTargetAtTime(120+r*380,t,.05);e.o2.frequency.setTargetAtTime(240+r*760,t,.05);e.f.frequency.setTargetAtTime(1500,t,.1);e.g.gain.setTargetAtTime(.012+r*.02,t,.08);return}
  if(v.k==='board'){e.g.gain.setTargetAtTime(v.air?0:r*.02,t,.08);e.o.type='sawtooth';e.o.frequency.setTargetAtTime(40+r*30,t,.1);e.o2.frequency.setTargetAtTime(43,t,.1);e.f.frequency.setTargetAtTime(300,t,.1);return}
  // sebességfokozatok: fordulat 0..1 fokozatonként
@@ -148,12 +149,13 @@ function prev(){if(PR)return PR;const r=new THREE.WebGLRenderer({antialias:true,
  const cam=new THREE.PerspectiveCamera(35,200/110,.1,100);PR={r,sc,cam,g:{}};return PR}
 function snap(k){const p=prev();let g=p.g[k];if(!g){g=new THREE.Group();const sk=A.skin(),paint=STD(sk.c),acc=STD(sk.a),wh=[];const wheel=(gg,x,y,z,r,w)=>{const m=new THREE.Mesh(geo('pw'+r+w,()=>new THREE.CylinderGeometry(r,r,w,12)),MAT.dark);m.rotation.z=Math.PI/2;m.position.set(x,y,z);gg.add(m);return m};MO[k](g,paint,acc,wh,wheel);p.g[k]=g}
  p.sc.children.filter(o=>o.isGroup).forEach(o=>p.sc.remove(o));p.sc.add(g);g.rotation.y=.7;const s=k==='hover'?3.2:k==='henger'?7.5:6;p.cam.position.set(s*.9,s*.55,s*.9);p.cam.lookAt(0,k==='hover'?.2:1,0);p.r.render(p.sc,p.cam);return p.r.domElement.toDataURL()}
+const SHOPX=[];// addShop(f): f(w) a garázs-ablak minden újrarajzolásakor (jarmu3a/3b saját kártyái)
 function openG(){GM.style.display='flex';drawG()}function closeG(){GM.style.display='none'}
 function drawG(){const w=GM.firstChild;w.innerHTML='<h2>🏁 Garázs</h2><small>Vegyél járművet, meccsben hívd elő: <b>/garazs</b> (90 mp-enként) vagy <b>/garazs traktor</b>. Egyenleged: <b style="color:#86efac">'+ft(S.c)+'</b></small><div class="gr">'+
  NEW.map(k=>{const o=K[k],own=VOWN.includes(k);let img='';try{img=snap(k)}catch(e){}return'<div class="it"><img src="'+img+'" style="width:100%;height:110px;object-fit:cover;border-radius:10px;background:radial-gradient(#334155,#0f172a)"><b>'+o.n+'</b><br><small>'+o.d+'</small><br><small>🏎️ '+Math.round(o.max*3.6)+' km/h · 🔧 '+o.hp+' HP'+(o.seats>1?' · 👥 2 ülés':'')+'</small><br>'+
   (own?'<button class="own" disabled>✔ A garázsodban</button>':'<button class="buy" data-k="'+k+'">Megveszem – '+ft(o.price)+'</button>')+'</div>'}).join('')+
  '</div><button class="c" id="jm2Paint">🎨 Fényezés (skinek)</button> <button class="c" id="jm2X">Bezár</button>';
- w.querySelector('#jm2X').onclick=closeG;w.querySelector('#jm2Paint').onclick=()=>{closeG();A.shop()};
+ w.querySelector('#jm2X').onclick=closeG;SHOPX.forEach(f=>{try{f(w)}catch(e){console.error('jm2 addShop',e)}});w.querySelector('#jm2Paint').onclick=()=>{closeG();A.shop()};
  w.querySelectorAll('.buy').forEach(b=>b.onclick=()=>{const k=b.dataset.k,p=K[k].price;if(S.c<p){sayX('💸 Nincs elég pénzed: '+ft(p));return}S.c-=p;try{save()}catch(e){}VOWN.push(k);LS.s('veh',VOWN);A.tone(700,.15,'triangle',.08,1200);drawG()})}
 let gbtn=null;
 setInterval(()=>{const h=document.getElementById('x14hub');if(h&&!gbtn){gbtn=document.createElement('button');gbtn.className='x14hBtn';gbtn.id='jm2GBtn';gbtn.textContent='🏁 GARÁZS';gbtn.title='Járműgarázs';gbtn.onclick=openG;h.appendChild(gbtn)}
@@ -219,12 +221,12 @@ const CD={car:7.5,moto:5.5,board:5,golf:6.5,traktor:8.5,henger:10.5,hover:5.5,qu
 function chase(v,dt){let c;try{c=cam}catch(e){return}if(!v||v.dead){if(camP&&lastDrive){try{G.pm.visible=!G.fp;G.gun.visible=!!G.fp}catch(e){}}camP=null;return}
  const hd=Math.PI/2-v.a;// jármű-irány G.ang-ként
  if(!v.ext&&performance.now()-mouseT>1500&&Math.abs(v.sp)>3){let d=hd-G.ang;d=Math.atan2(Math.sin(d),Math.cos(d));G.ang+=d*Math.min(1,dt*2.5)}
- const D=CD[v.k]||7,el=Math.max(-.1,Math.min(1.1,.32-(G.pit||0)*1.4)),cx=v.x,cz=v.z,cy=v.y+(v.ext?1:(K[v.k].seat||1));
+ const D=CD[v.k]||(K[v.k]&&K[v.k].camD)||7,el=Math.max(-.1,Math.min(1.1,.32-(G.pit||0)*1.4)),cx=v.x,cz=v.z,cy=v.y+(v.ext?1:(K[v.k].seat||1));
  const tx=cx-Math.cos(G.ang)*D*Math.cos(el),ty=cy+1.5+Math.sin(el)*D,tz=cz-Math.sin(G.ang)*D*Math.cos(el);
  if(!camP)camP={x:tx,y:ty,z:tz};const k=Math.min(1,dt*8);camP.x+=(tx-camP.x)*k;camP.y+=(ty-camP.y)*k;camP.z+=(tz-camP.z)*k;
  c.position.set(camP.x,Math.max(camP.y,v.y+.8),camP.z);c.lookAt(cx+Math.cos(G.ang)*3,cy+.8,cz+Math.sin(G.ang)*3);
  try{G.gun.visible=false;G.pm.visible=!(v.ext?v.cab:K[v.k].cab)}catch(e){}}
 function KEYS(){try{return A.keys()||{}}catch(e){return {}}}
 
-window._jm2={K,emit,boom:v=>A.boom(v),crates:()=>CR,garage:openG,own:()=>VOWN,night:()=>nightV,give:k=>{if(!VOWN.includes(k)){VOWN.push(k);LS.s('veh',VOWN)}}};
+window._jm2={addShop:f=>{if(!SHOPX.includes(f))SHOPX.push(f)},snap,redraw:()=>{if(GM.style.display==='flex')drawG()},ft,K,emit,boom:v=>A.boom(v),crates:()=>CR,garage:openG,own:()=>VOWN,night:()=>nightV,give:k=>{if(!VOWN.includes(k)){VOWN.push(k);LS.s('veh',VOWN)}}};
 })();

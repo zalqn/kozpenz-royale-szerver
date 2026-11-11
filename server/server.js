@@ -22,7 +22,7 @@ const save = () => { clearTimeout(saveT); saveT = setTimeout(() => {
   try { store.saveDb(db); } catch (e) { console.log('[store] mentés hiba:', e.message); }
   fs.writeFile(DB_FILE + '.tmp', JSON.stringify(db, null, 1), err => { if (!err) fs.rename(DB_FILE + '.tmp', DB_FILE, () => {}); });
 }, 300); };
-const flush = () => { clearTimeout(saveT); try { store.saveDb(db); } catch (e) {} try { fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 1)); } catch (e) {} };
+const flush = () => { clearTimeout(saveT); try { store.saveDb(db); } catch (e) {} try { fs.writeFileSync(DB_FILE + '.tmp', JSON.stringify(db, null, 1)); fs.renameSync(DB_FILE + '.tmp', DB_FILE); } catch (e) {} }; // OPT4: atomi írás (félbeszakadt írás ne rontsa el a users.json-t)
 ['SIGINT', 'SIGTERM'].forEach(sg => process.on(sg, () => { flush(); store.close(); process.exit(0); }));
 const sessions = new Map(); // token -> username
 const hashPw = (pw, salt) => crypto.scryptSync(pw, salt, 64).toString('hex');
@@ -31,6 +31,7 @@ const NAME_RE = /^[A-Za-z0-9_áéíóöőúüűÁÉÍÓÖŐÚÜŰ]{3,16}$/;
 
 // egyszerű próbálkozás-korlát
 const tries = new Map();
+setInterval(() => { const now = Date.now(); for (const [k, t] of tries) if (!t.length || now - t[t.length - 1] > 6e5) tries.delete(k); while (sessions.size > 20000) sessions.delete(sessions.keys().next().value); }, 60000).unref(); // OPT4: rate-limit térkép + munkamenetek korlátja (memóriaszivárgás ellen)
 function limited(key, max, ms) { const now = Date.now(), t = (tries.get(key) || []).filter(x => now - x < ms); t.push(now); tries.set(key, t); return t.length > max; }
 
 function body(req, max) { max = max || 1e5; return new Promise((res, rej) => { let d = ''; req.on('data', c => { d += c; if (d.length > max) { rej(new Error('big')); req.destroy(); } }); req.on('end', () => { try { res(JSON.parse(d || '{}')); } catch (e) { rej(e); } }); }); }
@@ -265,7 +266,9 @@ function sendParty(p) { if (!p) return; const info = { t: 'party', leader: p.lea
 function leaveParty(n) { const c = online.get(n), p = partyOf(n); if (!p) return; p.members = p.members.filter(x => x !== n); delete p.ready[n]; if (c) c.party = null; if (!p.members.length) parties.delete(p.id); else { if (p.leader === n) p.leader = p.members[0]; sendParty(p); } toUser(n, { t: 'party', leader: null, members: [] }); }
 const clean = s => String(s || '').replace(/[\u0000-\u001f]/g, '').trim().slice(0, 200);
 
+setInterval(() => wss.clients.forEach(ws => { if (ws._dead) return ws.terminate(); ws._dead = true; try { ws.ping(); } catch (e) {} }), 30000).unref(); // OPT4: halott WS-kapcsolatok bontása (close → online-ból törlés)
 wss.on('connection', (ws, req) => {
+  ws.on('pong', () => { ws._dead = false; });
   const token = new URL(req.url, 'http://x').searchParams.get('token');
   const name = sessions.get(token);
   if (!name) { out(ws, { t: 'error', error: 'Nincs bejelentkezve.' }); return ws.close(); }

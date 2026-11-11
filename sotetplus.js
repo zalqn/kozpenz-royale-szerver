@@ -3,7 +3,7 @@
 (function(){
 const api=()=>{try{return window._dp&&window._dp()}catch(e){return null}};
 const RI=(a,b)=>a+Math.floor(Math.random()*(b-a+1)),pick=a=>a[Math.floor(Math.random()*a.length)],cl=(v,a,b)=>Math.max(a,Math.min(b,v));
-const f$=n=>Math.round(n).toLocaleString('hu-HU')+' ₷';
+const f$=n=>Math.round(n).toLocaleString('hu-HU')+' Ft';
 const say=(t,w,n)=>{try{window._spv&&_spv.say(t,w,n)}catch(e){}};
 function X(){const d=api();if(!d)return null;const D=d.D;if(!D.spx)D.spx={gang:[],own:[1,null,'riv',null,null,null,null,'riv'].map(v=>v===1?'me':v),fort:{},atk:{},ch:{},end:null,cand:null,cday:0,log:[]};
  const S=D.spx;S.own=S.own||[];S.fort=S.fort||{};S.atk=S.atk||{};S.ch=S.ch||{};S.gang=S.gang||[];S.log=S.log||[];return{d,D,S}}
@@ -55,17 +55,17 @@ function rivalDay(x,rep){const{d,D,S}=x;const nb=[];for(let i=0;i<8;i++)if(S.own
  else{S.own[t]='riv';rep.push('🐺 Fecó bandája bevonult: '+d.DIS[t][0])}
  let inc=0;S.own.forEach((o,i)=>{if(o==='me')inc+=Math.round(450*d.DIS[i][2])});if(inc){D.cash+=inc;rep.push('🏷️ „Közterület-fenntartási hozzájárulás” a kerületeidből: +'+f$(inc))}
  const rc=S.own.filter(o=>o==='riv').length;if(rc>=5){d.heat(5);rep.push('😠 Fecó feljelentget: +5 hő')}}
-function attack(di){const x=X();if(!x)return;const{d,D,S}=x;if(S.atk[di]===D.day){d.toast('Ma már harcoltál itt.');return}if(D.cash<1000){d.toast('Kell 1000 ₷ a „mozgósításra”.');return}if(!d.useEnergy(20))return;
+function attack(di){const x=X();if(!x)return;const{d,D,S}=x;if(S.atk[di]===D.day){d.toast('Ma már harcoltál itt.');return}if(D.cash<1000){d.toast('Kell 1000 Ft a „mozgósításra”.');return}if(!d.useEnergy(20))return;
  D.cash-=1000;S.atk[di]=D.day;const mp=pow(S,D,di)+RI(10,40),rp=S.own[di]==='riv'?30+D.day*3+RI(0,30):RI(10,35),win=mp>rp;
  modal('<h2>⚔️ Csata: '+d.DIS[di][1]+' '+d.DIS[di][0]+'</h2><p>A bandád (zöld) és Fecó emberei (piros) tolakodnak a piactéren – plakátokkal, hangosbemondóval és egy rakás közbeszerzési szórólappal.</p><div>Te: <b>'+Math.round(mp)+'</b><div class="spxBar"><i id="spxB1" style="width:0;background:#22c55e"></i></div>Fecó: <b>'+rp+'</b><div class="spxBar"><i id="spxB2" style="width:0;background:#ef4444"></i></div></div><h3 id="spxRs" style="opacity:0;transition:opacity .5s">'+(win?'🏆 GYŐZELEM! A kerület a tiéd.':'💥 Vereség. Fecó emberei maradnak.')+'</h3><button data-ok>Rendben</button>',m=>{
   const mx=Math.max(mp,rp);setTimeout(()=>{m.querySelector('#spxB1').style.width=mp/mx*100+'%';m.querySelector('#spxB2').style.width=rp/mx*100+'%'},60);setTimeout(()=>{m.querySelector('#spxRs').style.opacity=1;tone(win?660:180,.3)},1500);m.querySelector('[data-ok]').onclick=()=>{unmodal();render()}});
- if(win){S.own[di]='me';D.rep+=2;d.log('⚔️ Elfoglaltad: '+d.DIS[di][0]);if(S.own.every(o=>o==='me')){D.cash+=20000;d.log('👑 Az egész város a tiéd! +20 000 ₷');say('Az egész város a tiéd, főnök. Fecó felmondott, és elment városi kertésznek.','csaba','Csaba')}}else{d.heat(4);d.log('⚔️ Vereség: '+d.DIS[di][0])}
+ if(win){S.own[di]='me';D.rep+=2;d.log('⚔️ Elfoglaltad: '+d.DIS[di][0]);if(S.own.every(o=>o==='me')){D.cash+=20000;d.log('👑 Az egész város a tiéd! +20 000 Ft');say('Az egész város a tiéd, főnök. Fecó felmondott, és elment városi kertésznek.','csaba','Csaba')}}else{d.heat(4);d.log('⚔️ Vereség: '+d.DIS[di][0])}
  d.save()}
-function fortify(di){const x=X();if(!x)return;const{d,D,S}=x;if(D.cash<1500){d.toast('Kell 1500 ₷.');return}D.cash-=1500;S.fort[di]=D.day;d.toast('🛡️ Megerősítve ma éjjelre: '+d.DIS[di][0]);d.save();render()}
+function fortify(di){const x=X();if(!x)return;const{d,D,S}=x;if(D.cash<1500){d.toast('Kell 1500 Ft.');return}D.cash-=1500;S.fort[di]=D.day;d.toast('🛡️ Megerősítve ma éjjelre: '+d.DIS[di][0]);d.save();render()}
 // ============ 3) ÜGYVÉD-MINIJÁTÉK ============
 const CASES=[['Az ügyész szerint a raktáradban 300 doboz „Kék bélyegzőtinta” volt.',['Az kérem irodaszer, a hivatal rendelte.','Nem tudom, ki tette oda.','Az a sógoromé.'],0],
 ['Tanú látta, hogy éjjel kettőkor csomagokat pakoltál.',['Éjszakai műszakos önkéntes vagyok.','Hivatalos leltár volt, itt a jegyzőkönyv.','Alvajárok.'],1],
-['A számládon 2 millió ₷ ismeretlen eredetű összeg van.',['Lottón nyertem.','Uniós pályázati „fejlesztési előleg”.','Nem az én számlám.'],1],
+['A számládon 2 millió Ft ismeretlen eredetű összeg van.',['Lottón nyertem.','Uniós pályázati „fejlesztési előleg”.','Nem az én számlám.'],1],
 ['A rendőrség szerint a lakókocsid illegális labor.',['Ez egy mobil kreatív műhely, van rá pályázatunk.','Kempingezni szoktam.','Kölcsönbe kaptam.'],0],
 ['Riporter Rozi cikke szerint te vagy a „Kiskapu Király”.',['Becsületsértés, beperelem!','A cikk szatíra, a bíró is olvasta.','Rozi a barátnőm.'],1],
 ['Az ügyész felmutat egy „Kacagó Kampánylufit”.',['Ez kampányeszköz, nem termék.','Ilyet még sosem láttam.','Az a bíróé.'],0]];
@@ -78,9 +78,9 @@ function lawyer(lost){const x=X();if(!x)return;const{d,D}=x;const cs=CASES.slice
   modal('<h2>⚖️ Bíróság – '+(i+1)+'/3. vád</h2><p>👨‍⚖️ <b>Ügyész:</b> '+c[0]+'</p><p>🧑‍💼 <b>Ödön súgja:</b> „Válassz okosan – a bíró a papírokat szereti.”</p>'+ord.map(j=>'<button class="op" data-a="'+j+'">'+c[1][j]+'</button>').join('')+'<p style="opacity:.7">Elvesztett összeg: '+f$(lost)+' · Elfogadott érvek: '+ok+'</p>',m=>{
    m.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const good=+b.dataset.a===c[2];if(good)ok++;tone(good?740:160,.25);b.style.background=good?'#16a34a':'#b91c1c';m.querySelectorAll('[data-a]').forEach(z=>z.disabled=true);setTimeout(()=>{i++;step()},900)})})};step()}
 // ============ 4) ELÁGAZÓ TÖRTÉNET ============
-const CHO={3:{w:'pista',t:'Pista hordója',q:'Pálinkás Pista részesedést kér a pince után.',a:[['l','Megkapja a felét – a szó szent.','rep+6, −800 ₷',D=>{D.rep+=6;D.cash-=800}],['g','Elviszed az egészet, Pista majd megérti.','+2000 ₷, +8 hő',D=>{D.cash+=2000;D.heat=cl(D.heat+8,0,100)}]]},
- 6:{w:'rozi',t:'Rozi interjúja',q:'Riporter Rozi interjút kér. Mit csinálsz?',a:[['l','Elmondod, hogy csak „kreatív vállalkozó” vagy.','−15 hő, +5 hírnév',D=>{D.heat=cl(D.heat-15,0,100);D.rep+=5}],['g','Megveszed a lapot, ahol dolgozik.','−3000 ₷, −25 hő',D=>{D.cash-=3000;D.heat=cl(D.heat-25,0,100)}]]},
- 9:{w:'odon',t:'A nagy kiskapu',q:'Ödön szerint a cég átírható a sógor nevére – vagy építhetsz belőle egy játszóteret.',a:[['g','Sógor-cég, adóparadicsom.','+6000 ₷, +10 hő',D=>{D.cash+=6000;D.heat=cl(D.heat+10,0,100)}],['l','Játszótér a Lakótelepen, névtáblával.','−4000 ₷, +15 hírnév',D=>{D.cash-=4000;D.rep+=15}]]}};
+const CHO={3:{w:'pista',t:'Pista hordója',q:'Pálinkás Pista részesedést kér a pince után.',a:[['l','Megkapja a felét – a szó szent.','rep+6, −800 Ft',D=>{D.rep+=6;D.cash-=800}],['g','Elviszed az egészet, Pista majd megérti.','+2000 Ft, +8 hő',D=>{D.cash+=2000;D.heat=cl(D.heat+8,0,100)}]]},
+ 6:{w:'rozi',t:'Rozi interjúja',q:'Riporter Rozi interjút kér. Mit csinálsz?',a:[['l','Elmondod, hogy csak „kreatív vállalkozó” vagy.','−15 hő, +5 hírnév',D=>{D.heat=cl(D.heat-15,0,100);D.rep+=5}],['g','Megveszed a lapot, ahol dolgozik.','−3000 Ft, −25 hő',D=>{D.cash-=3000;D.heat=cl(D.heat-25,0,100)}]]},
+ 9:{w:'odon',t:'A nagy kiskapu',q:'Ödön szerint a cég átírható a sógor nevére – vagy építhetsz belőle egy játszóteret.',a:[['g','Sógor-cég, adóparadicsom.','+6000 Ft, +10 hő',D=>{D.cash+=6000;D.heat=cl(D.heat+10,0,100)}],['l','Játszótér a Lakótelepen, névtáblával.','−4000 Ft, +15 hírnév',D=>{D.cash-=4000;D.rep+=15}]]}};
 function choice(n){const x=X();if(!x)return;const c=CHO[n];say(c.q,c.w,'');
  modal('<h2>📖 Döntés: '+c.t+'</h2><p>'+c.q+'</p>'+c.a.map((o,j)=>'<button class="op" data-c="'+j+'"><b>'+o[1]+'</b><br><small>'+o[2]+'</small></button>').join('')+'<p style="opacity:.7">A döntéseid alakítják a történet befejezését.</p>',m=>m.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{const o=c.a[+b.dataset.c],y=X();o[3](y.D);y.S.ch[n]=o[0];y.d.log('📖 Döntés ('+c.t+'): '+o[1]);y.d.save();unmodal();redraw()}))}
 const ENDS={sziget:['🏝️ A sziget','Csabával eltűntök a saját szigeteteken. A kerületekben évekig suttogják a neveteket.'],

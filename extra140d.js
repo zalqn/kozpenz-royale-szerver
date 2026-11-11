@@ -93,17 +93,19 @@ function jpBoom(w){const cv=document.createElement('canvas');cv.id='x14dBoom';cv
   if(t<3.2)requestAnimationFrame(fr);else cv.remove()})()}
 function jpBar(){jpEl.textContent='💎 JACKPOT: '+fmt(D.jp)+' zseton';const v=document.getElementById('x14dJv');if(v)v.textContent=fmt(D.jp)}
 let tab='bj',timers=[];
-function clr(){timers.forEach(t=>{clearInterval(t);clearTimeout(t)});timers=[]}
+let HSET=null,SSET=null;function clr(){if(HSET)try{HSET()}catch(e){}if(SSET)try{SSET()}catch(e){}timers.forEach(t=>{clearInterval(t);clearTimeout(t)});timers=[];
+ // osztó húzás közben bezárva: azonnal lejátsszuk, hogy a tét ne vesszen el
+ if(B&&B.done&&!B.paid&&(tab!=='bj'||!M.classList.contains('on'))){try{while(val(B.d)<17)B.d.push(B.dk.pop());const p=val(B.p),d=val(B.d);bjEnd(d>21||p>d?'win':p===d?'push':'lose')}catch(e){}}}
 const TABS=[['bj','🃏 Blackjack'],['dice','🎲 Kockapóker'],['scr','🪙 Kaparós'],['horse','🏇 Lóverseny'],['stock','📈 Tőzsde'],['coin','⛏️ KözCoin'],['prop','🏠 Ingatlan'],['vip','👑 VIP'],['fin','📊 Kimutatás'],['cp3','🌐 PIAC+ (online)']];
 function open(t){if(t)tab=t;tickEco();M.classList.add('on');try{window.guiOpen&&guiOpen('')}catch(e){}render()}
-function close(){clr();M.classList.remove('on');try{window.guiClose&&guiClose()}catch(e){}}
+function close(){M.classList.remove('on');clr();try{window.guiClose&&guiClose()}catch(e){}}
 function head(){const v=VIP[vip()];const LL=limLeft();
  return '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px"><h2>🎰 KASZINÓ+ & GAZDASÁG</h2><button class="x14dB" onclick="_x14d.close()">✕ BEZÁR</button></div>'+
  '<div class="k3bal x14dBal"><span class="ft">💵 Ft: <b data-x14="ft">'+fmt(ft())+'</b></span><span>🪙 Zseton: <b data-x14="zs" id="x14dZs">'+fmt(zs())+'</b></span><span class="lim">⛔ ma még tehető: <b data-x14="lim">'+(LL===Infinity?'∞':fmt(LL))+'</b></span><span>👑 VIP: <b style="color:'+v[3]+'">'+v[0]+'</b></span><span>💎 Jackpot: <b id="x14dJv">'+fmt(D.jp)+'</b></span></div><div class="x14dNote">Csak játékbeli pénz. Valódi pénz semmilyen formában nincs benne.</div>'+
  '<div class="x14dT">'+TABS.map(([k,n])=>'<button class="'+(k===tab?'on':'')+'" onclick="_x14d.open(\''+k+'\')">'+n+'</button>').join('')+'</div>';}
 function render(){clr();P.innerHTML=head()+'<div id="x14dC"></div>';const c=P.querySelector('#x14dC');if(tab==='cp3'){if(window._cp3)_cp3.render(c);else c.textContent='A PIAC+ modul (kaszinoplus3.js) nem töltődött be.';return}({bj,dice,scr,horse,stock,coin,prop,vipT,fin})[tab==='vip'?'vipT':tab](c)}
 function betSel(id,def){return 'Tét: <select id="'+id+'" class="x14dB">'+[10,25,50,100,250,500,1000].map(v=>'<option'+(v===def?' selected':'')+'>'+v+'</option>').join('')+'</select>'}
-const gv=id=>+document.getElementById(id).value;
+const gv=id=>{const el=document.getElementById(id);return el?+el.value:0};
 
 // 1) BLACKJACK
 const SU=['♠','♥','♦','♣'],RK=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
@@ -114,7 +116,7 @@ const card=(c,hid)=>'<span class="x14dC'+(hid?' h':(c.s==='♥'||c.s==='♦'?' r
 function bj(c){const live=B&&!B.done;
  c.innerHTML='<div class="x14dTb"><div>Osztó'+(B?' ('+(live?'?':val(B.d))+')':'')+'</div><div>'+(B?B.d.map((x,i)=>card(x,live&&i===1)).join(''):'')+'</div><div style="margin:8px;color:#fde68a;font-weight:700;min-height:20px">'+(B?B.msg:'Osztó 17-nél megáll · Blackjack 3:2')+'</div><div>'+(B?B.p.map(x=>card(x)).join(''):'')+'</div><div>Te'+(B?' ('+val(B.p)+')':'')+'</div></div>'+
  '<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">'+(live?'<button class="x14dB y" onclick="_x14d.bjH()">LAPOT</button><button class="x14dB y" onclick="_x14d.bjS()">MEGÁLLOK</button>'+(B.p.length===2&&zs()>=B.b?'<button class="x14dB" onclick="_x14d.bjD()">DUPLÁZ</button>':''):betSel('x14dbb',50)+' <button class="x14dB y" onclick="_x14d.bjN()">OSZTÁS</button>')+'</div>'}
-function bjN(){const b=gv('x14dbb'),e=canBet(b);if(e)return toast(e);bet(b);const d=deck();B={b,dk:d,p:[d.pop(),d.pop()],d:[d.pop(),d.pop()],done:false,msg:''};
+function bjN(){if(B&&!B.done)return;const b=gv('x14dbb'),e=canBet(b);if(e)return toast(e);bet(b);const d=deck();B={b,dk:d,p:[d.pop(),d.pop()],d:[d.pop(),d.pop()],done:false,msg:''};
  if(val(B.p)===21){bjEnd(val(B.d)===21?'push':'bj')}else render()}
 function bjH(){if(!B||B.done)return;B.p.push(B.dk.pop());if(val(B.p)>21)bjEnd('lose');else render()}
 function bjD(){if(!B||B.done||B.p.length!==2)return;const e=canBet(B.b);if(e)return toast(e);bet(B.b);B.b*=2;B.p.push(B.dk.pop());if(val(B.p)>21)bjEnd('lose');else bjS()}
@@ -130,7 +132,7 @@ function dRank(v){const c={};v.forEach(x=>c[x]=(c[x]||0)+1);const n=Object.value
 function dice(c){c.innerHTML='<div class="x14dTb"><div style="opacity:.8">Nagypóker 30× · Póker 10× · Full 6× · Sor 5× · Drill 3× · Két pár 2×</div><div style="margin:18px 0">'+(DC?DC.v.map((x,i)=>'<span class="x14dDi'+(DC.k[i]?' k':'')+(DC.an&&!DC.k[i]?' roll':'')+'" onclick="_x14d.dK('+i+')">'+PIP[x]+'</span>').join(''):'🎲🎲🎲🎲🎲')+'</div><div style="color:#fde68a;font-weight:700">'+(DC?DC.msg:'Kattints a kockára a tartáshoz')+'</div></div><div style="margin-top:10px">'+
  (DC&&DC.left>0?'<button class="x14dB y" onclick="_x14d.dR()">ÚJRADOBÁS ('+DC.left+')</button> <button class="x14dB" onclick="_x14d.dF()">KÉSZ</button>':betSel('x14ddb',50)+' <button class="x14dB y" onclick="_x14d.dN()">DOBÁS</button>')+'</div>';if(DC)DC.an=false}
 function dRoll(){DC.v=DC.v.map((x,i)=>DC.k[i]?x:1+(R()*6|0));DC.an=true;DC.msg=dRank(DC.v)[0]}
-function dN(){const b=gv('x14ddb'),e=canBet(b);if(e)return toast(e);bet(b);DC={b,v:[1,1,1,1,1],k:[0,0,0,0,0],left:2};dRoll();render()}
+function dN(){if(DC&&DC.left>0&&!DC.fin)return;const b=gv('x14ddb'),e=canBet(b);if(e)return toast(e);bet(b);DC={b,v:[1,1,1,1,1],k:[0,0,0,0,0],left:2};dRoll();render()}
 function dR(){if(!DC||DC.left<=0)return;DC.left--;dRoll();if(DC.left<=0)dF();else render()}
 function dF(){if(!DC||DC.fin)return;DC.fin=1;DC.left=0;const[n,m]=dRank(DC.v);let w=m?cash(DC.b*m):0;if(m>=30)tryJP(0.3);DC.msg=n+(w?' – +'+fmt(w)+' zseton':' – nincs nyeremény');render()}
 function dK(i){if(DC&&DC.left>0){DC.k[i]=!DC.k[i];render()}}
@@ -138,7 +140,7 @@ function dK(i){if(DC&&DC.left>0){DC.k[i]=!DC.k[i];render()}}
 // 3) KAPARÓS (canvas kaparás)
 function scr(c){c.innerHTML='<div style="text-align:center"><div>Szerencse-sorsjegy · 100 zseton · 3 azonos szimbólum = nyeremény</div><div style="position:relative;display:inline-block;margin:12px"><div id="x14dSU" style="width:320px;height:200px;display:grid;grid-template-columns:repeat(3,1fr);background:linear-gradient(#fef3c7,#fde68a);border-radius:12px;font-size:44px;align-items:center;color:#111"></div><canvas id="x14dSC" width="320" height="200" style="position:absolute;left:0;top:0;border-radius:12px;touch-action:none;cursor:crosshair"></canvas></div><div id="x14dSM" style="color:#fde68a;font-weight:700;min-height:22px"></div><button class="x14dB y" onclick="_x14d.sN()">ÚJ SORSJEGY (100)</button></div>'}
 const SY=[['🍒',2],['🔔',5],['⭐',10],['💎',50],['🍋',1],['🍀',3]];
-function sN(){const e=canBet(100);if(e)return toast(e);bet(100);
+function sN(){if(SSET)SSET();const e=canBet(100);if(e)return toast(e);bet(100);
  let g=[];const r=R();let win=null;if(r<0.32){win=SY[[4,0,5,1,2,3][Math.min(5,Math.floor(Math.pow(R(),2.2)*6))]];}
  const pool=SY.filter(s=>s!==win);for(let i=0;i<9;i++)g.push(pool[R()*pool.length|0]);
  // max 2 egyforma vesztes szimbólum
@@ -148,9 +150,9 @@ function sN(){const e=canBet(100);if(e)return toast(e);bet(100);
  const cv=document.getElementById('x14dSC'),x=cv.getContext('2d');x.globalCompositeOperation='source-over';
  const gr=x.createLinearGradient(0,0,320,200);gr.addColorStop(0,'#9ca3af');gr.addColorStop(.5,'#e5e7eb');gr.addColorStop(1,'#6b7280');x.fillStyle=gr;x.fillRect(0,0,320,200);
  x.fillStyle='#374151';x.font='bold 22px system-ui';x.textAlign='center';x.fillText('KAPARD LE!',160,108);x.globalCompositeOperation='destination-out';
- let down=false,paid=false;const m=document.getElementById('x14dSM');m.textContent='';
+ let down=false,paid=false;SSET=()=>{SSET=null;if(paid)return;paid=true;if(win){cash(100*win[1]);if(win[0]==='💎')tryJP(0.25)}};const m=document.getElementById('x14dSM');m.textContent='';
  const chk=()=>{if(paid)return;const d=x.getImageData(0,0,320,200).data;let t=0;for(let i=3;i<d.length;i+=64)if(d[i]<50)t++;if(t/(d.length/64)>0.6){paid=true;x.clearRect(0,0,320,200);
-  if(win){const w=cash(100*win[1]);if(win[0]==='💎')tryJP(0.25);m.textContent='🎉 3× '+win[0]+' – +'+fmt(w)+' zseton!'}else m.textContent='Most nem nyert. Legközelebb!';P.querySelector('h2').nextSibling;}};
+  SSET=null;if(win){const w=cash(100*win[1]);if(win[0]==='💎')tryJP(0.25);m.textContent='🎉 3× '+win[0]+' – +'+fmt(w)+' zseton!'}else m.textContent='Most nem nyert. Legközelebb!';P.querySelector('h2').nextSibling;}};
  const sc=e=>{if(!down)return;const r=cv.getBoundingClientRect(),p=e.touches?e.touches[0]:e;x.beginPath();x.arc((p.clientX-r.left)*320/r.width,(p.clientY-r.top)*200/r.height,16,0,7);x.fill();e.preventDefault()};
  cv.onmousedown=cv.ontouchstart=e=>{down=true;sc(e)};cv.onmousemove=cv.ontouchmove=sc;cv.onmouseup=cv.ontouchend=cv.onmouseleave=()=>{down=false;chk()};}
 
@@ -190,12 +192,12 @@ function hDraw(pos,t,fin){const cv=document.getElementById('x14dHC');if(!cv)retu
  if(fin){x.fillStyle='rgba(255,255,255,'+fin+')';x.fillRect(0,0,800,300)}}
 function hGo(){if(HR)return;const b=gv('x14dhb'),e=canBet(b);if(e)return toast(e);const pick=+document.querySelector('input[name=x14dh]:checked').value;bet(b);
  const st=HS.map(h=>1/h[2]);const sum=st.reduce((a,b)=>a+b);let r=R()*sum,win=0;for(let i=0;i<6;i++){r-=st[i];if(r<=0){win=i;break}}
+ let hw=0;HSET=()=>{HSET=null;HR=null;if(pick===win)hw=cash(Math.floor(b*HS[win][2]));if(win===5&&pick===5)tryJP(0.1)};
  const pos=HS.map(()=>0),sp=HS.map((h,i)=>i===win?1:0.86+R()*0.1);HR=1;document.getElementById('x14dHG').disabled=true;let t=0,lt=performance.now();
  let cd=3;
  const iv=setInterval(()=>{const nw=performance.now(),k=Math.min(10,(nw-lt)/16);lt=nw;if(cd>0){cd-=k*16/600;hDraw(pos,0);const cv=document.getElementById('x14dHC');if(cv){const x=cv.getContext('2d');x.fillStyle='#000a';x.fillRect(0,0,800,300);x.fillStyle='#fde047';x.font='bold 110px Impact,system-ui';x.textAlign='center';x.fillText(cd>0?Math.ceil(cd):'RAJT!',400,190);x.textAlign='left'}return}t+=16*k;let done=false;for(let i=0;i<6;i++){pos[i]=Math.min(1,pos[i]+0.0042*k*sp[i]*(0.6+R()*0.8));if(i===win&&pos[i]>=1)done=true}
   if(!done)for(let i=0;i<6;i++)if(i!==win)pos[i]=Math.min(0.985,pos[i]);
-  hDraw(pos,t);if(done){clearInterval(iv);HR=null;let fl=1;const fv=setInterval(()=>{fl-=0.12;hDraw(pos,t,Math.max(0,fl));if(fl<=0)clearInterval(fv)},40);timers.push(fv);const m=document.getElementById('x14dHM');let w=0;if(pick===win)w=cash(Math.floor(b*HS[win][2]));if(win===5&&pick===5)tryJP(0.1);
-   m.textContent='🏁 Győztes: '+HS[win][0]+(w?' – +'+fmt(w)+' zseton!':' – a tiéd most nem nyert.');document.getElementById('x14dHG').disabled=false}},16);timers.push(iv);
+  hDraw(pos,t);if(done){clearInterval(iv);HR=null;let fl=1;const fv=setInterval(()=>{fl-=0.12;hDraw(pos,t,Math.max(0,fl));if(fl<=0)clearInterval(fv)},40);timers.push(fv);const m=document.getElementById('x14dHM');if(HSET)HSET();const w=hw;if(m)m.textContent='🏁 Győztes: '+HS[win][0]+(w?' – +'+fmt(w)+' zseton!':' – a tiéd most nem nyert.');const hg=document.getElementById('x14dHG');if(hg)hg.disabled=false}},16);timers.push(iv);
  timers.push({});}
 // timers törléskor HR is reset
 const _clr=clr;clr=function(){_clr();HR=null};

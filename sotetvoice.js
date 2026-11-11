@@ -25,7 +25,7 @@ const sub=document.createElement('div');sub.id='spvSub';document.body.appendChil
 let HU=null;const pick=()=>{try{const v=speechSynthesis.getVoices();HU=v.find(x=>/^hu/i.test(x.lang))||null}catch(e){HU=null}};
 if(window.speechSynthesis){pick();speechSynthesis.onvoiceschanged=pick}
 const PIT={ferko:.8,csaba:1,pista:.7,tibi:1.2,beno:1.3,rozi:1.5,kornel:.9,feco:.6,odon:1.1,zsaru:.75};
-const clean=t=>String(t).replace(/<[^>]+>/g,'').replace(/[\u{1F000}-\u{1FFFF}☀-➿️₷]/gu,'').replace(/\s+/g,' ').trim();
+const clean=t=>String(t).replace(/<[^>]+>/g,'').replace(/[\u{1F000}-\u{1FFFF}☀-➿️Ft]/gu,'').replace(/\s+/g,' ').trim();
 let q=[],busy=false,tm=0;
 function next(){clearTimeout(tm);const it=q.shift();if(!it){busy=false;sub.classList.remove('on');return}busy=true;
  if(C.s){sub.innerHTML=(it.n?'<b>'+it.n+':</b>':'')+clean(it.t);sub.classList.add('on')}

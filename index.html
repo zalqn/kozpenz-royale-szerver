@@ -622,7 +622,7 @@ function boxLocal(c,px,pz){if(c.cs===undefined){const a=c.m?c.m.rotation.y:0;c.c
 function pushOut(o,r,y){G.col.forEach(c=>{if(y>=c.h||(c.y0&&y+1.8<c.y0))return;if(c.hw){const ext=Math.max(c.hw,c.hd)*1.42+r;if(Math.abs(o.x-c.x)>ext||Math.abs(o.z-c.z)>ext)return;let[lx,lz]=boxLocal(c,o.x,o.z);const qx=Math.max(-c.hw,Math.min(c.hw,lx)),qz=Math.max(-c.hd,Math.min(c.hd,lz)),ex=lx-qx,ez=lz-qz,dd=Math.hypot(ex,ez);if(dd>=r)return;if(dd>1e-4){lx=qx+ex/dd*r;lz=qz+ez/dd*r}else{const px=c.hw-Math.abs(lx),pz=c.hd-Math.abs(lz);if(px<pz)lx=Math.sign(lx||1)*(c.hw+r);else lz=Math.sign(lz||1)*(c.hd+r)}o.x=c.x+lx*c.cs+lz*c.sn;o.z=c.z-lx*c.sn+lz*c.cs;return}const dx=o.x-c.x,dz=o.z-c.z,d=Math.hypot(dx,dz)||.01,m=c.r+r;if(d<m){o.x=c.x+dx/d*m;o.z=c.z+dz/d*m}})}
 function hitCol(b){const y=b.y===undefined?1.5:b.y;return G.col.some(c=>{if(!(c.h>1.6&&y<c.h&&!(c.y0&&y<c.y0)))return false;if(c.hw){if(Math.abs(b.x-c.x)>c.hw+c.hd||Math.abs(b.z-c.z)>c.hw+c.hd)return false;const[lx,lz]=boxLocal(c,b.x,b.z);return Math.abs(lx)<c.hw&&Math.abs(lz)<c.hd}return Math.hypot(b.x-c.x,b.z-c.z)<c.r})}
 function swapPosters(){const g=G;if(!g.posters)return;const T=['ÁLLÍTSUK MEG!','ÜZENJÜNK BRÜSSZELNEK!','MINDEN ÁRAT CSÖKKENTÜNK','TÖBB MEGÁLLÓT ÉPÍTÜNK','KORMÁNYINFÓ ÓRA: 0:00'];g.posters.forEach(p=>{scene.remove(p.s);p.s=sgn(pick(T),p.x,p.y,p.z,3);p.m.material.color.setHex(pick([0x1d4ed8,0x0ea5e9,0x2563eb,0x4f46e5]))})}
-function minimap(){const g=G,c=$('mm').getContext('2d'),k=70/(G.arh?448:62);c.clearRect(0,0,140,140);c.save();c.beginPath();c.arc(70,70,70,0,6.283);c.clip();c.fillStyle='#000c';c.fillRect(0,0,140,140);if(g.arh){c.strokeStyle='#ff2a7a';c.lineWidth=2;c.beginPath();HU.forEach((p,i)=>{const X=70+p[0]*k,Y=70+p[1]*k;i?c.lineTo(X,Y):c.moveTo(X,Y)});c.closePath();c.stroke()}else{c.fillStyle='#2563eb';c.fillRect(0,70-62*k,140,14*k)}c.strokeStyle='#a855f7';c.lineWidth=2;c.beginPath();c.arc(70,70,g.sto*k,0,6.283);c.stroke();c.fillStyle='#64748b';g.col.forEach(o=>c.fillRect(70+o.x*k-1.5,70+o.z*k-1.5,3,3));c.fillStyle='#fc0';g.pk.forEach(p=>c.fillRect(70+p.x*k-1.5,70+p.z*k-1.5,3,3));g.en.forEach(e=>{c.fillStyle=e.b?'#e879f9':'#f43f5e';c.fillRect(70+e.x*k-2,70+e.z*k-2,4,4)});c.translate(70+g.x*k,70+g.z*k);c.rotate(g.ang);c.fillStyle='#22d3ee';c.beginPath();c.moveTo(7,0);c.lineTo(-5,5);c.lineTo(-5,-5);c.fill();c.restore()}
+function minimap(){const g=G,c=$('mm').getContext('2d'),k=70/(G.arh?448:62);c.clearRect(0,0,140,140);c.save();c.beginPath();c.arc(70,70,70,0,6.283);c.clip();c.fillStyle='#000c';c.fillRect(0,0,140,140);if(g.arh){c.strokeStyle='#ff2a7a';c.lineWidth=2;c.beginPath();HU.forEach((p,i)=>{const X=70+p[0]*k,Y=70+p[1]*k;i?c.lineTo(X,Y):c.moveTo(X,Y)});c.closePath();c.stroke()}else{c.fillStyle='#2563eb';c.fillRect(0,70-62*k,140,14*k)}c.strokeStyle='#a855f7';c.lineWidth=2;c.beginPath();c.arc(70+(g.ry?g.ry.cx:0)*k,70+(g.ry?g.ry.cz:0)*k,g.sto*k,0,6.283);c.stroke();c.fillStyle='#64748b';g.col.forEach(o=>c.fillRect(70+o.x*k-1.5,70+o.z*k-1.5,3,3));c.fillStyle='#fc0';g.pk.forEach(p=>c.fillRect(70+p.x*k-1.5,70+p.z*k-1.5,3,3));g.en.forEach(e=>{c.fillStyle=e.b?'#e879f9':'#f43f5e';c.fillRect(70+e.x*k-2,70+e.z*k-2,4,4)});c.translate(70+g.x*k,70+g.z*k);c.rotate(g.ang);c.fillStyle='#22d3ee';c.beginPath();c.moveTo(7,0);c.lineTo(-5,5);c.lineTo(-5,-5);c.fill();c.restore()}
 function buildMap(ar){const g=G;g.col=[];if(ar.id==='hun'){buildHun(ar);return}const rp=(a,b)=>{const t=R()*6.283,r=rnd(a,b);return[Math.cos(t)*r,Math.sin(t)*r]};
  const wl=new THREE.Mesh(new THREE.CylinderGeometry(64,64,14,48,1,true),mat('brick@24,2',0x8a96a8));wl.material.side=THREE.DoubleSide;wl.position.y=7;scene.add(wl);
  const PT=['KÖZPÉNZ MINDENKINEK','AZ ÁRAK CSAK ÁLLNAK','MINDEN RENDBEN!','ITT FÁK LESZNEK','NEM VOLT A TERVBEN','FIZESSEN ÁFAT!','VEZETÉS: ELŐRE!','KÖZBESZERZÉS 100%'];
@@ -1156,8 +1156,13 @@ go('menu');
 <script src="sotetmg3d.js"></script>
 <script src="sotetvoice.js"></script>
 <script src="sotetplus.js"></script>
+<script src="sotet100.js"></script>
 <script src="layout_A.js"></script>
 <script src="layout_B.js"></script>
 <script src="layout_C.js"></script>
 <script src="layout_D.js"></script>
+<script src="extra170.js"></script>
+<script src="jarmu3a.js"></script>
+<script src="jarmu3b.js"></script>
+<script src="kripto.js"></script>
 </body></html>

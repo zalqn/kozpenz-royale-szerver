@@ -86,9 +86,9 @@ WP('update',null,()=>{const g=G;if(!g||!g.brMode)return;g.en.forEach(e=>{if(e.bo
 WP('end',null,a=>{ui.style.display='none';if(sm2)sm2.visible=false;if(G&&G.sm)G.sm.position.set(0,20,0);const g=G;if(!g||!g.brMode)return;const rt=$('rt');if(!a[0]&&rt){rt.textContent='#'+(alive()+1)+' HELYEZÉS'}});
 WP('go',null,a=>{if(a[0]==='menu')ui.style.display='none'});
 
-WP('update',null,()=>{const g=G;if(!g||!g.brMode||!g.ry)return;$('wv').textContent='KÖZPÉNZ ROYALE · '+(g.ry.ph+1)+'. FÁZIS · ★PREMIUM★';
+WP('update',null,()=>{const g=G;if(!g||!g.brMode||!g.ry)return;{const t='KÖZPÉNZ ROYALE · '+(g.ry.ph+1)+'. FÁZIS · ★PREMIUM★',w=$('wv');if(w.textContent!==t)w.textContent=t}
  let nb=null,nd=1e9;g.en.forEach(e=>{if(!e.bot||e.dead)return;const d=Math.hypot(e.x-g.x,e.z-g.z);if(d<nd){nd=d;nb=e}});
- $('ms').innerHTML=(!g.ry.started?'🚌 Buszfázis – ugorj ki! ('+(NBOT+1)+' játékos)':nb?'🎯 '+nb.name+' · '+Math.round(nd)+' m<div class="bar"><i style="width:'+Math.max(0,nb.hp)+'%;background:#ff4d6d"></i></div><div class="bar"><i style="width:'+Math.max(0,nb.sh/nb.msh*100)+'%;background:#38e1ff"></i></div>':'🏆 Nincs több ellenfél!')+(g.mis?'<div style="margin-top:4px;color:#fde68a">📱 '+g.mis+'</div>':'')});
+ {const h=(!g.ry.started?'🚌 Buszfázis – ugorj ki! ('+(NBOT+1)+' játékos)':nb?'🎯 '+nb.name+' · '+Math.round(nd)+' m<div class="bar"><i style="width:'+Math.max(0,nb.hp)+'%;background:#ff4d6d"></i></div><div class="bar"><i style="width:'+Math.max(0,nb.sh/nb.msh*100)+'%;background:#38e1ff"></i></div>':'🏆 Nincs több ellenfél!')+(g.mis?'<div style="margin-top:4px;color:#fde68a">📱 '+g.mis+'</div>':''),m=$('ms');if(m._h!==h||m.textContent!==m._x){m._h=h;m.innerHTML=h;m._x=m.textContent}}});
 // Ritkaság-szín a lőszer-kijelzőn
 WP('update',null,()=>{const g=G;if(!g||!g.brMode)return;const r=RAR[g.ry.rar[g.wp]||0];g._dmgB=r.m;const am=$('brAmmo');if(am&&!g.buildMode){const i=am.querySelector('i');if(i)i.style.color=r.c}});
 })();

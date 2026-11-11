@@ -90,7 +90,7 @@ const CC={10:'#2563eb',25:'#16a34a',50:'#dc2626',100:'#111827',250:'#9333ea',500
 function chips(sel,id){return'<div class="k4chips" id="'+id+'"><span style="opacity:.7">TÉT:</span>'+[10,25,50,100,250,500].map(v=>'<div class="k4chip'+(v===sel?' sel':'')+'" data-v="'+v+'" style="--c:'+CC[v]+'">'+v+'</div>').join('')+'</div>'}
 function wireChips(B,id,cb){const c=B.querySelector('#'+id);if(!c)return;c.onclick=e=>{const d=e.target.closest('[data-v]');if(!d)return;c.querySelectorAll('.k4chip').forEach(x=>x.classList.toggle('sel',x===d));sChip();cb(+d.dataset.v)}}
 function msg(t,c){const m=$('k4msg');if(m){m.textContent=t;m.className='k4msg '+(c||'')}}
-let RAF=0,TMS=[];function stopAll(){cancelAnimationFrame(RAF);TMS.forEach(clearTimeout);TMS=[];if(CR.st==='run')crCash(true)}
+let RAF=0,TMS=[];function stopAll(){cancelAnimationFrame(RAF);TMS.forEach(clearTimeout);TMS=[];if(CR.st==='run')crCash(true);try{if(KE.settle)KE.settle(true)}catch(e){}try{if(BA.settle)BA.settle(true)}catch(e){}}
 const later=(f,ms)=>TMS.push(setTimeout(f,ms));
 
 // =====================================================================
@@ -175,9 +175,9 @@ function kRender(){const g=$('k4kg');if(!g)return;g.querySelectorAll('button').f
  const p=KE.pick.length,pt=p?kenoPay(p):{};$('k4kp').innerHTML=p?'<span>'+p+' tipp</span>'+Object.keys(pt).map(h=>'<span>'+h+' talált: <b style="color:#facc15">×'+pt[h]+'</b> = '+fmt(pt[h]*KE.bet)+'</span>').join(''):'<span>Jelölj ki számokat a kifizetési táblához</span>'}
 function kDraw(){if(KE.busy)return;const p=KE.pick.length;if(!p){msg('Előbb válassz számokat!','l');return}const e=tryBet(KE.bet);if(e){msg(e,'l');return}
  KE.busy=true;KE.drawn=[];const pool=Array.from({length:40},(_,i)=>i+1);const draw=[];for(let i=0;i<10;i++)draw.push(pool.splice(R()*pool.length|0,1)[0]);
+ KE.settle=quiet=>{KE.settle=null;const h=KE.pick.filter(x=>draw.includes(x)).length,m=kenoPay(p)[h]||0,w=Math.floor(m*KE.bet);payOut('keno',KE.bet,w);KE.busy=false;KE.drawn=draw.slice();if(!quiet)msg(h+' találat'+(w?' → ×'+m+' = +'+fmt(w)+' 🪙':' – most nem nyert'),w?'w':'l')};
  msg('Húzás…');kRender();draw.forEach((n,i)=>later(()=>ballFly(n,()=>{KE.drawn.push(n);kRender();KE.pick.includes(n)?beep(880+i*40,.15,'triangle'):sTick();
-  if(i===9){const h=KE.pick.filter(x=>KE.drawn.includes(x)).length,m=kenoPay(p)[h]||0,w=Math.floor(m*KE.bet);payOut('keno',KE.bet,w);KE.busy=false;
-   msg(h+' találat'+(w?' → ×'+m+' = +'+fmt(w)+' 🪙':' – most nem nyert'),w?'w':'l')}}),300+i*380))}
+  if(i===9&&KE.settle)KE.settle()}),300+i*380))}
 
 // =====================================================================
 // 🂠 BACCARAT (Játékos 1:1, Bankár 0,95:1, Döntetlen 8:1)
@@ -199,12 +199,12 @@ function bDeal(){if(BA.busy)return;const e=tryBet(BA.bet);if(e){msg(e,'l');retur
   const v=p3?val(p3):-1,draw=!p3?bt<=5:bt<=2||(bt===3&&v!==8)||(bt===4&&v>=2&&v<=7)||(bt===5&&v>=4&&v<=7)||(bt===6&&(v===6||v===7));if(draw)Bk.push(card())}
  const seq=[['p',P[0]],['b',Bk[0]],['p',P[1]],['b',Bk[1]]];if(P[2])seq.push(['p',P[2]]);if(Bk[2])seq.push(['b',Bk[2]]);
  $('k4bp').innerHTML='';$('k4bb').innerHTML='';$('k4bpt').textContent='–';$('k4bbt').textContent='–';msg('Osztás…');const sh={p:[],b:[]};
+BA.settle=quiet=>{BA.settle=null;pt=tot(P);bt=tot(Bk);const res=pt>bt?'p':bt>pt?'b':'t';let w=0;
+   if(res==='t')w=BA.side==='t'?BA.bet*9:BA.bet;else if(res===BA.side)w=res==='p'?BA.bet*2:Math.floor(BA.bet*1.95);
+   payOut('bac',BA.bet,w);BA.busy=false;const nm={p:'JÁTÉKOS',b:'BANKÁR',t:'DÖNTETLEN'}[res];if(!quiet)msg(nm+' ('+pt+' : '+bt+') – '+(w>BA.bet?'NYERTÉL +'+fmt(w)+' 🪙':w===BA.bet?'tét visszajár':'vesztettél'),w>=BA.bet?'w':'l')};
  seq.forEach((s,i)=>later(()=>{sh[s[0]].push(s[1]);const el=$(s[0]==='p'?'k4bp':'k4bb');if(!el)return;el.insertAdjacentHTML('beforeend',cHTML(s[1]));dealFx(el.lastElementChild);
   $(s[0]==='p'?'k4bpt':'k4bbt').textContent=tot(sh[s[0]]);beep(600,.06,'triangle',.08);
-  if(i===seq.length-1){pt=tot(P);bt=tot(Bk);const res=pt>bt?'p':bt>pt?'b':'t';let w=0;
-   if(res==='t')w=BA.side==='t'?BA.bet*9:BA.bet;else if(res===BA.side)w=res==='p'?BA.bet*2:Math.floor(BA.bet*1.95);
-   payOut('bac',BA.bet,w);BA.busy=false;const nm={p:'JÁTÉKOS',b:'BANKÁR',t:'DÖNTETLEN'}[res];
-   msg(nm+' ('+pt+' : '+bt+') – '+(w>BA.bet?'NYERTÉL +'+fmt(w)+' 🪙':w===BA.bet?'tét visszajár':'vesztettél'),w>=BA.bet?'w':'l')}},350+i*550))}
+  if(i===seq.length-1&&BA.settle)BA.settle()},350+i*550))}
 
 // =====================================================================
 // 📊 STATISZTIKA & VIP
@@ -331,7 +331,7 @@ function lottoMachine(){const B=$('x20MB');if(!B||!B.classList.contains('k3lot')
  const play=()=>{LG.draw=nums.slice();LG.shown=0;LG.t=performance.now();const tr=$('k4tray');if(tr)tr.innerHTML='';LG.balls.forEach(b=>b.out=0)};
  const rp=$('k4lrp');if(rp)rp.onclick=play;if(nums.length)play();
  cancelAnimationFrame(LG.raf);const c=$('k4lotc'),x=c.getContext('2d'),CX=130,CY=112,RAD=100;
- const fr=()=>{if(!c.isConnected)return;const t=performance.now();x.clearRect(0,0,260,230);
+ const my=LG.tok=(LG.tok||0)+1;const fr=()=>{if(!c.isConnected||LG.tok!==my)return;if(!c.offsetParent){setTimeout(fr,400);return}/* rejtve nem rajzol */const t=performance.now();x.clearRect(0,0,260,230);
   // talp
   x.fillStyle='#4a2a10';x.fillRect(95,205,70,22);x.fillStyle='#c9a64a';x.fillRect(90,200,80,8);
   // gömb

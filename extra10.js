@@ -113,9 +113,9 @@ function slDraw(){const free=LIM.free!==today();
 window.x10slot=slDraw;window.x10sbet=b=>{if(!SLOT.spin){SLOT.bet=b;slDraw()}};
 window.x10spin=free=>{if(SLOT.spin)return;const b=free?50:SLOT.bet;if(free){if(LIM.free===today())return;LIM.free=today();SV('k3x10lim',LIM)}else{const e=canBet(b);if(e){SLOT.res=e;slDraw();return}bet(b)}
  SLOT.spin=true;const fin=[rollSym(),rollSym(),rollSym()];let t=0;const B=$$('x10spinB');if(B)B.disabled=true;
- const iv=setInterval(()=>{t++;for(let i=0;i<3;i++){const el=$$('x10r'+i);if(!el){clearInterval(iv);SLOT.spin=false;return}el.textContent=t<8+i*5?SY[Math.floor(Math.random()*6)]:fin[i]}try{tn(300+t*20,'square',.03,.04)}catch(e){}
+ const iv=setInterval(()=>{t++;let gone=0;for(let i=0;i<3;i++){const el=$$('x10r'+i);if(!el){gone=1;t=18;break}/* bezarva: azonnal elszamol */el.textContent=t<8+i*5?SY[Math.floor(Math.random()*6)]:fin[i]}try{tn(300+t*20,'square',.03,.04)}catch(e){}
   if(t>=18){clearInterval(iv);SLOT.spin=false;SLOT.r=fin;let m=0;if(fin[0]===fin[1]&&fin[1]===fin[2])m=SM[fin[0]];else if(fin[0]===fin[1]||fin[1]===fin[2]||fin[0]===fin[2])m=.5;else if(fin.includes('🍒'))m=.5;
-   const w=Math.round(b*m);pay(w);SLOT.res=w>0?'🎉 +'+w+' zseton':'Nem nyert.';if(m>=100){stat('jack');toast('7️⃣7️⃣7️⃣ FŐNYEREMÉNY!')}stat('slot');slDraw()}},70)};
+   const w=Math.round(b*m);pay(w);SLOT.res=w>0?'🎉 +'+w+' zseton':'Nem nyert.';if(m>=100){stat('jack');toast('7️⃣7️⃣7️⃣ FŐNYEREMÉNY!')}stat('slot');if(!gone)slDraw()}},70)};
 window._x10k={LIM,canBet,bet,pay,SLOT,SY,SM,rollSym,slDraw,stat,today,SV,toast,PK};
 
 // =====================================================================

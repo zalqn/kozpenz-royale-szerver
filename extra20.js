@@ -148,7 +148,7 @@ function showRace(res){openM('<h2>🐕 KUTYAVERSENY</h2><div>Zseton: <b style="c
  '<div>Melyik kutyára fogadsz? '+DOGS.map((d,i)=>'<button class="'+(RACE.pick===i?'y':'')+'" onclick="x20rp('+i+')">'+d[1]+' '+d[0]+'</button>').join('')+'</div>'+
  '<div id="x20rr" style="min-height:26px;font-size:19px;color:#fde68a;text-align:center">'+(res||'')+'</div><div style="text-align:center"><button class="y" id="x20rgo" style="font-size:20px;padding:10px 30px" onclick="x20race()">🏁 RAJT! ('+RACE.bet+' 🪙)</button></div>')}
 window.x20races=showRace;window.x20rb=b=>{if(!RACE.on){RACE.bet=b;showRace()}};window.x20rp=i=>{if(!RACE.on){RACE.pick=i;showRace()}};
-window.x20race=()=>{if(RACE.on)return;if(BR.zs<RACE.bet){showRace('Nincs elég zseton!');return}BR.zs-=RACE.bet;saveAll();RACE.on=true;$$('x20rgo').disabled=true;
+window.x20race=()=>{if(RACE.on)return;{const K=window._x10k,er=K?K.canBet(RACE.bet):(BR.zs<RACE.bet?'Nincs elég zseton!':'');if(er){showRace(er);return}if(K)K.LIM.lost+=RACE.bet,K.SV('k3x10lim',K.LIM)}BR.zs-=RACE.bet;saveAll();RACE.on=true;$$('x20rgo').disabled=true;
  const W=$$('x20track').clientWidth-80;const pos=DOGS.map(()=>0);// esély: kisebb szorzó = gyorsabb átlag
  const base=DOGS.map(d=>1/d[2]);const tot=base.reduce((a,b)=>a+b);
  const iv=setInterval(()=>{if(!RACE.on||!$$('x20d0')){clearInterval(iv);RACE.on=false;return}let win=-1;

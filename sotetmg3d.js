@@ -1,7 +1,7 @@
 // sotetmg3d.js – 🕶️ SÖTÉT PROGRAM 3D MINIJÁTÉKOK (7 db, saját three.js jelenet, VALÓDI fény = _PL)
 // Minden kitalált és szatirikus („közpénz”-téma): nincs valódi anyag, recept vagy lépés – a főzés absztrakt (színek, hőfok, ritmus).
 // 🧪 Keverés-labor · 🍑 Pálinkaüst · 📦 Csomagolósor · 🚗 Sürgős fuvar · 🔦 Razzia-menekülés · 🔏 Pecsételő iroda · 🎧 DJ-pult
-// Pénz: minden jutalom ₷ (sötét pénz, a Sötét Program pénztárcája). Ft = a fő játék pénze – pénzmosással váltható.
+// Pénz: minden jutalom Ft (sötét pénz, a Sötét Program pénztárcája). Ft = a fő játék pénze – pénzmosással váltható.
 // Bekötés: a sotetprogram.js MG-minijátékait (főzés, buli, menekülés) 3D-re cseréli; a menüben „🎮 3D műszak” fül. Debug: _spmg
 (()=>{
 'use strict';
@@ -68,7 +68,7 @@ function run(key,opt){const g=GAMES[key];if(!g){opt&&opt.cb&&opt.cb(.5);return}u
  if(!g.sc){g.sc=new THREE.Scene();g.build(g.sc)}
  try{document.exitPointerLock()}catch(e){}ON=true;PLAY=false;K={};$$('smg').style.display='block';size();
  const rec=REC(key),lv=rec.lv;S=mkState(key,lv);g.reset(S);hudOff();
- const md=OPT.mode;const why=md==='cook'?'<b>Főzés:</b> az eredményed adja a termék <b>minőségét</b> (és így az eladási árát).':md==='escape'?'<b>Menekülés!</b> 40% alatt elkapnak (razzia: elviszik a termékek és a ₷ 40%-át).':md==='party'?'<b>Afterparti:</b> az eredmény hírnevet ad.':'<b>Műszak:</b> jutalom ₷-ben (max. kb. '+DP().f$(rewardOf(key,1,lv))+'), ⚡ 10 energia.';
+ const md=OPT.mode;const why=md==='cook'?'<b>Főzés:</b> az eredményed adja a termék <b>minőségét</b> (és így az eladási árát).':md==='escape'?'<b>Menekülés!</b> 40% alatt elkapnak (razzia: elviszik a termékek és a Ft 40%-át).':md==='party'?'<b>Afterparti:</b> az eredmény hírnevet ad.':'<b>Műszak:</b> jutalom Ft-ben (max. kb. '+DP().f$(rewardOf(key,1,lv))+'), ⚡ 10 energia.';
  card('<h2>'+g.n+'</h2><div>'+g.d+'</div><div class="kb">🎮 <b>Irányítás:</b> '+g.h+'</div><div>'+why+'</div><div style="margin-top:6px;opacity:.85">📈 Nehézség: <b>'+lv+'. szint</b> (70% felett nő) · 🏆 rekord: '+Math.round(rec.best*100)+'% · játszva: '+rec.n+'×</div><div class="rw"><button id="smgGo">▶ Indítás (Enter)</button><button class="g" id="smgNo">'+(md==='job'?'✕ Mégse (Esc)':'⏭ Kihagyom (Esc)')+'</button></div>');
  $$('smgGo').onclick=start;$$('smgNo').onclick=()=>abort(true);last=0;cancelAnimationFrame(raf);raf=requestAnimationFrame(loop)}
 function start(){if(!ON||PLAY)return;if(OPT.mode==='job'){const dp=DP();if(!dp.useEnergy(10)){msg('😴 Nincs elég energia','#fca5a5');return}}cardOff();PLAY=true;S.t=0;$$('smgHelp').innerHTML='🎮 '+cur.h;beep(660,.08,'triangle');}
@@ -297,7 +297,7 @@ const LC=[0xef4444,0x22c55e,0x3b82f6,0xfacc15];
 GAMES.dj={n:GI.dj.n,d:'Bulis Benő afterpartiján te vagy a DJ! A négy sávon érkező hangjegyeket akkor üsd le, amikor a <b>fénycsíkra</b> érnek. A kombó felpörgeti a tömeget és a fényeket.',
  h:'<b>D F J K</b> (vagy ← ↓ ↑ →) a négy sáv',
  build(sc){sc.background=new THREE.Color(0x0a0014);sc.fog=new THREE.Fog(0x0a0014,10,40);sc.add(new THREE.HemisphereLight(0x7c3aed,0x0a0014,.45));mk('p',M(0x120a1f,{roughness:.4,metalness:.4}),0,0,0,60,60,1,sc).rotation.x=-Math.PI/2;
-  mk('b',M(0x1f2937,{metalness:.5}),0,.5,2.6,4.4,1,1.2,sc);const lab=ctex(128,128,(x)=>{x.fillStyle='#111';x.fillRect(0,0,128,128);x.fillStyle='#db2777';x.beginPath();x.arc(64,64,30,0,7);x.fill();x.fillStyle='#fff';x.font='bold 16px system-ui';x.textAlign='center';x.fillText('₷ REC',64,70)});
+  mk('b',M(0x1f2937,{metalness:.5}),0,.5,2.6,4.4,1,1.2,sc);const lab=ctex(128,128,(x)=>{x.fillStyle='#111';x.fillRect(0,0,128,128);x.fillStyle='#db2777';x.beginPath();x.arc(64,64,30,0,7);x.fill();x.fillStyle='#fff';x.font='bold 16px system-ui';x.textAlign='center';x.fillText('Ft REC',64,70)});
   this.tt=[-1.2,1.2].map(x=>{const t=new THREE.Mesh(geo().c,new THREE.MeshStandardMaterial({map:lab,roughness:.3}));t.scale.set(.7,.05,.7);t.position.set(x,1.03,2.6);sc.add(t);return t});
   const P=PLc();this.L=[0xdb2777,0x22d3ee,0xa3e635].map((c,i)=>{const l=new P(c,1,22,2);l.position.set((i-1)*5,4,-4);sc.add(l);return l});
   this.lanes=LC.map((c,i)=>{const l=mk('b',M(c,{transparent:true,opacity:.18,emissive:c,emissiveIntensity:.25}),(i-1.5)*.9,1.02,-6,.82,.02,16,sc);return l});
@@ -327,7 +327,7 @@ function hook(){const dp=DP();if(!dp||!dp.MG||dp.MG._3d)return!!(dp&&dp.MG&&dp.M
  return true}
 const hi=setInterval(()=>{if(hook())clearInterval(hi)},700);
 // a „🎮 3D műszak” fül tartalma (sotetprogram.js draw hívja)
-function renderTab(el){const dp=DP(),D=dp.D;el.innerHTML='<div class="say">🎮 <b>3D műszak</b>: minden minijáték saját 3D jelenetben fut. Műszakként ⚡ 10 energiáért <b>₷-t</b> fizetnek (a Sötét Program pénze; <b>Ft</b> csak pénzmosással lesz belőle). 70% felett nő a nehézség – és vele a jutalom is. A főzés, a buli és a menekülés is ezeket használja.</div><div class="g">'+
+function renderTab(el){const dp=DP(),D=dp.D;el.innerHTML='<div class="say">🎮 <b>3D műszak</b>: minden minijáték saját 3D jelenetben fut. Műszakként ⚡ 10 energiáért <b>Ft-t</b> fizetnek (a Sötét Program pénze; <b>Ft</b> csak pénzmosással lesz belőle). 70% felett nő a nehézség – és vele a jutalom is. A főzés, a buli és a menekülés is ezeket használja.</div><div class="g">'+
  Object.keys(GI).map(k=>{const r=REC(k);return'<div class="c"><div style="font-size:15px"><b>'+GI[k].n+'</b></div><small>'+GAMES[k].d.replace(/<[^>]+>/g,'').slice(0,120)+'…</small><br>📈 '+r.lv+'. szint · 🏆 '+Math.round(r.best*100)+'% · 💰 '+dp.f$(r.earn)+'<br><small>Max. jutalom most: '+dp.f$(rewardOf(k,1,r.lv))+'</small><br><button class="bt" data-mg3="'+k+'">▶ Műszak</button></div>'}).join('')+
  '</div><p><label style="cursor:pointer"><input type="checkbox" id="mg3old" '+(use3d()?'':'checked')+'> Régi 2D minijátékok a főzéshez/bulihoz (gyenge gépre)</label></p>';
  el.querySelectorAll('[data-mg3]').forEach(b=>b.onclick=()=>run(b.dataset.mg3,{mode:'job'}));const c=el.querySelector('#mg3old');if(c)c.onchange=()=>{try{localStorage.setItem('k3spmg2d',c.checked?'1':'0')}catch(e){}}}
