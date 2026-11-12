@@ -5,7 +5,11 @@ const { WebSocketServer } = require('ws');
 
 const PORT = +process.env.PORT || 3000;
 const ROOT = path.join(__dirname, '..');
-const DATA = process.env.DATA_DIR || __dirname; try { fs.mkdirSync(DATA, { recursive: true }); } catch (e) {}
+// Tartós adatok: alapból a projekten KÍVÜL (~/KozpenzRoyale_adatok), így mappa-csere/visszaállítás/build nem törli a fiókokat.
+const DATA = process.env.DATA_DIR || path.join(require('os').homedir(), 'KozpenzRoyale_adatok'); try { fs.mkdirSync(DATA, { recursive: true }); } catch (e) {}
+process.env.DATA_DIR = DATA; // store.js / mod_* ugyanezt használja
+if (!fs.existsSync(path.join(DATA, 'kozpenz.db')) && !fs.existsSync(path.join(DATA, 'users.json'))) // első indítás: régi adatok átmásolása
+  for (const f of ['kozpenz.db', 'kozpenz.db-wal', 'kozpenz.db-shm', 'users.json', 'mod_D.json', 'saves']) try { const src = path.join(__dirname, f); if (fs.existsSync(src)) fs.cpSync(src, path.join(DATA, f), { recursive: true }); } catch (e) { console.log('[tartós] másolás hiba', f, e.message); }
 const DB_FILE = path.join(DATA, 'users.json');
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css', '.png': 'image/png', '.jpg': 'image/jpeg', '.json': 'application/json' };
 
@@ -24,7 +28,10 @@ const save = () => { clearTimeout(saveT); saveT = setTimeout(() => {
 }, 300); };
 const flush = () => { clearTimeout(saveT); try { store.saveDb(db); } catch (e) {} try { fs.writeFileSync(DB_FILE + '.tmp', JSON.stringify(db, null, 1)); fs.renameSync(DB_FILE + '.tmp', DB_FILE); } catch (e) {} }; // OPT4: atomi írás (félbeszakadt írás ne rontsa el a users.json-t)
 ['SIGINT', 'SIGTERM'].forEach(sg => process.on(sg, () => { flush(); store.close(); process.exit(0); }));
-const sessions = new Map(); // token -> username
+// Munkamenetek a db-ben (db.tok) → szerver-újraindítás után is bejelentkezve maradsz.
+// shortcut: a tokenek nem járnak le, ha kell, tegyél rájuk lejárati időt.
+class PMap extends Map { set(k, v) { super.set(k, v); if (db.tok) { db.tok[k] = v; save(); } return this; } delete(k) { const r = super.delete(k); if (r && db.tok) { delete db.tok[k]; save(); } return r; } }
+db.tok = NP(db.tok); const sessions = new PMap(); for (const k in db.tok) Map.prototype.set.call(sessions, k, db.tok[k]);
 const hashPw = (pw, salt) => crypto.scryptSync(pw, salt, 64).toString('hex');
 const pubUser = u => ({ name: u.name, created: u.created, level: u.level || 1, stats: u.stats, friends: u.friends || [], avatar: u.avatar || '😎', color: u.color || '#ffd23f', rang: u.rang | 0 });
 const NAME_RE = /^[A-Za-z0-9_áéíóöőúüűÁÉÍÓÖŐÚÜŰ]{3,16}$/;

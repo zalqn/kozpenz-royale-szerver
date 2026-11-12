@@ -2,7 +2,7 @@
 (function(){
 const WPf=(n,post,pre)=>{const o=window[n];if(typeof o!=='function')return;window[n]=function(){try{pre&&pre(arguments)}catch(e){}const r=o.apply(this,arguments);try{post&&post(arguments)}catch(e){console.error(n+': '+(e&&e.stack))}return r}};
 const css=document.createElement('style');css.textContent=`
-#gChat{position:fixed;left:14px;bottom:150px;width:min(420px,60vw);z-index:8;font:600 15px Rajdhani,Arial;color:#fff;pointer-events:none}
+#gChat{position:fixed;left:14px;bottom:150px;width:min(420px,60vw);z-index:2147483000;font:600 15px Rajdhani,Arial;color:#fff;pointer-events:none}
 #gChat .log div{margin-top:3px;padding:3px 9px;border-radius:8px;background:#0008;text-shadow:0 1px 2px #000;width:fit-content;max-width:100%;transition:opacity .6s}
 #gChat .log div.sys{color:#fde047}#gChat .log div.dev{color:#4ade80}
 #gChat input{display:none;margin-top:6px;width:100%;box-sizing:border-box;padding:9px 12px;border-radius:10px;border:2px solid #ffd23f;background:#0b1022ee;color:#fff;font:600 16px Rajdhani,Arial;outline:none;pointer-events:auto}
@@ -19,15 +19,16 @@ function msg(t,cls){const d=document.createElement('div');if(cls)d.className=cls
 window.gameChat=msg;
 const me=()=>{try{return (window.ME&&ME.name)||(window.S&&S.u&&S.u.name)||'Te'}catch(e){return 'Te'}};
 let chatOn=false;
-function openChat(pref){if(!G||!run)return;chatOn=true;C.classList.add('on');inp.value=pref||'';for(const k in keys)keys[k]=false;if(document.pointerLockElement)document.exitPointerLock();inp.focus();setTimeout(()=>inp.focus(),0)}
-function closeChat(){if(!chatOn)return;chatOn=false;C.classList.remove('on');inp.blur();for(const k in keys)keys[k]=false;try{if(G&&G.fp&&!(window.escMenu&&escMenu.isOpen))ren.domElement.requestPointerLock()}catch(e){}}
+function openChat(pref){chatOn=true;C.classList.add('on');inp.value=pref||'';if(window.keys)for(const k in keys)keys[k]=false;if(document.pointerLockElement)document.exitPointerLock();inp.focus();setTimeout(()=>inp.focus(),0)}
+function closeChat(){if(!chatOn)return;chatOn=false;C.classList.remove('on');inp.blur();if(window.keys)for(const k in keys)keys[k]=false;try{if(G&&G.fp&&!(window.escMenu&&escMenu.isOpen))ren.domElement.requestPointerLock()}catch(e){}}
 window.gameChatOpen=openChat;
-addEventListener('keydown',e=>{if(chatOn||!G||!run||!$('hud').classList.contains('on')||G.over)return;if(e.target&&(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'))return;
- const k=e.key.toLowerCase();if(k==='t'||k==='/'){e.preventDefault();e.stopImmediatePropagation();openChat(k==='/'?'/':'')}},true);
+const chatKey=e=>{if(chatOn||e.ctrlKey||e.altKey||e.metaKey)return;const a=document.activeElement,t=e.target;if([t,a].some(x=>x&&(x.tagName==='INPUT'||x.tagName==='TEXTAREA'||x.isContentEditable)))return;
+ const k=(e.key||'').toLowerCase();if(k==='t'||k==='/'){e.preventDefault();e.stopImmediatePropagation();openChat(k==='/'?'/':'')}};
+['keydown','keypress'].forEach(ev=>{window.addEventListener(ev,chatKey,true);document.addEventListener(ev,chatKey,true)});
 inp.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Escape'){e.preventDefault();closeChat();return}if(e.key==='Enter'){const v=inp.value.trim();closeChat();if(v)send(v)}});
 inp.addEventListener('keyup',e=>e.stopPropagation());
 const BOTREP=['gg','na ezt figyeld','ki hozta a buszt?','van valakinél pajzs?','LOL','ne lőj, barát vagyok 🙏','minden közpénz az enyém','elmegyek panaszkodni Brüsszelbe'];
-function send(v){if(v[0]==='/'){cmd(v.slice(1).trim());return}msg(me()+': '+v);if(Math.random()<.45)setTimeout(()=>{const b=G&&G.en&&G.en.length?pick(G.en):null;msg(((b&&(b.name||b.nm))||'Bot')+': '+pick(BOTREP))},900+Math.random()*1500)}
+function send(v){if(v[0]==='/'){try{cmd(v.slice(1).trim())}catch(e){msg('Ez a parancs csak meccsben működik.','sys')}return}msg(me()+': '+v);if(Math.random()<.45)setTimeout(()=>{const b=G&&G.en&&G.en.length?pick(G.en):null;msg(((b&&(b.name||b.nm))||'Bot')+': '+pick(BOTREP))},900+Math.random()*1500)}
 window.gameCmd=send;
 // ---------- parancsok ----------
 let DEV=false;
