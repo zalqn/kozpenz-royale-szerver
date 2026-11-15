@@ -88,6 +88,8 @@ PR.forEach(([id,n,e,br,rec,p])=>I(id,n,e,'pr',p,{br,rec}));
  ['r51','Retro Buszmegálló','🚏',['urlap','plak'],900],['r52','Városi Méhes','🐝',['tanusit','nyilt'],1600],['r53','Kreatív Központ','🎨',['ajanlo','latv','szamla'],3100],['r54','Szoborpark-felújítás','🗽',['strom','latv','hatido'],4200],['r55','Falunap-fesztivál','🎪',['hirdetm','szamla','konz'],1900],['r56','Kalandpark (papíron)','🎢',['strom','bizt','latv','pecset'],5200],['r57','Okos Öntözőrendszer','💦',['tanu','elszam'],2000],['r58','Közösségi Kemence','🔥',['jegyz','konz'],1100],['r59','Interaktív Szökőkút','⛲',['latv','meghatal','szamla'],3600],['r60','Startup Inkubátor','🚀',['strom','tanu','tanusit','hatido'],6500]
 ].forEach(([id,n,e,rec,p])=>I(id,n,e,'pr',p,{br:'pal2',rec}));
 
+// 11-15 árak ×2,5 (a termékek eladási alapára – jutalom – változatlan)
+IT.forEach(x=>{if(x.t!=='pr')x.p=Math.round(x.p*2.5)});
 const ITM=Object.fromEntries(IT.map(x=>[x.id,x]));
 const lmB=()=>{const L=D.lm||{};let o=0,q=0;IT.forEach(x=>{if(x.t==='lm'&&L[x.id]){o+=x.o;q+=x.q}});return{o,q}};
 

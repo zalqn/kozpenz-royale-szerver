@@ -15,7 +15,7 @@ const BASES=[
  ['feet','kicks','Prémium sneaker',320,'👟'],['feet','gold','Aranycsizma',600,'🥾'],
  ['aura','aura','Aura-gyűrű',800,'✨']];
 const ITEMS=[];BASES.forEach(([slot,base,name,price,ic])=>COLS.forEach(([cn,c],i)=>ITEMS.push({id:'o_'+base+'_'+i,slot,base,c,ic,n:cn+' '+name,price:Math.round(price*(i===0?1.8:i===4?1.3:1)),rar:i===0?4:i===4?3:i%2?1:2})));
-const IT=Object.fromEntries(ITEMS.map(i=>[i.id,i]));const RARC=['#b0b8c4','#4ade80','#60a5fa','#c084fc','#fbbf24'];
+/*x25*/ITEMS.forEach(s=>s.price=Math.round(s.price*2.5));const IT=Object.fromEntries(ITEMS.map(i=>[i.id,i]));const RARC=['#b0b8c4','#4ade80','#60a5fa','#c084fc','#fbbf24'];
 // ---------- modellek ----------
 const MC={};const mt=(c,o)=>{const k=c+JSON.stringify(o||{});return MC[k]||(MC[k]=new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:.5,metalness:.1},o||{})))};
 const GOLD={metalness:.95,roughness:.2};

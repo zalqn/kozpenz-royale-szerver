@@ -4,6 +4,11 @@ const st=document.createElement('style');st.id='layoutC';
 st.textContent=`
 body.lb2on #lbPlayer{top:var(--lC-pl,84px)!important;max-width:calc(100vw - 16px);box-sizing:border-box}
 body.lb2on #x14dJP{top:var(--lC-jp,300px)!important}
+body.lb2on #lbPlay{z-index:2}
+@media (max-height:680px) and (min-width:601px){
+ body.lb2on #x14dJP{display:none!important}
+ body.lb2on #lbSide{zoom:.62!important;bottom:calc(110px/.62)!important}
+}
 @media (max-width:760px){
  body.lb2on #lbPlayer{right:8px!important;left:8px!important;width:auto!important;max-width:none;transform:none!important;padding:8px!important;overflow:hidden}
  body.lb2on #x14dJP{right:8px!important;width:calc(100vw - 16px)!important;font-size:10px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

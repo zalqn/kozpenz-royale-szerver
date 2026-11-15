@@ -82,7 +82,7 @@ let ecoT=0;function ecoRep(){if(!acc()||Date.now()-ecoT<5*60e3)return;ecoT=Date.
 
 // =================== 29: ajándékbolt ===================
 const TITLES=[['szerencse','🍀 Szerencsefi',400],['vip','💎 Kaszinó-törzsvendég',1500],['cet','🐋 Bálna',5000],['kir','👑 Zsetonkirály',12000]];
-const LUX=[['szobor','🗿 Arany szobor (luxus)',25e6],['jacht','🛥️ Közpénz-jacht (luxus)',120e6],['palota','🏰 Kastély (luxus)',600e6]];
+const LUX=[['szobor','🗿 Arany szobor (luxus)',25e6],['jacht','🛥️ Közpénz-jacht (luxus)',120e6],['palota','🏰 Kastély (luxus)',600e6]];/*x25*/LUX.forEach(s=>s[2]=Math.round(s[2]*2.5));
 let SH=LS('k3Dshop',{own:{},title:''});
 function buyZs(n,f){if(zs()<n)return toast('Nincs elég zsetonod.');BR.zs-=n;saveAll();f();SV('k3Dshop',SH);render()}
 

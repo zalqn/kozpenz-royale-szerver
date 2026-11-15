@@ -15,7 +15,7 @@ const BREEDS=[
  {id:'labrador',n:'Arany Labrador',p:450,c:0xe9c46a,c2:0xdcb257,nose:0x3b2414,sz:1.1,len:1.15,leg:.95,ear:'flop',tail:'otter',desc:'Mindenkit szeret, főleg a kaját.'},
  {id:'dalmata',n:'Dalmata',p:650,c:0xffffff,c2:0x111111,nose:0x111,sz:1.05,len:1.15,leg:1.05,ear:'flop',tail:'thin',spots:1,desc:'101 pötty, 0 közpénz.'},
  {id:'shiba',n:'Shiba Inu',p:800,c:0xd97706,c2:0xfff7ed,nose:0x111,sz:.9,len:1,leg:.85,ear:'up',tail:'curl',belly:1,mask:1,desc:'Much wow. Very kutya.'},
- {id:'uszkar',n:'Királyi Uszkár',p:900,c:0xf9a8d4,c2:0xf472b6,nose:0x111,sz:1,len:1,leg:1.15,ear:'pom',tail:'pom',fur:'poodle',desc:'Szalonképes, rózsaszín luxus.'}];
+ {id:'uszkar',n:'Királyi Uszkár',p:900,c:0xf9a8d4,c2:0xf472b6,nose:0x111,sz:1,len:1,leg:1.15,ear:'pom',tail:'pom',fur:'poodle',desc:'Szalonképes, rózsaszín luxus.'}];/*x25*/BREEDS.forEach(s=>s.p=Math.round(s.p*2.5));
 const BY=Object.fromEntries(BREEDS.map(b=>[b.id,b]));
 // ---------- KIEGÉSZÍTŐK (20 alap × 5 szín = 100) ----------
 const COLS=[['Arany',0xfacc15],['Piros',0xef4444],['Kék',0x3b82f6],['Zöld',0x22c55e],['Fekete',0x111827]];

@@ -55,6 +55,8 @@ function build(L){const sc=L.sc,fx=L.fx;const M=(c,o)=>new THREE.MeshStandardMat
   // beszédbuborék (HTML), a rab feje fölé vetítve
   const bub=document.createElement('div');bub.style.cssText='position:fixed;z-index:3;pointer-events:none;max-width:240px;padding:8px 12px;border-radius:14px;background:#fff;color:#111;font:800 14px Rajdhani,Arial;box-shadow:0 6px 18px #0007;transform:translate(-50%,-100%);opacity:0;transition:opacity .3s;text-align:center';
   bub.innerHTML='';const tail=document.createElement('div');document.body.appendChild(bub);
+  // a lobby rajzciklusa meccsben leáll → a buborék ne ragadjon a képernyőn
+  setInterval(()=>{const lb=document.getElementById('lb');if(bub.style.opacity!=='0'&&!(lb&&lb.classList.contains('on')))bub.style.opacity='0'},500);
   const LINES=['Megint beraktak! Pedig csak szállítani jöttem!','Engedjetek ki, a furgon parkolójegye lejár!','Ez egy félreértés! Én csak a SZÁLLÍTÓ vagyok!','Ki zárta be a kaput?! Ez nem volt a szerződésben!','Hozzatok egy reszelőt… vagy legalább egy pogácsát!',
    'Hé, Vezér! Szólj már egy jó szót az érdekemben!','Ez a cella kisebb, mint a raktér!','Holnap úgyis kint vagyok… mint mindig!','Csak egy telefont kérek! A furgonom egyedül van!','Itt még wifi sincs! Ez embertelen!','Megint én fizetem a rezsit itt bent is?!'];
   let next=2,show=0,li=0;const v=new THREE.Vector3();

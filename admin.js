@@ -192,7 +192,7 @@
   let fps = 0, fr = 0, fl = performance.now();
   (function loop() { fr++; const t = performance.now(); if (t - fl >= 1000) { fps = fr * 1000 / (t - fl); fr = 0; fl = t; } requestAnimationFrame(loop); })();
   const gG = () => { try { return typeof G !== 'undefined' ? G : null; } catch (e) { return null; } };
-  const xc = c => { try { const r = (window.zalqnCheat && zalqnCheat(c)) ?? (window.extraCmd && extraCmd(c)); toast(r == null ? '⚠ Nincs válasz: ' + c : String(r)); } catch (e) { toast('⛔ ' + e.message); } };
+  const xc = c => { try { let r = (window.zalqnCheat && zalqnCheat(c)) ?? (window.extraCmd && extraCmd(c)); if (r == null && window.gameCmd) { gameCmd('/' + c); const l = document.querySelector('#gChat .log'); r = l && l.lastChild ? l.lastChild.textContent : null; } toast(r == null ? '⚠ Nincs válasz: ' + c : String(r)); } catch (e) { toast('⛔ ' + e.message); } };
   const conHist = [];
   tabs(DP, (k, m) => {
     if (k === 'pf') {
@@ -211,7 +211,7 @@
           '<div class="row">Pénz (helyi): <input id="dFt" type="number" value="100000" style="width:120px"><button class="b g" data-c="ft">+ Ft</button><input id="dZs" type="number" value="500" style="width:90px"><button class="b g" data-c="zs">+ zseton</button><span style="color:#8b93ab">Egyenleg: ' + (typeof S !== 'undefined' ? fmt(S.c) : '–') + ' Ft · ' + (window.BR ? fmt(BR.zs) : '–') + ' zs</span></div></div>';
         m.innerHTML = h; };
       m.onclick = e => { const b = e.target.closest('button'); if (!b) return; const g = gG();
-        if (b.dataset.x) { if (b.dataset.x === 'fly' && typeof DEV !== 'undefined' && !DEV) xc('developer'); xc(b.dataset.x); }
+        if (b.dataset.x) { if (b.dataset.x === 'fly' && window._devOn && !_devOn()) xc('developer'); xc(b.dataset.x); }
         const c = b.dataset.c;
         if (c === 'tp' && g && g.en) { g.x = +$('#dTx', m).value; g.z = +$('#dTz', m).value; g.vy = 0; toast('🧭 Teleport'); }
         if (c === 'tpe' && g && g.en) { const e2 = g.en.filter(e => !e.dead && e.hp > 0 && e.m).sort((a, b) => Math.hypot(a.m.position.x - g.x, a.m.position.z - g.z) - Math.hypot(b.m.position.x - g.x, b.m.position.z - g.z))[0]; if (e2) { g.x = e2.m.position.x + 4; g.z = e2.m.position.z + 4; toast('🧭 Ellenfél mellett'); } else toast('Nincs ellenfél'); }

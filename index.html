@@ -398,7 +398,7 @@ function go(id){['menu','chars','shop','res','pick','cod'].forEach(x=>$(x).class
  if(id==='cod'){const n=Math.min(100,S.k);$('cn').textContent='Felfedezve: '+n+'/100 (minden eliminációval újabb elem – összesen '+S.k+' elim.)';const c=$('cx');c.innerHTML='';KOD.forEach((k,i)=>{const d=document.createElement('div');d.className='it';d.style.cursor='default';d.innerHTML=i<n?'<small style="margin:0;color:var(--p)">'+k[0]+'</small>'+(i+1)+'. '+k[1]:'<small style="margin:0">❓</small>'+(i+1)+'. ???';c.appendChild(d)})}
  if(id==='menu'){$('mc').textContent=fmt(S.c);$('mb').textContent=fmt(S.b);if($('mxp'))$('mxp').textContent=S.xp;if($('mlv'))$('mlv').textContent=S.lv}
  if(id==='chars'){const c=$('cl');c.innerHTML='';CH.forEach(h=>{const d=document.createElement('div');d.className='it'+(S.ch===h?' sel':'');d.innerHTML=`<div class="f" style="color:#${h.c.toString(16).padStart(6,'0')};font-size:17px">${h.e} ${h.n}</div><small>${h.d}</small><small style="color:var(--y)">HP ${h.hp} · PAJZS ${h.sh}</small>`;d.onclick=()=>{S.ch=h;go('chars');$('gb').disabled=false};c.appendChild(d)})}
- if(id==='shop'){$('sc').textContent=fmt(S.c);const c=$('ul');c.innerHTML='';UP.forEach(u=>{const l=S.u[u.id]||0,cost=u.c*(l+1),mx=l>=u.m,d=document.createElement('div');d.className='it';d.innerHTML=`<div class="f" style="color:var(--y)">${u.n} ${l}/${u.m}</div><small>${u.d}</small>`;const b=document.createElement('button');b.className='b';b.style.fontSize='14px';b.disabled=mx||S.c<cost;b.textContent=mx?'MAX':'VÁSÁRLÁS ('+fmt(cost)+')';b.onclick=()=>{S.c-=cost;S.u[u.id]=l+1;save();go('shop')};d.appendChild(b);c.appendChild(d)})}}
+ if(id==='shop'){$('sc').textContent=fmt(S.c);const c=$('ul');c.innerHTML='';UP.forEach(u=>{const l=S.u[u.id]||0,cost=Math.round(u.c*(l+1)*2.5),mx=l>=u.m,d=document.createElement('div');d.className='it';d.innerHTML=`<div class="f" style="color:var(--y)">${u.n} ${l}/${u.m}</div><small>${u.d}</small>`;const b=document.createElement('button');b.className='b';b.style.fontSize='14px';b.disabled=mx||S.c<cost;b.textContent=mx?'MAX':'VÁSÁRLÁS ('+fmt(cost)+')';b.onclick=()=>{S.c-=cost;S.u[u.id]=l+1;save();go('shop')};d.appendChild(b);c.appendChild(d)})}}
 
 // audio
 let ac=null;const tn=(f,t,d,v=.07)=>{if(!ac)return;try{const o=ac.createOscillator(),g=ac.createGain();o.type=t;o.frequency.value=f;g.gain.setValueAtTime(v,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d)}catch(e){}};
@@ -1167,6 +1167,10 @@ go('menu');
 <script src="extra170.js"></script>
 <script src="jarmu3a.js"></script>
 <script src="jarmu3b.js"></script>
+<script src="jarmu4.js"></script>
+<script>/* 11-15 jarmuarak x2,5 */try{const K=_x14hApi.KIND;for(const k in K)if(K[k].price>0)K[k].price=Math.round(K[k].price*2.5)}catch(e){}</script>
 <script src="kripto.js"></script>
+<script src="dohanybolt.js"></script>
+<script src="lobbyui.js"></script>
 <script src="alfredo.js"></script>
 </body></html>

@@ -23,7 +23,7 @@ const SKINS=[
  {id:'lang',n:'Narancs láng',c:0xf97316,a:0xfde047,p:150000},
  {id:'lila',n:'Királylila',c:0x7c3aed,a:0xe9d5ff,p:200000},
  {id:'arany',n:'Arany',c:0xeab308,a:0x78350f,p:400000,m:.9},
- {id:'szivarvany',n:'Szivárvány (élő)',c:0xff0000,a:0xffffff,p:750000,rb:1}];
+ {id:'szivarvany',n:'Szivárvány (élő)',c:0xff0000,a:0xffffff,p:750000,rb:1}];/*x25*/SKINS.forEach(s=>s.p=Math.round(s.p*2.5));
 let OWN=LS.g('own',['gyari']),SKIN=LS.g('skin','gyari');
 const skin=()=>SKINS.find(s=>s.id===SKIN)||SKINS[0];
 

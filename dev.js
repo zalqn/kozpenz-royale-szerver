@@ -20,7 +20,7 @@ window.gameChat=msg;
 const me=()=>{try{return (window.ME&&ME.name)||(window.S&&S.u&&S.u.name)||'Te'}catch(e){return 'Te'}};
 let chatOn=false;
 function openChat(pref){chatOn=true;C.classList.add('on');inp.value=pref||'';if(window.keys)for(const k in keys)keys[k]=false;if(document.pointerLockElement)document.exitPointerLock();inp.focus();setTimeout(()=>inp.focus(),0)}
-function closeChat(){if(!chatOn)return;chatOn=false;C.classList.remove('on');inp.blur();if(window.keys)for(const k in keys)keys[k]=false;try{if(G&&G.fp&&!(window.escMenu&&escMenu.isOpen))ren.domElement.requestPointerLock()}catch(e){}}
+function closeChat(){if(!chatOn)return;chatOn=false;C.classList.remove('on');inp.blur();if(window.keys)for(const k in keys)keys[k]=false;try{if(G&&G.fp&&!(window.escMenu&&escMenu.isOpen)){const p=ren.domElement.requestPointerLock();p&&p.catch&&p.catch(()=>{})}}catch(e){}}
 window.gameChatOpen=openChat;
 const chatKey=e=>{if(chatOn||e.ctrlKey||e.altKey||e.metaKey)return;const a=document.activeElement,t=e.target;if([t,a].some(x=>x&&(x.tagName==='INPUT'||x.tagName==='TEXTAREA'||x.isContentEditable)))return;
  const k=(e.key||'').toLowerCase();if(k==='t'||k==='/'){e.preventDefault();e.stopImmediatePropagation();openChat(k==='/'?'/':'')}};
@@ -31,13 +31,13 @@ const BOTREP=['gg','na ezt figyeld','ki hozta a buszt?','van valakinél pajzs?',
 function send(v){if(v[0]==='/'){try{cmd(v.slice(1).trim())}catch(e){msg('Ez a parancs csak meccsben működik.','sys')}return}msg(me()+': '+v);if(Math.random()<.45)setTimeout(()=>{const b=G&&G.en&&G.en.length?pick(G.en):null;msg(((b&&(b.name||b.nm))||'Bot')+': '+pick(BOTREP))},900+Math.random()*1500)}
 window.gameCmd=send;
 // ---------- parancsok ----------
-let DEV=false;
+let DEV=false;window._devOn=()=>DEV;
 function cmd(c){{const zr=window.zalqnCheat&&zalqnCheat(c);if(zr!==null&&zr!==undefined){msg(zr,'dev');return}}{const xr=window.extraCmd&&extraCmd(c);if(xr!==null&&xr!==undefined){msg(xr,'dev');return}}const n=c.split(/\s+/)[0].toLowerCase();const g=G;
  if(n==='999'){if(!g.brMode){msg('🚌 A buszt csak Battle Royale-ban vezetheted.','sys');return}if(g.phase==='drop')becomeDriver('parancs');else{msg('🚌 A következő meccsen te vezeted a buszt!','sys');window._nextDriver=1}return}
  if(n==='developer'||n==='dev'){DEV=!DEV;msg(DEV?'🛠️ Fejlesztői mód BE · /fly · /additem · /heal':'🛠️ Fejlesztői mód KI','dev');if(!DEV)g.fly=false;return}
- if(n==='help'||n==='parancsok'){msg('Parancsok: /999 · /developer · /fps · /god · /spawn [db] · /tp x z · /time nap|éj · /weather eső|tiszta · /reset igen · /zalqntoken · /zalqnft · /repcsi · /heli · /auto · /robogo · /deszka · /kit név · /mana'+(DEV?' · /fly · /additem · /heal':''),'sys');return}
+ if(n==='help'||n==='parancsok'){msg('Parancsok: /999 · /developer · /fps · /god · /spawn [db] · /tp x z · /time nap|éj · /weather eső|tiszta · /reset igen · /zalqntoken · /zalqnft · /repcsi · /heli · /auto · /robogo · /deszka · /kit név · /mana · /devpanel · /adminpanel (admin) · /alfredomode'+(DEV?' · /fly · /additem · /heal':''),'sys');return}
  if(!DEV){msg('⛔ Ismeretlen parancs vagy nincs jogod. (/developer)','sys');return}
- if(n==='fly'){g.fly=!g.fly;if(g.fly){g.gl=false;if(g.gs)g.gs.visible=false;g._flyY=Math.max(g.y,2)}msg(g.fly?'🕊️ Repülés BE · Space: fel · Shift: le · WASD: irány':'🕊️ Repülés KI','dev');return}
+ if(n==='fly'){if(!g||g.phase!=='play'){msg('🕊️ Repülés csak meccsben, földet érés után.','sys');return}g.fly=!g.fly;if(g.fly){g.gl=false;if(g.gs)g.gs.visible=false;g._flyY=Math.max(g.y,2)}msg(g.fly?'🕊️ Repülés BE · Space: fel · Shift: le · WASD: irány':'🕊️ Repülés KI','dev');return}
  if(n==='additem'||n==='items'){openAdd();return}
  if(n==='heal'){g.hp=g.mhp;g.sh=g.msh;msg('❤️ Feltöltve','dev');return}
  msg('⛔ Ismeretlen parancs: /'+n,'sys')}
@@ -59,7 +59,7 @@ P.addEventListener('click',e=>{const b=e.target.closest('button');if(!b){if(e.ta
  else if(t==='all'){for(let i=0;i<5;i++){if(g.ry)g.ry.rar[i]=-1;g.own[i]=false;ap('weapon',i,4);g.res[i]=WPN[i].res*3}g.inv.hp+=5;g.inv.beer+=5;g.hp=g.mhp;g.sh=g.msh;g.pickMode=false;if(window.BR)BR.mats=999}
  else ap(t);
  msg('✅ Hozzáadva: '+b.textContent+(t==='weapon'||t==='ammo1'?' – '+WPN[w].n:''),'dev')});
-function closeAdd(){if(!P.classList.contains('on'))return;P.classList.remove('on');try{if(G&&G.fp)ren.domElement.requestPointerLock()}catch(e){}}
+function closeAdd(){if(!P.classList.contains('on'))return;P.classList.remove('on');try{if(G&&G.fp){const p=ren.domElement.requestPointerLock();p&&p.catch&&p.catch(()=>{})}}catch(e){}}
 window.addPanel={open:openAdd,close:closeAdd};
 addEventListener('keydown',e=>{if(e.key==='Escape'&&P.classList.contains('on')){closeAdd();e.stopImmediatePropagation()}},true);
 // ---------- buszsofőr ----------

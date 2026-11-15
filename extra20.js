@@ -93,8 +93,8 @@ window.x20cs=async()=>{const i=$$('x20ci');if(!i||!i.value.trim())return;const v
 // =====================================================================
 // 6) 30 NAPOS NAPTÁR  ·  7) FEGYVERSKINEK + GYŐZELMI TÁNC
 // =====================================================================
-const SKINS=[['def','Alap',null,0],['arany','Arany',0xfacc15,2500],['lang','Láng',0xf97316,2000],['neon','Neon',0x22d3ee,2000],['rozsa','Rózsaszín',0xf472b6,1500],['dzsungel','Dzsungel',0x15803d,1500],['gyemant','💎 Gyémánt (csak naptárból)',0x93c5fd,-1]];
-const DANCES=[['tap','Tapsolás',0],['ugral','Ugrálás',0],['robot','Robottánc',800],['penzeso','Pénzszórás',1200],['forgo','Pörgés',1000]];
+const SKINS=[['def','Alap',null,0],['arany','Arany',0xfacc15,2500],['lang','Láng',0xf97316,2000],['neon','Neon',0x22d3ee,2000],['rozsa','Rózsaszín',0xf472b6,1500],['dzsungel','Dzsungel',0x15803d,1500],['gyemant','💎 Gyémánt (csak naptárból)',0x93c5fd,-1]];/*x25*/SKINS.forEach(s=>{if(s[3]>0)s[3]=Math.round(s[3]*2.5)});
+const DANCES=[['tap','Tapsolás',0],['ugral','Ugrálás',0],['robot','Robottánc',800],['penzeso','Pénzszórás',1200],['forgo','Pörgés',1000]];/*x25*/DANCES.forEach(s=>s[2]=Math.round(s[2]*2.5));
 const SK=Object.assign({cur:'def',own:{def:1},dance:'tap',dOwn:{tap:1,ugral:1}},LSg('k3x20sk',{}));const skSave=()=>LSs('k3x20sk',SK);window._x20SK=SK;window._x20SKINS=SKINS;window._x20skSave=skSave;
 const CAL=Object.assign({last:'',day:0},LSg('k3x20cal',{}));
 const CALRW=d=>d===30?{k:'skin',v:'gyemant',t:'💎 Gyémánt fegyverskin (exkluzív!)'}:d%10===0?{k:'zs',v:1000,t:'1000 🪙'}:d%7===0?{k:'ft',v:50000,t:'50 000 Ft'}:d%5===0?{k:'zs',v:400,t:'400 🪙'}:d%2===0?{k:'ft',v:10000+d*500,t:fmt(10000+d*500)+' Ft'}:{k:'zs',v:100+d*10,t:(100+d*10)+' 🪙'};

@@ -12,8 +12,8 @@ function roll(force){const d=today();if(!force&&IN.roll===d)return;IN.roll=d;
  if(force||Math.random()<.12){IN.until=Date.now()+3*DAY;IN.name=NAMES[Math.random()*NAMES.length|0];IN.m={};Object.keys(CAT).forEach(k=>{IN.m[k]=+(.85+Math.random()*.5).toFixed(2)});
   setTimeout(()=>banner(),2500)}SV('k3b36infl',IN)}
 const active=()=>IN.until>Date.now();
-function P(cat,n){if(!active())return n;return Math.round(n*(IN.m[cat]||1)/50)*50||n}
-function banner(){if(!active())return;const b=document.createElement('div');b.style.cssText='position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:100001;background:#7f1d1d;border:2px solid #fca5a5;color:#fff;border-radius:12px;padding:10px 16px;font:600 14px system-ui;max-width:calc(100% - 32px);box-shadow:0 8px 30px #000a;cursor:pointer';
+function P(cat,n){n=Math.round(n*2.5);/* 11-15 árak x2,5 */if(!active())return n;return Math.round(n*(IN.m[cat]||1)/50)*50||n}
+function banner(){if(!active())return;const b=document.createElement('div');b.style.cssText='position:fixed;left:50%;top:38%;transform:translateX(-50%);width:max-content;max-width:min(700px,calc(100% - 32px));z-index:100001;background:#7f1d1d;border:2px solid #fca5a5;color:#fff;border-radius:12px;padding:10px 16px;font:600 14px system-ui;box-shadow:0 8px 30px #000a;cursor:pointer';
  b.innerHTML='📈 <b>'+IN.name+'!</b> 3 napig változnak az árak: '+Object.entries(IN.m).map(([k,v])=>CAT[k]+' '+(v>=1?'+':'')+Math.round((v-1)*100)+'%').join(' · ')+' <small>(katt: bezár)</small>';b.onclick=()=>b.remove();document.body.appendChild(b);setTimeout(()=>b.remove(),15000)}
 setTimeout(()=>roll(false),4000);
 // ---------- 17) BIZTOSÍTÁS ----------

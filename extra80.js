@@ -31,12 +31,13 @@ function build(){OBJ.forEach(o=>{if(o.parent)o.parent.remove(o)});OBJ=[];if(type
  inst(new THREE.DodecahedronGeometry(1,0),TM('rock',1,1,0x9ca3af),L.rock,true);
  inst(new THREE.ConeGeometry(.18,.6,4),new THREE.MeshStandardMaterial({color:0x4d7c0f,roughness:1}),L.tuft);
  // autók
+ if(window._jm4){try{const P=window._jm4.parkGeo(),byC={};carList.forEach(cr=>{(byC[cr[3]]=byC[cr[3]]||[]).push(cr)});Object.entries(byC).forEach(([c,list])=>inst(P.paint,new THREE.MeshStandardMaterial({color:+c,metalness:.55,roughness:.28,envMap:P.env||null}),list.map(l=>[l[0],0,l[1],l[2]]),true));inst(P.rest,P.restMat,carList.map(l=>[l[0],0,l[1],l[2]]),true)}catch(e){console.error('extra80 jm4',e)}}else{
  const bodyG=new THREE.BoxGeometry(2,.75,4),topG=new THREE.BoxGeometry(1.7,.6,2),wG=new THREE.CylinderGeometry(.38,.38,.3,12);const glassM=new THREE.MeshStandardMaterial({color:0x1e293b,metalness:.6,roughness:.1});
  const byCol={};carList.forEach(cr=>{(byCol[cr[3]]=byCol[cr[3]]||[]).push(cr)});
  Object.entries(byCol).forEach(([c,list])=>{inst(bodyG,new THREE.MeshStandardMaterial({color:+c,metalness:.55,roughness:.3}),list.map(l=>[l[0],.75,l[1],l[2]]),true)});
  inst(topG,glassM,carList.map(l=>[l[0],1.4,l[1],l[2]]));
  const wl=[];carList.forEach(l=>{const cs=Math.cos(l[2]),sn=Math.sin(l[2]);[[-1,1.3],[1,1.3],[-1,-1.3],[1,-1.3]].forEach(([dx,dz])=>{wl.push([l[0]+dx*cs+dz*sn,.38,l[1]-dx*sn+dz*cs,l[2],0,1])})});
- const wm=new THREE.InstancedMesh(wG,TM('asphalt',.3,.3,0x111111),wl.length);wl.forEach((t,i)=>{dummy.position.set(t[0],t[1],t[2]);dummy.rotation.set(0,t[3],Math.PI/2);dummy.scale.set(1,1,1);dummy.updateMatrix();wm.setMatrixAt(i,dummy.matrix)});scene.add(wm);OBJ.push(wm);
+ const wm=new THREE.InstancedMesh(wG,TM('asphalt',.3,.3,0x111111),wl.length);wl.forEach((t,i)=>{dummy.position.set(t[0],t[1],t[2]);dummy.rotation.set(0,t[3],Math.PI/2);dummy.scale.set(1,1,1);dummy.updateMatrix();wm.setMatrixAt(i,dummy.matrix)});scene.add(wm);OBJ.push(wm);}
  console.log('extra80: pálya-részletek',Object.fromEntries(Object.entries(L).map(([k,v])=>[k,v.length])),'autók',carList.length)}
 WP('launch',null,()=>{setTimeout(()=>{try{build()}catch(e){console.error('x80 build',e)}},1500)});
 })();

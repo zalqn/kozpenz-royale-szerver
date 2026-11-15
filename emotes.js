@@ -73,7 +73,7 @@ D('beszed','Pulpitusbeszéd','🎤','kozp',6,4000,0,t=>({ra:[-1.4-.6*pos(t,2.2),
 D('plakat','Kampányplakát','🪧','kozp',5,3500,0,t=>({la:[-2.9,.15],ra:[-2.9,-.15],ry:sw(t,1.5)*.5,y:.05*pos(t,3)}),['sign']);
 D('zsebre','Zsebre tesz','🤑','kozp',5,5000,10,t=>{const p=(t*1.2)%1;const k=p<.5?sm(p*2):sm(2-p*2);return{ra:[-1.1+.9*k,.25*k],ry:-.25*k,rx:.06,la:[-.3,-.1]}},['bill'],[[.833,.4,'coin']]);
 D('alapko','Alapkőletétel','🧱','kozp',5,4500,0,t=>{const k=kf([[0,0],[1,1],[2.2,1],[3,0],[5,0]],t);return{y:-.5*k,rx:.45*k,ll:[-1*k,0],rl:[-.2*k,0],la:[-1.2*k,.2],ra:[-1.2*k,-.2]}},['brick'],[[99,2.2,'stamp'],[99,3.2,'clap'],[.2,3.2,'confD']]);
-const BY={};E.forEach(e=>BY[e.id]=e);
+/*x25*/E.forEach(e=>{if(e.pr>0)e.pr=Math.round(e.pr*2.5)});const BY={};E.forEach(e=>BY[e.id]=e);
 const FREE=E.filter(e=>!e.pr&&!e.lv).map(e=>e.id);// 10 ingyenes
 
 // ---------- mentés ----------

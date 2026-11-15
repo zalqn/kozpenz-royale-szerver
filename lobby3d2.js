@@ -18,7 +18,7 @@ function build(L){const T=THREE,sc=L.sc;seed=7;
  const MS=(c,o)=>{o=Object.assign({color:c},o||{});if(o.metalness>=.4)return new T.MeshStandardMaterial(Object.assign({roughness:.8},o));delete o.metalness;delete o.roughness;delete o.flatShading;return new T.MeshLambertMaterial(o)};
  const MB=(c,o)=>new T.MeshBasicMaterial(Object.assign({color:c},o||{}));
  const TM=(k,rx,ry,c)=>{try{if(typeof window.texMat==='function'){const m=window.texMat(k,rx,ry,c);if(m&&m.map)return new T.MeshLambertMaterial({map:m.map,color:m.color.clone()});return m}}catch(e){}return MS(c)};
- const cv=(w,h,f)=>{const c=document.createElement('canvas');c.width=w;c.height=h;f(c.getContext('2d'),w,h);const t=new T.CanvasTexture(c);t.anisotropy=8;return t};
+ const cv=(w,h,f)=>{const c=document.createElement('canvas');c.width=w;c.height=h;f(c.getContext('2d'),w,h);const t=new T.CanvasTexture(c);t.anisotropy=window._lbAn||8;return t};
  // méretarányos UV (tex 11-15): t méterenként 1 UV-egység → a fotótextúra nem nyúlik meg a különböző méretű síkokon/hengereken/dobozokon
  const pu=(g,w,d,t)=>{const a=g.attributes.uv;for(let i=0;i<a.count;i++)a.setXY(i,a.getX(i)*w/t,a.getY(i)*d/t);return g};
  const cylU=(g,t)=>{const p=g.parameters,a=g.attributes.uv,n=(p.radialSegments+1)*(p.heightSegments+1),C=Math.PI*(p.radiusTop+p.radiusBottom),H=Math.hypot(p.height,p.radiusTop-p.radiusBottom),D2=2*Math.max(p.radiusTop,p.radiusBottom);for(let i=0;i<a.count;i++)if(i<n)a.setXY(i,a.getX(i)*C/t,a.getY(i)*H/t);else a.setXY(i,(a.getX(i)-.5)*D2/t,(a.getY(i)-.5)*D2/t);return g};

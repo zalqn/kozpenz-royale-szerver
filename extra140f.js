@@ -72,8 +72,8 @@ const sk=k=>D.sk[k]|0;
 window.x14fSk=k=>{if(D.sp<1||sk(k)>=3)return;D.sp--;D.sk[k]=sk(k)+1;log('Képesség fejlesztve: '+SK.find(s=>s[0]===k)[1]+' '+D.sk[k]+'. szint','⭐');sv();try{sfx('buy')}catch(e){}panel('sk')};
 
 // ---------- PÁNCÉL ----------
-const HELM=[['–',0,0],['🪖 Bőrsisak',5,3000],['⛑️ Acélsisak',10,9000],['💠 Kristálysisak',15,20000]];
-const VEST=[['–',0,0],['🦺 Bőrmellény',8,4000],['🛡️ Láncing',16,12000],['🔷 Hamuvért',24,26000]];
+const HELM=[['–',0,0],['🪖 Bőrsisak',5,3000],['⛑️ Acélsisak',10,9000],['💠 Kristálysisak',15,20000]];/*x25*/HELM.forEach(s=>s[2]=Math.round(s[2]*2.5));
+const VEST=[['–',0,0],['🦺 Bőrmellény',8,4000],['🛡️ Láncing',16,12000],['🔷 Hamuvért',24,26000]];/*x25*/VEST.forEach(s=>s[2]=Math.round(s[2]*2.5));
 const armRed=()=>Math.min(.6,(HELM[D.helm][1]+VEST[D.vest][1]+sk('arm')*4)/100);
 window.x14fBuy=w=>{const T=w==='h'?HELM:VEST,k=w==='h'?'helm':'vest',n=D[k]+1;if(n>=T.length||S.c<T[n][2])return;S.c-=T[n][2];try{save()}catch(e){}D[k]=n;log('Páncél: '+T[n][0]+' megvéve','🛡️');sv();try{sfx('buy')}catch(e){}const c=cur();if(c&&c.ty==='armor'&&PLAY())chProg(1);panel('arm')};
 {const o=window.hurt;if(typeof o==='function')window.hurt=function(d,storm){if(G&&G.stw&&!storm&&typeof d==='number')d*=1-armRed();return o.call(this,d,storm)}}

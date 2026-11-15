@@ -12,6 +12,15 @@ module.exports = function (o) {
   const ROOT_ADMIN = 'zalqn';
   const banned = u => !!(u && u.ban && (!u.ban.until || u.ban.until > now()));
 
+  // ---- egyszeri seed: SEED_ADMIN_PW env → ha nincs zalqn fiók, létrehozza (jelszó sosem kerül a kódba) ----
+  try {
+    const pw = process.env.SEED_ADMIN_PW;
+    if (pw && pw.length >= 6 && !U(ROOT_ADMIN)) {
+      const crypto = require('crypto'), salt = crypto.randomBytes(16).toString('hex');
+      db().users[ROOT_ADMIN] = { name: ROOT_ADMIN, salt, hash: crypto.scryptSync(pw, salt, 64).toString('hex'), created: now(), stats: { games: 0, wins: 0, kills: 0 }, friends: [], level: 1, admin: true };
+      save(); console.log('[mod_admin] SEED_ADMIN_PW: zalqn fiók létrehozva');
+    }
+  } catch (e) { console.log('[mod_admin] seed hiba', e.message); }
   // ---- migráció: zalqn = admin ----
   try {
     const done = store && store.ok ? store.getMeta('adminMigr') : null;

@@ -4,6 +4,10 @@
 if(window._lA)return;window._lA=1;
 const st=document.createElement('style');st.id='layoutA';
 st.textContent=`
+@media (min-width:761px) and (max-width:1180px){
+ body.lb2on #lbTop{flex-wrap:wrap!important;align-content:center;height:auto!important;min-height:64px;row-gap:0;padding-right:316px!important;box-sizing:border-box}
+ body.lb2on #lbRight{position:absolute;right:10px;top:8px;zoom:.85}
+}
 #lb2bar>#k2ev{position:static!important;transform:none!important;flex:0 0 100%;width:auto!important;box-sizing:border-box;margin:2px 0 0;z-index:auto}
 @media (max-width:760px){
  body.lb2on #lbTop{z-index:12!important;flex-wrap:wrap!important;height:auto!important;row-gap:2px;padding:4px 8px!important;justify-content:center}
