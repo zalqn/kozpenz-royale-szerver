@@ -21,7 +21,7 @@ function place(f){if(wrap.isConnected&&f.root.contains(wrap))return;
  else{const h=f.root.querySelector('h2,h1');if(h)h.parentNode.insertBefore(wrap,h.nextSibling);else f.root.insertBefore(wrap,f.root.firstChild)}}
 // ---- segédek ----
 function disp(o){o.traverse(m=>{if(m.geometry)m.geometry.dispose();if(m.material)[].concat(m.material).forEach(x=>{for(const k in x){const v=x[k];if(v&&v.isTexture)v.dispose()}x.dispose()})})}
-function ctex(w,h,fn){const c=document.createElement('canvas');c.width=w;c.height=h;fn(c.getContext('2d'),w,h);const t=new T.CanvasTexture(c);t.anisotropy=4;return t}
+function ctex(w,h,fn){const c=document.createElement('canvas');c.width=w;c.height=h;fn(c.getContext('2d'),w,h);const t=new T.CanvasTexture(c);t.anisotropy=8;return t}
 const M=(c,o)=>new T.MeshStandardMaterial(Object.assign({color:c,roughness:.55,metalness:.1},o||{}));
 function base(p,l){const s=new T.Scene(),c=new T.PerspectiveCamera(38,2,.1,300);c.position.set(...p);c.lookAt(...l);c.userData.l=new T.Vector3(...l);
  s.add(new T.HemisphereLight(0xfff1d0,0x24123a,.85));const d=new T.DirectionalLight(0xffffff,.75);d.position.set(3,9,6);s.add(d);return{s,c}}
@@ -41,7 +41,7 @@ function sRoul(){const{s,c}=base([0,4.6,3.4],[0,0,.1]);const wh=new T.Group();s.
  ORD.forEach((n,i)=>{const a=i/37*Math.PI*2,p=new T.Group();p.rotation.y=-a;wh.add(p);
   const m=new T.Mesh(pg,n===0?mats.z:RED.has(n)?mats.r:mats.k);m.position.set(1.55,0,0);m.rotation.y=Math.PI/2;p.add(m);
   const f=new T.Mesh(fret,fm);f.position.set(1.55,.05,0);f.rotation.y=Math.PI/2;f.position.applyAxisAngle(new T.Vector3(0,1,0),Math.PI/37);f.rotation.y+=Math.PI/37;p.add(f);
-  const lt=ctex(64,64,(x)=>{x.fillStyle='#fff';x.font='bold 40px Arial';x.textAlign='center';x.textBaseline='middle';x.fillText(n,32,34)});
+  const lt=ctex(128,128,(x)=>{x.fillStyle='#fff';x.font='bold 80px Arial';x.textAlign='center';x.textBaseline='middle';x.fillText(n,64,68)});
   const lab=new T.Mesh(new T.PlaneGeometry(.26,.26),new T.MeshBasicMaterial({map:lt,transparent:true}));lab.rotation.x=-Math.PI/2;lab.rotation.z=-Math.PI/2;lab.position.set(1.86,.035,0);p.add(lab)});
  const disc=new T.Mesh(new T.CylinderGeometry(1.86,1.86,.06,64),M(0x2a1608));disc.position.y=-.04;wh.add(disc);
  const cone=new T.Mesh(new T.ConeGeometry(.6,.45,32),M(0xc9a64a,{metalness:.85,roughness:.25}));cone.position.y=.2;wh.add(cone);

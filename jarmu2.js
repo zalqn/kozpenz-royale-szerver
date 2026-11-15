@@ -147,7 +147,8 @@ const warn=document.createElement('div');warn.id='jm2Hp';warn.textContent='🔥 
 let PR=null;
 function prev(){if(PR)return PR;const r=new THREE.WebGLRenderer({antialias:true,alpha:true});r.setSize(200,110);const sc=new THREE.Scene();sc.add(new THREE.HemisphereLight(0xffffff,0x334155,1.1));const dl=new THREE.DirectionalLight(0xffffff,.8);dl.position.set(3,5,4);sc.add(dl);
  const cam=new THREE.PerspectiveCamera(35,200/110,.1,100);PR={r,sc,cam,g:{}};return PR}
-function snap(k){const p=prev();let g=p.g[k];if(!g){g=new THREE.Group();const sk=A.skin(),paint=STD(sk.c),acc=STD(sk.a),wh=[];const wheel=(gg,x,y,z,r,w)=>{const m=new THREE.Mesh(geo('pw'+r+w,()=>new THREE.CylinderGeometry(r,r,w,12)),MAT.dark);m.rotation.z=Math.PI/2;m.position.set(x,y,z);gg.add(m);return m};MO[k](g,paint,acc,wh,wheel);p.g[k]=g}
+const SNAPC={};function snap(k){return SNAPC[k]||(SNAPC[k]=snap0(k))}// előnézet-kép cache: drawG minden újrarajzolásnál ~2 mp toDataURL-t futtatott
+function snap0(k){const p=prev();let g=p.g[k];if(!g){g=new THREE.Group();const sk=A.skin(),paint=STD(sk.c),acc=STD(sk.a),wh=[];const wheel=(gg,x,y,z,r,w)=>{const m=new THREE.Mesh(geo('pw'+r+w,()=>new THREE.CylinderGeometry(r,r,w,12)),MAT.dark);m.rotation.z=Math.PI/2;m.position.set(x,y,z);gg.add(m);return m};MO[k](g,paint,acc,wh,wheel);p.g[k]=g}
  p.sc.children.filter(o=>o.isGroup).forEach(o=>p.sc.remove(o));p.sc.add(g);g.rotation.y=.7;const s=k==='hover'?3.2:k==='henger'?7.5:6;p.cam.position.set(s*.9,s*.55,s*.9);p.cam.lookAt(0,k==='hover'?.2:1,0);p.r.render(p.sc,p.cam);return p.r.domElement.toDataURL()}
 const SHOPX=[];// addShop(f): f(w) a garázs-ablak minden újrarajzolásakor (jarmu3a/3b saját kártyái)
 function openG(){GM.style.display='flex';drawG()}function closeG(){GM.style.display='none'}

@@ -1,9 +1,13 @@
 // ===== ÚJ PÁLYA-GENERÁTOR: foglaltsági térkép (nincs egymásba csúszás) + kampánybusz =====
 (function(){
 const WP=(n,pre,post)=>{const o=window[n];if(typeof o!=='function'){console.error('WP missing '+n);return}window[n]=function(){let st;try{st=pre?pre(arguments):0}catch(e){}const r=o.apply(this,arguments);try{post&&post(arguments,st,r)}catch(e){console.error(n+': '+(e&&e.stack))}return r}};
+// kúp-UV méretarányosra (tex 11-15): sx = kerület/csempe, sy = alkotó/csempe → a tető/szikla textúrája nem nyúlik meg
+const uvs=(g,sx,sy)=>{const a=g.attributes.uv;for(let i=0;i<a.count;i++)a.setXY(i,a.getX(i)*sx,a.getY(i)*sy);return g};
+const coneU=(r,h,n,t)=>uvs(new THREE.ConeGeometry(r,h,n),2*n*r*Math.sin(Math.PI/n)/t,Math.hypot(h,r*Math.cos(Math.PI/n))/t);
+const AT=m=>window.TQ?TQ.antiTile(m):m;
 function hunLandmarks(ar){const g=G;g.arh=true;g.plat=[];g.yachts=[];
  const sh=new THREE.Shape();HU.forEach((p,i)=>i?sh.lineTo(p[0],-p[1]):sh.moveTo(p[0],-p[1]));
- const isl=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,{depth:4,bevelEnabled:false}),[mat('grass@.06,.06',0x4f9a3a),mat('rock@.12,.12',0x8a7a6a)]);isl.rotation.x=-Math.PI/2;isl.position.y=-4;isl.receiveShadow=true;scene.add(isl);
+ const isl=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,{depth:4,bevelEnabled:false}),[AT(mat('grass@.25,.25',0x4f9a3a)),mat('rock@.12,.12',0x8a7a6a)]);isl.rotation.x=-Math.PI/2;isl.position.y=-4;isl.receiveShadow=true;scene.add(isl);
  const bs=new THREE.Shape();HU.forEach((p,i)=>i?bs.lineTo(p[0]*1.04,-p[1]*1.04):bs.moveTo(p[0]*1.04,-p[1]*1.04));const bm=new THREE.Mesh(new THREE.ExtrudeGeometry(bs,{depth:4,bevelEnabled:false}),mat('gen',0xe9d8a6));bm.rotation.x=-Math.PI/2;bm.position.y=-4.45;scene.add(bm);
  const sea=new THREE.Mesh(new THREE.CircleGeometry(1500,64),new THREE.MeshStandardMaterial({color:0x0e4f7a,emissive:0x06263d,roughness:.25,metalness:.3}));sea.rotation.x=-Math.PI/2;sea.position.y=-2.6;scene.add(sea);
  scene.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(HU.map(p=>new THREE.Vector3(p[0],.08,p[1]))),new THREE.LineBasicMaterial({color:0xfacc15})));
@@ -64,7 +68,7 @@ function towerB(w,h,d,x,z){const f=pick(FAC);let side,top;if(window.texMat){side
  G.col.push({x,z,r:Math.max(w,d)/2*.9,h,hw:w/2,hd:d/2,m});return m}
 function bigMap2(){const g=G;g.kio=g.kio||[];g.cities=[];outerLandmarks();
  const kio=(x,z,t)=>{bx(2.2,1.2,2.2,x,z,0x334155,1,0,'metal');const s=spr(KT[t][0],2.4);s.material.depthTest=true;s.position.set(x,3,z);scene.add(s);g.kio.push({x,z,t})};
- const house=(x,z,rot)=>{const w=rnd(3.2,4.6),d=rnd(3.2,4.6),h=rnd(2.6,3.8),m=bx(w,h,d,x,z,pick([0xf5e6c8,0xd9e4f0,0xc9d6c0,0xf0d0c0]),1,0,'brick');m.castShadow=false;const r=new THREE.Mesh(new THREE.ConeGeometry(Math.max(w,d)*.75,1.8,4),mat('roof@2,1',pick([0x9a3412,0x1e3a8a,0x334155])));r.position.set(x,h+.9,z);r.rotation.y=Math.PI/4;r.castShadow=false;scene.add(r);claim(x,z,Math.max(w,d)*.62)};
+ const house=(x,z,rot)=>{const w=rnd(3.2,4.6),d=rnd(3.2,4.6),h=rnd(2.6,3.8),m=bx(w,h,d,x,z,pick([0xf5e6c8,0xd9e4f0,0xc9d6c0,0xf0d0c0]),1,0,'brick');m.castShadow=false;const r=new THREE.Mesh(coneU(Math.max(w,d)*.75,1.8,4,3.2),mat('roof',pick([0x9a3412,0x1e3a8a,0x334155])));r.position.set(x,h+.9,z);r.rotation.y=Math.PI/4;r.castShadow=false;scene.add(r);claim(x,z,Math.max(w,d)*.62)};
  const CITIES=[[-230,-40,'ALAPÍTVÁNYVÁROS'],[-200,75,'KÖZBESZERZÉSFÖLDE'],[-165,-115,'ÁFAKIKÖTŐ'],[-105,110,'MŰFŰLIGET'],[-70,-100,'KONZULTÁCIÓHÁZA'],[-35,130,'PLAKÁTPART'],[40,-110,'STRÓMANNSZÁLLÁS'],[55,110,'REZSIVÖLGY'],[110,-80,'TANÁCSADÓFALVA'],[170,-35,'KIKÜLDETÉSVÁR'],[195,70,'TENDERHEGY'],[250,0,'OFFSHORE-ÖBÖL'],[150,130,'KISKAPUSZENT'],[-280,15,'NYUGATI VÁM'],[270,-75,'KELETI NYITÁS'],[0,-140,'HATÁRIDŐHOSSZABBÍTÁS'],[-10,160,'DÉLI MÓLÓ'],[215,-130,'LOBBIGRÁD'],
   [-120,-30,'KÉTHARMADFALVA'],[90,30,'ÁRFOLYAMHÁZA'],[-250,-110,'SZUVERENITÁSVÁR'],[260,95,'MILLIÁRDOS-ÖBÖL'],[-140,165,'PÁLYÁZATHEGY'],[120,-165,'TANÚSÍTVÁNYFALVA'],[-300,70,'VÁMKAPU'],[300,40,'KELETI KAPU']];
  CITIES.forEach(([x0,z0,name])=>{const c=findFree(x0,z0,9,22,50);if(!c)return;const[cx,cz]=c;
@@ -93,11 +97,11 @@ function placeLM(tx,tz,r,spread,name){let p=findFree(tx,tz,r,spread||70,80);if(!
 const LMN=[];
 function outerLandmarks(){const g=G;g.lmk=[];
  // 1) KÖZPÉNZ-HEGYSÉG: sziklás csúcsok hósipkával
- {const p=placeLM(245,-120,40,80);if(p)(G.lmk=G.lmk||[]).push({x:p[0],z:p[1],name:'⛰️ HEGYSÉG'});if(p){const[cx,cz]=p;[[0,0,22,46],[-20,12,15,30],[19,9,16,34],[5,-19,13,24]].forEach(([dx,dz,r,h])=>{const x=cx+dx,z=cz+dz;const m=new THREE.Mesh(new THREE.ConeGeometry(r,h,9),mat('rock@3,2',0x8a8178));m.position.set(x,h/2-.5,z);m.rotation.y=Math.random()*3;m.castShadow=m.receiveShadow=true;scene.add(m);
+ {const p=placeLM(245,-120,40,80);if(p)(G.lmk=G.lmk||[]).push({x:p[0],z:p[1],name:'⛰️ HEGYSÉG'});if(p){const[cx,cz]=p;[[0,0,22,46],[-20,12,15,30],[19,9,16,34],[5,-19,13,24]].forEach(([dx,dz,r,h])=>{const x=cx+dx,z=cz+dz;const m=new THREE.Mesh(coneU(r,h,9,14),mat('rock',0x8a8178));m.position.set(x,h/2-.5,z);m.rotation.y=Math.random()*3;m.castShadow=m.receiveShadow=true;scene.add(m);
    const snow=new THREE.Mesh(new THREE.ConeGeometry(r*.32,h*.32,9),new THREE.MeshStandardMaterial({color:0xf8fafc,roughness:.6}));snow.position.set(x,h-h*.16-.4,z);snow.rotation.y=m.rotation.y;scene.add(snow);g.col.push({x,z,r:r*.82,h})});
   sgn('⛰️ KÖZPÉNZ-HEGYSÉG',cx,52,cz,6)}}
  // 2) CSÓNAKÁZÓ-TÓ stéggel és csónakokkal
- {const p=placeLM(-235,-60,38,70);if(p)(G.lmk=G.lmk||[]).push({x:p[0],z:p[1],name:'🚣 TÓ'});if(p){const[cx,cz]=p;const sand=new THREE.Mesh(new THREE.CircleGeometry(36,40),mat('sand@6,6',0xe9d8a6));sand.rotation.x=-Math.PI/2;sand.position.set(cx,.03,cz);scene.add(sand);
+ {const p=placeLM(-235,-60,38,70);if(p)(G.lmk=G.lmk||[]).push({x:p[0],z:p[1],name:'🚣 TÓ'});if(p){const[cx,cz]=p;const sand=new THREE.Mesh(new THREE.CircleGeometry(36,40),AT(mat('sand@24,24',0xe9d8a6)));sand.rotation.x=-Math.PI/2;sand.position.set(cx,.03,cz);scene.add(sand);
   const w=new THREE.Mesh(new THREE.CircleGeometry(31,40),mat('water',0x1d8fb8));w.rotation.x=-Math.PI/2;w.position.set(cx,.09,cz);scene.add(w);
   for(let i=0;i<9;i++)bx(2.4,.3,2,cx+31+i*-2.3,cz,0x8b5a2b,0,.25,'wood');[[-1,0],[1,0]].forEach(([s])=>{for(let i=0;i<4;i++)cyl(.15,1.2,cx+30-i*5,cz+s*1.2,0x5b3a1e)});
   for(let i=0;i<4;i++){const a=i/4*6.28+.4,x=cx+Math.cos(a)*15,z=cz+Math.sin(a)*15;const b=new THREE.Mesh(new THREE.BoxGeometry(3.6,.6,1.4),mat('wood',[0xef4444,0xfacc15,0x22c55e,0x3b82f6][i]));b.position.set(x,.45,z);b.rotation.y=a;scene.add(b)}
@@ -114,7 +118,7 @@ function outerLandmarks(){const g=G;g.lmk=[];
   sgn('✈️ KÖZPÉNZ REPTÉR',cx,14,cz-8,5)}}
  // 4) VÁRROM tornyokkal
  {const p=placeLM(-200,120,30,60);if(p)(G.lmk=G.lmk||[]).push({x:p[0],z:p[1],name:'🏰 VÁRROM'});if(p){const[cx,cz]=p;const S=20;const WL=S*2-7.2,HW=(S-3.6-2.5);[[0,-S,WL,1.6],[0,S,WL,1.6],[-S,0,1.6,WL],[S,0,1.6,WL]].forEach(([dx,dz,w,d],i)=>{if(i===1){bx(HW,7,d,cx-2.5-HW/2,cz+dz,0x9a948c,1,0,'stone');bx(HW,7,d,cx+2.5+HW/2,cz+dz,0x9a948c,1,0,'stone')}else bx(w,7,d,cx+dx,cz+dz,0x9a948c,1,0,'stone')});
-  [[-S,-S],[S,-S],[-S,S],[S,S]].forEach(([dx,dz])=>{cyl(3.2,11,cx+dx,cz+dz,0x8a847c,1);const r=new THREE.Mesh(new THREE.ConeGeometry(3.8,4,10),mat('roof@2,1',0x7f1d1d));r.position.set(cx+dx,13,cz+dz);scene.add(r)});
+  [[-S,-S],[S,-S],[-S,S],[S,S]].forEach(([dx,dz])=>{cyl(3.2,11,cx+dx,cz+dz,0x8a847c,1);const r=new THREE.Mesh(coneU(3.8,4,10,3.2),mat('roof',0x7f1d1d));r.position.set(cx+dx,13,cz+dz);scene.add(r)});
   sgn('🏰 ÁLLAMI VÁRROM',cx,16,cz,4.5);pk(cx,cz,'chest');g.pk[g.pk.length-1].l=99999}}
  // 5) SZŐLŐHEGY sorokkal
  {const p=placeLM(-60,-160,26,60);if(p)(G.lmk=G.lmk||[]).push({x:p[0],z:p[1],name:'🍇 SZŐLŐHEGY'});if(p){const[cx,cz]=p;for(let row=0;row<7;row++){const z=cz-15+row*5;for(let i=0;i<9;i++){const x=cx-18+i*4.5;cyl(.08,1.8,x,z,0x5b3a1e);const v=new THREE.Mesh(new THREE.BoxGeometry(3.6,1,1),mat('grass@1,.3',0x3f7d2a));v.position.set(x+2.25,1.3,z);scene.add(v)}}

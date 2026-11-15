@@ -108,7 +108,8 @@ const GAMES={};
 GAMES.mix={n:GI.mix.n,d:'Ferkó laborpultja. A monitor mutatja a <b>célszínt</b> – keverd ki a lombikban a három kitalált „közpénz-esszenciából” (piros Kamu-kivonat, zöld Zöldhatár-szirup, kék Hivatali kék), és közben tartsd a hőt a <b>zöld sávban</b>. 3 célszín, minél gyorsabban.',
  h:'<b>1 / 2 / 3</b> csepp (piros / zöld / kék) · <b>SPACE</b> nyomva = melegítés · <b>X</b> lombik kiürítése',
  build(sc){room(sc,0x1e293b,0x334155,0x0b1026);const P=PLc();const L=new P(0xdbeafe,1.4,14);L.position.set(0,4,2);sc.add(L);
-  mk('b',M(0xe5e7eb,{metalness:.2,roughness:.4}),0,.45,0,7,.9,2.4,sc);mk('b',M(0x0f172a),0,.92,0,7.05,.06,2.45,sc);
+  const bb=mk('b',M(0xe5e7eb,{metalness:.2,roughness:.4}),0,.45,0,7,.9,2.4,sc);mk('b',M(0x0f172a),0,.92,0,7.05,.06,2.45,sc);
+  if(window._sp3lab)try{_sp3lab.dress(sc,[bb]);mk('c',M(0x94a3b8,{metalness:.7,roughness:.3}),0,4.0,-1.2,.04,.4,.04,sc)}catch(e){console.warn('sp3lab',e)} // 11-15: labor-kinézet (sotet3d.js), a monitor a mennyezetről lóg
   this.flask=mk('c',M(0xe0f2fe,{transparent:true,opacity:.22,roughness:.05}),0,1.75,0,.62,1.5,.62,sc);
   this.liq=mk('c',new THREE.MeshStandardMaterial({color:0x888888,emissive:0x222222,roughness:.2}),0,1.05,0,.56,.1,.56,sc);
   mk('c',M(0x475569,{metalness:.7}),0,.98,0,.45,.12,.45,sc);this.fl=mk('cn',EMI(0xfb923c,2),0,1.0,0,.18,.3,.18,sc);this.fl.visible=false;

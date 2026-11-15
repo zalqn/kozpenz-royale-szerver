@@ -32,43 +32,217 @@ const capTot=()=>2+accB().cap+veh().cap;const cargoN=()=>DD().cargo.reduce((s,c)
 const _V3=new THREE.Vector3();
 const DROPPOS=[[-60,-26.5],[60,-26.5],[60,26.5],[-60,26.5],[-86.5,-60],[0,86.5],[86.5,60],[60,-86.5]];
 
-// ===================== BELSŐ: DUPLA LAKÓKOCSI =====================
+// ===================== LABOR-KINÉZET (11-15) =====================
+// Procedurális canvas-textúrák (egyszer készülnek, LT-cache), közös anyagok, InstancedMesh az ismétlődő kellékekre (üvegeszköz, lámpapanel, konzol).
+// Minden felirat kitalált: nincs benne valódi anyag-, vegyszer-, személy- vagy márkanév. A sotetmg3d keverés-labor is ezt használja (window._sp3lab).
+const LT={},_C=new THREE.Color();
+function ct(k,w,h,fn,rep){if(LT[k])return LT[k];const c=document.createElement('canvas');c.width=w;c.height=h;fn(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;if(rep){t.anisotropy=4;t.wrapS=t.wrapT=THREE.RepeatWrapping}return LT[k]=t}
+const speck=(x,w,h,n,a,c0,c1)=>{for(let i=0;i<n;i++){const g=c0+Math.random()*(c1-c0)|0;x.fillStyle='rgba('+g+','+g+','+(g+5)+','+a+')';x.fillRect(Math.random()*w,Math.random()*h,1.6,1.6)}};
+const rr=(x,a,b,w,h,r)=>{x.beginPath();x.roundRect?x.roundRect(a,b,w,h,r):x.rect(a,b,w,h)};
+const TX={
+ floor:()=>ct('floor',512,512,(x,w)=>{x.fillStyle='#a9b1ba';x.fillRect(0,0,w,w);for(let i=0;i<2;i++)for(let j=0;j<2;j++){const v=219+(Math.random()*9|0);x.fillStyle='rgb('+v+','+(v+3)+','+(v+6)+')';x.fillRect(i*256+2,j*256+2,252,252)}speck(x,w,w,6000,.16,110,210)},1), // laborcsempe 2×2 (1,2 m)
+ wall:()=>ct('wall',512,1024,(x,w,h)=>{const g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,'#f5f7f9');g.addColorStop(1,'#e8ecf0');x.fillStyle=g;x.fillRect(0,0,w,h);speck(x,w,h,3000,.05,150,200);const Y=m=>h*(1-m/2.7);
+  x.fillStyle='#bfc7cf';x.fillRect(0,0,3,h);x.fillRect(0,Y(1.32),w,3);x.fillStyle='rgba(255,255,255,.9)';x.fillRect(3,0,2,h);x.fillRect(0,Y(1.32)+3,w,2);x.fillStyle='#0f766e';x.fillRect(0,Y(1.12),w,Y(1.05)-Y(1.12))},1), // laminált panel 1,2×2,7 m + vezetősáv
+ ceil:()=>ct('ceil',512,512,(x,w)=>{x.fillStyle='#eef1f4';x.fillRect(0,0,w,w);speck(x,w,w,9000,.22,130,190);x.fillStyle='#cbd2da';[0,256].forEach(p=>{x.fillRect(p,0,7,w);x.fillRect(0,p,w,7)});x.fillStyle='rgba(0,0,0,.07)';[0,256].forEach(p=>{x.fillRect(p+7,0,2,w);x.fillRect(0,p+7,w,2)})},1), // álmennyezet-kazetta + T-rács
+ brush:()=>ct('brush',256,256,(x,w)=>{x.fillStyle='#c9d0d7';x.fillRect(0,0,w,w);for(let i=0;i<1100;i++){const g=150+Math.random()*105|0;x.fillStyle='rgba('+g+','+g+','+(g+6)+',.22)';x.fillRect(Math.random()*w-60,Math.random()*w,30+Math.random()*160,1)}},1), // csiszolt acél
+ door:()=>ct('door',512,256,(x,w,h)=>{x.fillStyle='#f1f3f5';x.fillRect(0,0,w,h);speck(x,w,h,1500,.05,150,200);[0,256].forEach(p=>{x.fillStyle='#8d97a2';x.fillRect(p,0,4,h);x.fillStyle='#fff';x.fillRect(p+4,0,2,h);const g=x.createLinearGradient(0,24,0,36);g.addColorStop(0,'#eef1f4');g.addColorStop(1,'#77828e');x.fillStyle=g;rr(x,p+68,24,120,12,6);x.fill()});x.fillStyle='#8d97a2';x.fillRect(0,0,w,3)},1), // szekrényajtók
+ sub:()=>ct('sub',512,256,(x,w,h)=>{x.fillStyle='#c5ccd4';x.fillRect(0,0,w,h);for(let r=0;r<8;r++)for(let c=-1;c<8;c++){const o=c*64+(r%2?32:0),v=238+(Math.random()*12|0),g=x.createLinearGradient(0,r*32,0,r*32+32);g.addColorStop(0,'rgb('+v+','+(v+3)+','+(v+6)+')');g.addColorStop(1,'rgb('+(v-16)+','+(v-13)+','+(v-10)+')');x.fillStyle=g;x.fillRect(o+2,r*32+2,60,28)}},1), // falicsempe
+ haz:()=>ct('haz',64,64,x=>{x.fillStyle='#facc15';x.fillRect(0,0,64,64);x.fillStyle='#111827';for(let i=-3;i<3;i++){x.beginPath();x.moveTo(i*32,64);x.lineTo(i*32+16,64);x.lineTo(i*32+80,0);x.lineTo(i*32+64,0);x.fill()}},1), // sárga-fekete csík
+ led:()=>ct('led',256,128,(x,w,h)=>{x.fillStyle='#b9c1ca';x.fillRect(0,0,w,h);x.fillStyle='#fff';x.fillRect(6,6,w-12,h-12);x.strokeStyle='rgba(190,205,225,.45)';x.lineWidth=1;for(let i=14;i<w-6;i+=9){x.beginPath();x.moveTo(i,7);x.lineTo(i,h-7);x.stroke()}for(let j=14;j<h-6;j+=9){x.beginPath();x.moveTo(7,j);x.lineTo(w-7,j);x.stroke()}}),
+ sh:()=>ct('sh',64,64,x=>{x.filter='blur(6px)';x.fillStyle='#000';x.fillRect(13,13,38,38)}), // kontakt-árnyék
+ duct:()=>ct('duct',128,128,(x,w)=>{x.fillStyle='#b8c0c8';x.fillRect(0,0,w,w);speck(x,w,w,900,.25,120,220);x.strokeStyle='rgba(70,80,92,.55)';x.lineWidth=3;for(let i=-1;i<3;i++){x.beginPath();x.moveTo(0,i*64+64);x.lineTo(w,i*64);x.stroke()}},1), // spirálkorcos légcsatorna
+ grate:()=>ct('grate',64,64,x=>{x.fillStyle='#6b7280';x.fillRect(0,0,64,64);x.fillStyle='#1f2937';for(let i=6;i<60;i+=8)x.fillRect(6,i,52,4)}),
+};
+function labEnv(){if(LT.env)return LT.env;const f=k=>{const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');if(k===1){x.fillStyle='#e6eaef';x.fillRect(0,0,64,64);x.fillStyle='#fff';x.fillRect(6,12,52,10);x.fillRect(6,42,52,10)}
+ else if(k===2){x.fillStyle='#9aa2ab';x.fillRect(0,0,64,64)}else{const g=x.createLinearGradient(0,0,0,64);g.addColorStop(0,'#f7f9fb');g.addColorStop(.42,'#dfe4ea');g.addColorStop(.56,'#6b7480');g.addColorStop(.72,'#8f98a2');g.addColorStop(1,'#a4abb4');x.fillStyle=g;x.fillRect(0,0,64,64)}return c};
+ const t=new THREE.CubeTexture([f(0),f(0),f(1),f(2),f(0),f(0)]);t.encoding=THREE.sRGBEncoding;t.needsUpdate=true;return LT.env=t} // hamis „labor” környezet a fém/üveg tükröződéshez (csak ezekre az anyagokra)
+function LM(){if(LT.M)return LT.M;const e=labEnv(),S=o=>new THREE.MeshStandardMaterial(o);
+ return LT.M={fl:S({map:TX.floor(),roughness:.3,envMap:e,envMapIntensity:.3}),wl:S({map:TX.wall(),roughness:.6}),ce:S({map:TX.ceil(),color:0xd9dee4,roughness:.95,emissive:0xffffff,emissiveMap:TX.ceil(),emissiveIntensity:.5}),
+  st:S({map:TX.brush(),color:0xeef2f6,metalness:.65,roughness:.3,envMap:e}),sd:S({color:0xa7b0ba,metalness:.7,roughness:.35,envMap:e}),
+  w:S({color:0xf3f5f7,roughness:.5}),dr:S({map:TX.door(),roughness:.45}),kk:S({color:0x4b5563,roughness:.7}),sb:S({map:TX.sub(),roughness:.18,envMap:e,envMapIntensity:.35}),
+  dk:S({color:0x1f2937,roughness:.45,metalness:.25,envMap:e,envMapIntensity:.4}),lq:S({color:0xffffff,roughness:.15}),cap:S({color:0xffffff,roughness:.5}),
+  gl:S({color:0xe8f6ff,transparent:true,opacity:.28,roughness:.04,metalness:.15,envMap:e,depthWrite:false,side:THREE.DoubleSide}),
+  pane:S({color:0xdbeafe,transparent:true,opacity:.16,roughness:.04,metalness:.1,envMap:e,depthWrite:false}),
+  led:new THREE.MeshBasicMaterial({map:TX.led()}),haz:S({map:TX.haz(),roughness:.6,polygonOffset:true,polygonOffsetFactor:-2}),
+  sh:new THREE.MeshBasicMaterial({map:TX.sh(),transparent:true,opacity:.5,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1}),
+  cu:S({color:0xc77b45,metalness:.85,roughness:.28,envMap:e}),rd:S({color:0xdc2626,roughness:.35,envMap:e,envMapIntensity:.5}),gr:S({color:0x16a34a,roughness:.4}),ye:S({color:0xfacc15,roughness:.4}),
+  cb:S({color:0xd5dae0,metalness:.35,roughness:.4,envMap:e}),bl:new THREE.MeshBasicMaterial({color:0xffffff})}}
+// doboz világ-léptékű UV-vel (tu/tv méter = 1 textúra-ismétlés) → egy közös anyag minden méretre
+function bw(w,h,d,m,x,y,z,tu,tv,p){const g=new THREE.BoxGeometry(w,h,d),uv=g.attributes.uv,F=[[d,h],[d,h],[w,d],[w,d],[w,h],[w,h]];tu=tu||1;tv=tv||tu;for(let i=0;i<24;i++){const f=F[i>>2];uv.setXY(i,uv.getX(i)*f[0]/tu,uv.getY(i)*f[1]/tv)}const b=new THREE.Mesh(g,m);b.position.set(x,y,z);(p||SC).add(b);return b}
+// falhoz álló pult: zw = fal belső síkja, dir = +1 ha +z felé áll ki, -1 ha -z felé; h = munkalap teteje
+function bench(x0,x1,zw,dir,h,p,sh){const M=LM(),L=x1-x0,cx=(x0+x1)/2;h=h||.94;bw(L,h-.16,.68,[M.w,M.w,M.w,M.w,M.dr,M.dr],cx,.12+(h-.16)/2,zw+dir*.34,1.2,h-.16,p);bw(L,.1,.6,M.kk,cx,.07,zw+dir*.3,1,1,p);bw(L+.02,.04,.76,M.st,cx,h-.02,zw+dir*.38,1,1,p);if(sh)sh.push([cx,zw+dir*.62,L+.15,.45])}
+// vegyifülke: alsószekrény, sötét munkalap, oldalfalak, felső doboz, megvilágított belső, félig felhúzott üveg tolóablak, elszívócső
+function hood(x,zw,dir,p,sh,cy){const M=LM(),W=1.3,D=.8,zc=zw+dir*D/2,ry=dir>0?0:Math.PI;cy=cy||2.6;
+ bw(W,.78,D-.06,[M.w,M.w,M.w,M.w,M.dr,M.dr],x,.51,zc-dir*.03,1.2,.78,p);bw(W,.1,D-.12,M.kk,x,.07,zc-dir*.06,1,1,p);bw(W,.05,D,M.dk,x,.925,zc,1,1,p);
+ bw(.06,1.4,D,M.w,x-W/2+.03,1.6,zc,1,1,p);bw(.06,1.4,D,M.w,x+W/2-.03,1.6,zc,1,1,p);bw(W,.42,D,M.w,x,2.11,zc,1,1,p);
+ bw(W-.12,1.36,.02,LT.hb||(LT.hb=new THREE.MeshStandardMaterial({color:0xe2e8f0,emissive:0xf1f5f9,emissiveIntensity:.35,roughness:.6})),x,1.6,zw+dir*.03,1,1,p);bw(W-.14,.03,.05,M.bl,x,1.87,zc,1,1,p);
+ bw(W-.1,.6,.012,M.gl,x,1.6,zw+dir*(D-.03),1,1,p);bw(W-.08,.04,.035,M.sd,x,1.3,zw+dir*(D-.02),1,1,p);
+ cyl(.12,.12,cy-2.32,M.sd,x,(cy+2.32)/2,zw+dir*.63,16,p);plate(TXT('hood',512,128,'#0f4c55','#fff','VEGYIFÜLKE 1','900 64px system-ui'),.8,.2,p,x,2.17,zw+dir*(D+.004),ry,.35);
+ bw(.12,.05,.01,LT.ok||(LT.ok=new THREE.MeshBasicMaterial({color:0x22c55e})),x+W/2-.14,1.98,zw+dir*(D+.004),1,1,p);if(sh)sh.push([x,zw+dir*.62,W+.15,.45])}
+// üvegeszközök: G={fl,bk,bt,tt,cy,rack}: [x,y,z,folyadékszín,méret,forgás,kupakszín] → típusonként 1-1 InstancedMesh (folyadék + üveg + kupak)
+function glassware(G,p){const M=LT.M||LM(),o=new THREE.Object3D(),V=a=>a.map(q=>new THREE.Vector2(q[0],q[1])),Cy=(a,b,h,s,open,y)=>new THREE.CylinderGeometry(a,b,h,s,1,open).translate(0,y,0);
+ const GG=LT.GG||(LT.GG={fl:[new THREE.LatheGeometry(V([[0,.002],[.072,.002],[.078,.012],[.03,.13],[.023,.15],[.023,.2],[.028,.205]]),14),new THREE.LatheGeometry(V([[0,.006],[.068,.006],[.072,.014],[.045,.075],[0,.075]]),14)],
+  bk:[Cy(.045,.043,.12,16,true,.06),Cy(.041,.039,.065,16,false,.036)],bt:[new THREE.LatheGeometry(V([[0,.002],[.04,.002],[.04,.11],[.024,.13],[.019,.135],[.019,.15]]),14),new THREE.LatheGeometry(V([[0,.006],[.036,.006],[.036,.108],[.022,.124],[0,.124]]),14)],
+  tt:[Cy(.009,.009,.14,8,true,.07),Cy(.0075,.0075,.06,8,false,.032)],cy:[Cy(.022,.022,.27,12,true,.135),Cy(.019,.019,.13,12,false,.068)],cap:Cy(.022,.022,.03,12,false,.163),rack:new THREE.BoxGeometry(.2,.06,.07).translate(0,.03,0)});
+ const mk=(geo,mat,L,col)=>{if(!L||!L.length)return;const m=new THREE.InstancedMesh(geo,mat,L.length);L.forEach((q,i)=>{o.position.set(q[0],q[1],q[2]);o.scale.setScalar(q[4]||1);o.rotation.set(0,q[5]||0,0);o.updateMatrix();m.setMatrixAt(i,o.matrix);if(col)m.setColorAt(i,_C.setHex(col(q)))});(p||SC).add(m)};
+ const K=['fl','bk','bt','tt','cy'];K.forEach(k=>mk(GG[k][1],M.lq,G[k],q=>q[3]));mk(GG.cap,M.cap,G.bt,q=>q[6]||0x1e3a8a);mk(GG.rack,M.w,G.rack);K.forEach(k=>mk(GG[k][0],M.gl,G[k]))} // folyadék (átlátszatlan) előbb, üveg utána
+const rackT=(G,x,y,z,cols)=>{G.rack.push([x,y,z]);for(let i=0;i<6;i++)G.tt.push([x-.075+i*.03,y+.012,z,cols[i%cols.length]])};
+// ismétlődő elemek: InstancedMesh pozíció/forgatás/méret (+ opcionális szín)
+function ib(geo,mat,L,p){const m=new THREE.InstancedMesh(geo,mat,L.length),o=new THREE.Object3D();L.forEach((q,i)=>{o.position.set(q[0],q[1],q[2]);o.rotation.set(0,q[3]||0,0);o.scale.set(q[4]||1,q[5]||q[4]||1,q[6]||q[4]||1);o.updateMatrix();m.setMatrixAt(i,o.matrix);if(q[7]!=null)m.setColorAt(i,_C.setHex(q[7]))});(p||SC).add(m);return m}
+function leds(L,y,p){return ib(LT.ledG||(LT.ledG=new THREE.PlaneGeometry(1.2,.6).rotateX(Math.PI/2)),LM().led,L.map(([x,z])=>[x,y,z]),p)}
+function decals(L,p){const m=ib(LT.shG||(LT.shG=new THREE.PlaneGeometry(1,1).rotateX(-Math.PI/2)),LM().sh,L.map(([x,z,w,d])=>[x,.021,z,0,w,1,d]),p);m.renderOrder=1;return m}
+// veszélycsík a padlón: szakaszok [x0,z0,x1,z1,(szélesség)] → egy összevont mesh, az u a hosszal arányos
+function tape(segs,w,p){const P=[],U=[],I=[];segs.forEach(([a,b,c,d,ww],k)=>{const L=Math.hypot(c-a,d-b),s=(ww||w)/2,nx=-(d-b)/L*s,nz=(c-a)/L*s,u=L/.3;P.push(a+nx,.023,b+nz,a-nx,.023,b-nz,c+nx,.023,d+nz,c-nx,.023,d-nz);U.push(0,1,0,0,u,1,u,0);const o=k*4;I.push(o,o+2,o+1,o+1,o+2,o+3)});
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));g.setIndex(I);g.computeVertexNormals();const m=new THREE.Mesh(g,LM().haz);(p||SC).add(m);return m}
+const rect=(x0,z0,x1,z1,w)=>[[x0-w/2,z0,x1+w/2,z0],[x0-w/2,z1,x1+w/2,z1],[x0,z0+w/2,x0,z1-w/2],[x1,z0+w/2,x1,z1-w/2]];
+// táblák, képernyők (saját canvas, cache-elve)
+function plate(t,w,h,p,x,y,z,ry,em){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshStandardMaterial({map:t,roughness:.45,emissive:0xffffff,emissiveMap:t,emissiveIntensity:em==null?.15:em}));m.position.set(x,y,z);m.rotation.y=ry||0;(p||SC).add(m);return m}
+function screen(t,w,h,x,y,z,dir,em,p){bw(w+.04,h+.04,.03,LM().dk,x,y,z,1,1,p);return plate(t,w,h,p,x,y,z+dir*.0165,dir>0?0:Math.PI,em==null?.85:em)}
+const TXT=(k,w,h,bg,fg,t,f,sub)=>ct('tx_'+k,w,h,x=>{x.fillStyle=bg;x.fillRect(0,0,w,h);x.fillStyle=fg;x.textAlign='center';x.textBaseline='middle';x.font=f;x.fillText(t,w/2,sub?h*.42:h/2+3,w-24);if(sub){x.font='700 '+Math.round(h*.11)+'px system-ui';x.fillText(sub,w/2,h*.83,w-24)}});
+const SCR=(k,w,h,title,fn)=>ct('sc_'+k,w,h,x=>{x.fillStyle='#0b1220';x.fillRect(0,0,w,h);x.fillStyle='#0e7490';x.fillRect(0,0,w,40);x.fillStyle='#e0f2fe';x.font='800 24px system-ui';x.textBaseline='middle';x.fillText(title,14,21,w-28);fn(x,w,h)});
+const ICO={disc:(x,c)=>{x.fillStyle=c;x.beginPath();x.arc(0,0,104,0,7);x.fill();x.fillStyle=x.strokeStyle='#fff'},sq:(x,c)=>{x.fillStyle=c;rr(x,-108,-108,216,216,18);x.fill();x.fillStyle=x.strokeStyle='#fff'},
+ goggles:x=>{ICO.disc(x,'#1d5fd0');x.lineWidth=12;x.beginPath();x.moveTo(-88,-4);x.lineTo(88,-4);x.stroke();rr(x,-74,-34,66,58,20);x.fill();rr(x,8,-34,66,58,20);x.fill();x.fillStyle='#1d5fd0';rr(x,-62,-22,42,34,12);x.fill();rr(x,20,-22,42,34,12);x.fill()},
+ glove:x=>{ICO.disc(x,'#1d5fd0');rr(x,-36,-8,72,74,18);x.fill();[[-34,-58],[-15,-72],[4,-72],[23,-60]].forEach(([a,b])=>{rr(x,a,b,15,74,8);x.fill()});x.save();x.translate(-34,16);x.rotate(-.75);rr(x,-8,-46,16,52,8);x.fill();x.restore();x.fillRect(-40,58,80,26)},
+ coat:x=>{ICO.disc(x,'#1d5fd0');x.beginPath();[[-28,-72],[28,-72],[58,-44],[74,40],[54,46],[44,-4],[44,80],[-44,80],[-44,-4],[-54,46],[-74,40],[-58,-44]].forEach(([a,b],i)=>i?x.lineTo(a,b):x.moveTo(a,b));x.closePath();x.fill();x.strokeStyle='#1d5fd0';x.lineWidth=6;x.beginPath();x.moveTo(-16,-72);x.lineTo(0,-24);x.lineTo(16,-72);x.moveTo(0,-24);x.lineTo(0,78);x.stroke()},
+ noentry:x=>{ICO.disc(x,'#dc2626');x.fillRect(-72,-18,144,36)},
+ eye:x=>{ICO.sq(x,'#15803d');x.beginPath();x.moveTo(-74,34);x.quadraticCurveTo(0,-26,74,34);x.quadraticCurveTo(0,94,-74,34);x.fill();x.fillStyle='#15803d';x.beginPath();x.arc(0,36,22,0,7);x.fill();x.fillStyle='#fff';[-34,0,34].forEach(a=>{x.beginPath();x.moveTo(a,-84);x.quadraticCurveTo(a+18,-50,a,-40);x.quadraticCurveTo(a-18,-50,a,-84);x.fill()})},
+ ext:x=>{ICO.sq(x,'#dc2626');rr(x,-30,-40,60,124,18);x.fill();x.fillRect(-12,-62,24,26);x.fillRect(-6,-76,44,12);x.lineWidth=9;x.beginPath();x.moveTo(36,-70);x.quadraticCurveTo(76,-36,52,14);x.stroke()},
+ warn:x=>{x.fillStyle='#111827';x.beginPath();x.moveTo(0,-104);x.lineTo(112,92);x.lineTo(-112,92);x.closePath();x.fill();x.fillStyle='#facc15';x.beginPath();x.moveTo(0,-78);x.lineTo(90,79);x.lineTo(-90,79);x.closePath();x.fill();x.fillStyle='#111827';x.font='900 118px system-ui';x.textAlign='center';x.textBaseline='middle';x.fillText('!',0,22)},
+ run:x=>{ICO.sq(x,'#15803d');x.lineCap=x.lineJoin='round';x.lineWidth=16;x.beginPath();x.arc(-18,-64,15,0,7);x.fill();x.beginPath();x.moveTo(-20,-40);x.lineTo(-30,18);x.lineTo(4,44);x.lineTo(-8,84);x.moveTo(-30,18);x.lineTo(-54,50);x.lineTo(-78,46);x.moveTo(-22,-30);x.lineTo(12,-10);x.lineTo(26,-32);x.moveTo(-22,-30);x.lineTo(-52,-6);x.stroke();x.lineWidth=9;x.strokeRect(46,-82,48,164)}};
+// biztonsági tábla: piktogram balra, 2 sor szöveg jobbra
+const sg=(k,ic,l1,l2,c2)=>ct('sg_'+k,512,256,(x,w,h)=>{x.fillStyle='#fff';x.fillRect(0,0,w,h);x.strokeStyle='#cbd5e1';x.lineWidth=8;x.strokeRect(4,4,w-8,h-8);x.save();x.translate(128,128);ICO[ic](x);x.restore();x.fillStyle='#0f172a';x.textBaseline='middle';x.font='900 44px system-ui';x.fillText(l1,252,98,240);x.font='800 36px system-ui';x.fillStyle=c2||'#0f172a';x.fillText(l2,252,162,240)});
+const WB=(k,title,lines,fn)=>ct('wb_'+k,1024,512,(x,w,h)=>{x.fillStyle='#fbfcfd';x.fillRect(0,0,w,h);x.fillStyle='rgba(148,163,184,.09)';for(let i=0;i<7;i++){x.beginPath();x.ellipse(Math.random()*w,Math.random()*h,130,40,Math.random()*3,0,7);x.fill()}
+ x.fillStyle='#1e40af';x.font='italic 800 62px system-ui';x.textBaseline='alphabetic';x.fillText(title,40,82,w-80);x.font='italic 600 44px system-ui';lines.forEach((t,i)=>{x.fillStyle=t[1]||'#1e3a8a';x.fillText(t[0],56,158+i*76,fn?600:w-100)});if(fn)fn(x,w,h)});
+const SIGNS={szem:()=>sg('szem','goggles','VÉDŐSZEMÜVEG','KÖTELEZŐ'),kesz:()=>sg('kesz','glove','VÉDŐKESZTYŰ','KÖTELEZŐ'),kop:()=>sg('kop','coat','LABORKÖPENY','KÖTELEZŐ'),
+ eng:()=>sg('eng','noentry','BELÉPÉS CSAK','ENGEDÉLLYEL','#b91c1c'),moso:()=>sg('moso','eye','SZEMMOSÓ','VÉSZZUHANY','#15803d'),forro:()=>sg('forro','warn','VIGYÁZAT!','FORRÓ FELÜLET'),tuz:()=>sg('tuz','ext','TŰZOLTÓ-','KÉSZÜLÉK','#b91c1c'),
+ lab2:()=>TXT('lab2',512,256,'#0f4c55','#fff','LABOR 2','900 116px system-ui','KÖZPÉNZ KUTATÓ KFT. · KÍSÉRLETI RÉSZLEG'),
+ exit:()=>ct('sg_exit',512,256,(x,w,h)=>{x.fillStyle='#15803d';x.fillRect(0,0,w,h);x.save();x.translate(116,128);x.scale(.92,.92);ICO.run(x);x.restore();x.fillStyle='#fff';x.textBaseline='middle';x.font='900 70px system-ui';x.fillText('KIJÁRAT',228,104,270);x.font='900 70px system-ui';x.fillText('➜',360,192)})};
+// a sotetmg3d keverés-labor jelenetét ugyanebbe a laborba öltözteti: zárt szoba (padló, falak, álmennyezet LED-panelekkel), hátsó pult polcokkal, fülke, táblák
+function labDress(sc,cab){const M=LM(),e=labEnv(),Sm=o=>new THREE.MeshStandardMaterial(o),cl=(t,rx,ry)=>{const k=t.clone();k.needsUpdate=true;k.repeat.set(rx,ry);return k},
+  pl=(w,h,m,x,y,z,rx,ry)=>{const p=new THREE.Mesh(new THREE.PlaneGeometry(w,h),m);p.position.set(x,y,z);p.rotation.set(rx||0,ry||0,0);sc.add(p);return p};
+ pl(16.8,14.4,Sm({map:cl(TX.floor(),14,12),roughness:.3,envMap:e,envMapIntensity:.3}),0,.004,1.2,-Math.PI/2);const ct_=cl(TX.ceil(),14,12);pl(16.8,14.4,Sm({map:ct_,color:0xd9dee4,roughness:.95,emissive:0xffffff,emissiveMap:ct_,emissiveIntensity:.5}),0,4.2,1.2,Math.PI/2);
+ pl(16.8,4.2,Sm({map:cl(TX.wall(),14,4.2/2.7),roughness:.6}),0,2.1,-5.98);const sw=Sm({map:cl(TX.wall(),12,4.2/2.7),roughness:.6});pl(14.4,4.2,sw,-8.4,2.1,1.2,0,Math.PI/2);pl(14.4,4.2,sw,8.4,2.1,1.2,0,-Math.PI/2);
+ leds([-4.8,-2.4,0,2.4,4.8].flatMap(x=>[[x,-3.3],[x,-.9],[x,1.5]]),4.19,sc);bench(-8.3,8.3,-5.97,1,.94,sc);bw(16.6,.5,.02,M.sb,0,1.19,-5.96,1.2,.6,sc);hood(-5.9,-5.97,1,sc,null,4.2);
+ const G={fl:[],bk:[],bt:[],tt:[],cy:[],rack:[]},LQ=[0x38bdf8,0xa3e635,0xf472b6,0xfbbf24,0xe2e8f0,0x818cf8];
+ [1.55,1.9].forEach((y,j)=>{bw(9.4,.025,.28,M.st,2.4,y,-5.83,1,1,sc);for(let i=0;i<30;i++){const x=-2.0+i*.3;if(j)G.bt.push([x,y+.013,-5.83,LQ[i%6],1.3,0,[0x1e3a8a,0xdc2626,0xf8fafc][i%3]]);else G[['fl','bk','cy'][i%3]].push([x,y+.013,-5.83,LQ[(i*2)%6],1.3])}});
+ [-3.6,4.2,6.2].forEach((x,i)=>rackT(G,x,.94,-5.55,LQ.slice(i)));G.fl.push([-4.4,.94,-5.6,0x38bdf8,1.4],[5.2,.94,-5.5,0xa3e635,1.4]);G.bk.push([-3.0,.94,-5.5,0xf472b6,1.4],[7.2,.94,-5.6,0xfbbf24,1.4]);glassware(G,sc);
+ plate(SIGNS.lab2(),1.1,.55,sc,-3.4,2.75,-5.965);plate(SIGNS.szem(),.8,.4,sc,3.6,2.6,-5.965);plate(SIGNS.kesz(),.8,.4,sc,4.6,2.6,-5.965);
+ (cab||[]).forEach(o=>{o.material=Sm({map:cl(TX.door(),o.scale.x/1.2,1),roughness:.45})})}
+window._sp3lab={TX,LM,labEnv,bw,bench,hood,glassware,rackT,ib,leds,decals,tape,rect,plate,screen,SIGNS,dress:labDress};
+
+// ===================== BELSŐ: DUPLA LAKÓKOCSI = LABOR 2 =====================
 const BX=10.8,BZ=2.0;
 function S(id,x,z,label,col,tab,act,scope,y,w){const sp=sprite(label,col,w);sp.position.set(x,y||2.05,z);SC.add(sp);const s={id,x,z,label,tab,act,sp,scope:scope||'in'};ST.push(s);return s}
 function buildInterior(){
- const L1=new PL(0xdbeafe,1.15,10);L1.position.set(-8,2.3,0);SC.add(L1);const L2=new PL(0xe0f2fe,1,10);L2.position.set(-3.5,2.3,0);SC.add(L2);
- const L3=new PL(0xffd59a,1,10);L3.position.set(2.5,2.3,0);L3.castShadow=true;SC.add(L3);const L4=new PL(0xffd59a,.9,9);L4.position.set(8,2.3,0);SC.add(L4);FX.labL=[L1,L2];
- // padló + plafon
- box(9.6,.1,4.6,tex('tile',6,3,0xf1f5f9,{roughness:.18,metalness:.1}),-6.2,-.05,0);box(12.6,.1,4.6,tex('wood',5,2,0xd6b38a),4.9,-.05,0);
- box(22.4,.1,4.6,tex('plaster',8,2,0xf1f5f9),0,2.65,0);
- // falak: labor fém panel, nappali festett
- const wl=tex('metal',4,1,0xcbd5e1,{metalness:.55,roughness:.35}),wall=tex('painted',5,1,0xe2e8f0);
- box(9.6,2.7,.1,wl,-6.2,1.3,-2.3);box(9.6,2.7,.1,wl,-6.2,1.3,2.3);box(.1,2.7,4.6,wl,-11.1,1.3,0);
- box(12.6,2.7,.1,wall,4.9,1.3,-2.3);box(12.6,2.7,.1,wall,4.9,1.3,2.3);box(.1,2.7,4.6,wall,11.2,1.3,0);
- const lam=tex('darkwood',4,1,0x8b5a2b);box(12.5,.8,.06,lam,4.9,.4,-2.24);box(12.5,.8,.06,lam,4.9,.4,2.24);
- // veszélycsík a labor padlóján
- const hz=document.createElement('canvas');hz.width=256;hz.height=32;const hg=hz.getContext('2d');for(let i=0;i<16;i++){hg.fillStyle=i%2?'#111827':'#facc15';hg.beginPath();hg.moveTo(i*16,32);hg.lineTo(i*16+16,0);hg.lineTo(i*16+32,0);hg.lineTo(i*16+16,32);hg.fill()}
- const hzt=new THREE.CanvasTexture(hz);hzt.wrapS=THREE.RepeatWrapping;hzt.repeat.set(2,1);const hzm=new THREE.MeshStandardMaterial({map:hzt});box(.3,.012,4.4,hzm,-1.6,.006,0);
- // üvegfal + ajtónyílás a labor és a nappali között
- const gl=new THREE.MeshPhysicalMaterial({color:0x93c5fd,transparent:true,opacity:.22,roughness:.05,metalness:.1});box(.05,2.6,1.55,gl,-1.45,1.3,-1.5);box(.05,2.6,1.55,gl,-1.45,1.3,1.5);
- box(.12,2.65,.08,MB(0x334155,{metalness:.8}),-1.45,1.32,-.72);box(.12,2.65,.08,MB(0x334155,{metalness:.8}),-1.45,1.32,.72);
- const ls=sign('☣ LABOR ☣','#7f1d1d','#facc15',1.4,.35);ls.position.set(-1.38,2.35,0);ls.rotation.y=Math.PI/2;SC.add(ls);
- // LED plafonpanelek
- [-9.5,-7,-4.5,-2.6].forEach(x=>box(1.4,.03,.9,EM(0xe0f2fe,1.2),x,2.6,0));
- // ===== ÚJ HI-TECH LABOR (alap) =====
- const steel=MB(0xe2e8f0,{metalness:.85,roughness:.22}),dark=MB(0x1f2937,{metalness:.6,roughness:.4});
- box(7.6,.08,.85,steel,-6.8,.95,-1.8);box(7.6,.9,.8,dark,-6.8,.46,-1.82);box(4.4,.08,.85,steel,-8.4,.95,1.8);box(4.4,.9,.8,dark,-8.4,.46,1.82);
- for(let i=0;i<6;i++)box(.9,.02,.5,MB(0x0ea5e9,{metalness:.2,roughness:.6}),-10+i*1.25,1.0,-1.8); // munkalap-szőnyegek
- const glass=c=>new THREE.MeshPhysicalMaterial({color:c,transparent:true,opacity:.6,roughness:.05,emissive:c,emissiveIntensity:.45});
- const cols=[0x22d3ee,0xa855f7,0x84cc16,0xf472b6,0xfacc15,0x38bdf8,0xf97316];
- for(let i=0;i<10;i++){const x=-10.2+i*.75,c=cols[i%7];const f=new THREE.Mesh(i%3===0?new THREE.SphereGeometry(.13,14,10):i%3===1?new THREE.ConeGeometry(.13,.3,14):new THREE.CylinderGeometry(.07,.07,.32,12),glass(c));f.position.set(x,1.13,-1.85);SC.add(f)}
- // polcok üvegekkel a hátsó falon
- [1.55,1.95].forEach(y=>{box(7.4,.04,.3,steel,-6.8,y,-2.1);for(let i=0;i<14;i++)cyl(.05,.06,.22,glass(cols[(i+Math.round(y*3))%7]),-10.3+i*.52,y+.13,-2.1,8)});
- // mosogató, köpenyfogas, tábla
- box(.7,.12,.6,steel,-3.6,.98,-1.8);cyl(.02,.02,.4,steel,-3.6,1.2,-2.0,8);
- cyl(.03,.03,1.8,dark,-2.0,.9,2.0,8);const coat=box(.45,1,.1,MB(0xf8fafc),-2.0,1.2,1.92);
- const wb=document.createElement('canvas');wb.width=512;wb.height=256;const w2=wb.getContext('2d');w2.fillStyle='#f8fafc';w2.fillRect(0,0,512,256);w2.fillStyle='#1e3a8a';w2.font='bold 26px system-ui';['🔷 + 🧊 → ✨ (hűtve!)','🌿 + 🌙 = 💚 MÁMOR?','Tisztaság cél: 99,1%','Ferkó szabálya: NE KÓSTOLD','🧪🧪🧪 ⚗️ → 💰'].forEach((t,i)=>w2.fillText(t,24,44+i*44));
- const wbm=new THREE.Mesh(new THREE.PlaneGeometry(2.2,1.1),new THREE.MeshStandardMaterial({map:new THREE.CanvasTexture(wb)}));wbm.position.set(-5.2,1.6,2.24);wbm.rotation.y=Math.PI;SC.add(wbm);
+ const M=LM(),G={fl:[],bk:[],bt:[],tt:[],cy:[],rack:[]},SH=[],CB=[],LD=[],env=labEnv(),steel=M.st,dark=M.dk,Sm=o=>new THREE.MeshStandardMaterial(o);
+ // valódi fény: 4 db _PL, árnyék nélkül (kontakt-árnyék = decal); a „lámpák” emisszív panelek
+ const L1=new PL(0xf1f5ff,1.05,11);L1.position.set(-8,2.35,0);SC.add(L1);const L2=new PL(0xf1f5ff,1,11);L2.position.set(-3.5,2.35,0);SC.add(L2);
+ const L3=new PL(0xf8fafc,1,11);L3.position.set(2.5,2.35,0);SC.add(L3);const L4=new PL(0xf8fafc,.95,11);L4.position.set(8,2.35,0);SC.add(L4);FX.labL=[L1,L2];
+ // héj: epoxi-fényű laborcsempe (teteje y=.02, a telek betonja fölött), álmennyezet, laminált falpanel, rozsdamentes lábazat
+ bw(22.8,.04,4.8,M.fl,0,0,0,1.2,1.2);bw(22.8,.1,4.8,M.ce,0,2.65,0,1.2,1.2);
+ [-2.3,2.3].forEach(z=>{bw(22.3,2.7,.1,M.wl,.05,1.3,z,1.2,2.7);bw(22.2,.12,.02,steel,.05,.08,z*.976,1,1)});
+ [-11.1,11.2].forEach(x=>{bw(.1,2.7,4.6,M.wl,x,1.3,0,1.2,2.7);bw(.02,.12,4.5,steel,x-Math.sign(x)*.06,.08,0,1,1)});
+ // álmennyezet: 18 LED-panel a kazettarácsba illesztve (1 InstancedMesh), sprinklerek
+ const LX=[-9.6,-7.2,-4.8,-2.4,0,2.4,4.8,7.2,9.6];leds(LX.flatMap(x=>[[x,-.9],[x,.9]]),2.594);
+ ib(new THREE.CylinderGeometry(.025,.012,.04,8),Sm({color:0xe5e7eb,metalness:.8,roughness:.25,envMap:env}),LX.slice(1).map(x=>[x-1.2,2.58,0]));
+ // gépészet: 3 cső az északi fal mentén (konzolokkal), spirálkorcos légcsatorna a déli oldalon (függesztők + befúvó rácsok)
+ [[-2.12,.034,M.sd],[-1.98,.028,Sm({color:0x2563eb,roughness:.35,metalness:.3})],[-1.86,.022,Sm({color:0xeab308,roughness:.35,metalness:.3})]].forEach(([z,r,m])=>{cyl(r,r,22.1,m,.05,2.54,z,10).rotation.z=Math.PI/2});
+ const BK=[];for(let x=-10.4;x<=10.6;x+=1.75)BK.push([x,2.565,-1.99]);ib(new THREE.BoxGeometry(.04,.05,.36),M.sd,BK);
+ const dt=TX.duct();dt.repeat.set(2,26);cyl(.14,.14,22.1,Sm({map:dt,color:0xe2e8f0,metalness:.55,roughness:.4,envMap:env,envMapIntensity:.6}),.05,2.44,1.93,18).rotation.z=Math.PI/2;
+ const DH=[];for(let x=-10;x<=10.5;x+=2.5)DH.push([x,2.59,1.93]);ib(new THREE.BoxGeometry(.03,.03,.3),M.sd,DH);
+ ib(new THREE.BoxGeometry(.46,.16,.02),Sm({map:TX.grate(),roughness:.6}),[-8.4,-3.6,1.2,6,9.8].map(x=>[x,2.44,1.785]));
+ // ===== LABOR (bal fél) =====
+ bench(-10.6,-3.0,-2.25,1,.94,null,SH);bench(-10.6,-5.3,2.25,-1,.94,null,SH);
+ bw(7.6,.5,.02,M.sb,-6.8,1.19,-2.24,1.2,.6);bw(4.65,.5,.02,M.sb,-8.275,1.19,2.24,1.2,.6); // falicsempe a pultok fölött
+ // polcok üvegeszközökkel (a fülke-modul helye, x<-8.5, szabadon marad)
+ [1.5,1.83].forEach(y=>bw(3.2,.025,.28,steel,-5.5,y,-2.11,1,1));ib(new THREE.BoxGeometry(.02,.1,.24),M.sd,[-6.95,-5.5,-4.05].flatMap(x=>[[x,1.445,-2.12],[x,1.775,-2.12]]));
+ const LQ=[0x38bdf8,0xa3e635,0xf472b6,0xfbbf24,0xe2e8f0,0x818cf8,0x2dd4bf,0x92400e],CP=[0x1e3a8a,0xdc2626,0xf8fafc,0x111827,0xeab308,0x16a34a];
+ for(let i=0;i<14;i++){const x=-6.95+i*.215;if(i===6)continue;G.bt.push([x,1.843,-2.1,i%3===1?0x92400e:LQ[i%8],1,i,CP[i%6]])}
+ for(let i=0;i<11;i++){const x=-6.9+i*.27,t=['fl','bk','cy','fl','bk'][i%5];G[t].push([x,1.513,-2.1,LQ[(i*3)%8]])}
+ // Ferkó munkahelye: mágneses keverő-főzőlap lombikkal, főzőpoharak, kémcső-állvány, reagens-üvegek
+ bw(.22,.09,.26,M.w,-5.6,.985,-1.88);cyl(.09,.09,.008,dark,-5.6,1.034,-1.88,20);LD.push([-5.6,.985,-1.746,.03,.02,.005,0xef4444]);G.fl.push([-5.6,1.038,-1.88,0x38bdf8,1.15]);
+ G.bk.push([-5.95,.94,-1.78,0xa3e635],[-5.22,.94,-1.74,0xf472b6],[-5.08,.94,-1.86,0xe2e8f0,1.3]);rackT(G,-6.3,.94,-2.0,[0x38bdf8,0x38bdf8,0xa3e635,0xf472b6,0xfbbf24,0xe2e8f0]);
+ G.bt.push([-6.6,.94,-2.1,0x92400e,1.2,0,0x1e3a8a],[-6.75,.94,-2.08,0xe2e8f0,1.2,0,0xdc2626]);
+ // centrifuga + műszak-tábla a falon
+ bw(.46,.26,.42,M.w,-7.75,1.07,-1.92);cyl(.17,.17,.03,Sm({color:0xe5e7eb,roughness:.35}),-7.75,1.215,-1.94,24);bw(.36,.07,.01,dark,-7.75,1.0,-1.705);LD.push([-7.62,1.0,-1.698,.03,.02,.005,0x22c55e],[-7.86,1.0,-1.698,.06,.03,.005,0x22d3ee]);
+ screen(SCR('shift',512,320,'MŰSZAKBEOSZTÁS · LABOR 2',(x)=>{const N=['Ferkó','Pista','Tibi','Benő','Csaba'],D=['H','K','Sz','Cs','P'];x.font='700 20px system-ui';x.fillStyle='#94a3b8';D.forEach((d,i)=>x.fillText(d,160+i*68,62));N.forEach((n,j)=>{x.fillStyle='#e2e8f0';x.fillText(n,16,98+j*46);D.forEach((d,i)=>{if((i+j*2)%3){x.fillStyle=['#0ea5e9','#22c55e','#f59e0b','#a855f7','#ef4444'][j];rr(x,146+i*68,82+j*46,54,28,6);x.fill()}})})}),.86,.54,-7.75,1.75,-2.225,1);
+ // monitor (állvánnyal), mikroszkóp, mosogató csaptelep, papírtörlő-adagoló
+ bw(.05,.25,.05,M.sd,-4.85,1.065,-2.13);bw(.2,.015,.15,M.sd,-4.85,.947,-2.09);screen(SCR('lab',512,320,'MINTA-ELEMZÉS · L2',(x,w,h)=>{x.strokeStyle='#1e3a5f';x.lineWidth=1;for(let i=70;i<h;i+=40){x.beginPath();x.moveTo(10,i);x.lineTo(w-10,i);x.stroke()}x.strokeStyle='#22d3ee';x.lineWidth=3;x.beginPath();for(let i=0;i<=40;i++){const X=14+i*(w-28)/40,Y=210-Math.sin(i*.45)*50-i*1.8;i?x.lineTo(X,Y):x.moveTo(X,Y)}x.stroke();x.fillStyle='#a3e635';for(let i=0;i<9;i++){const b=24+((i*37)%60);x.fillRect(24+i*26,h-16-b,16,b)}x.fillStyle='#e2e8f0';x.font='700 22px monospace';x.fillText('MINŐSÉG 94%',300,262);x.fillStyle='#86efac';x.fillText('● RENDBEN',300,294)}),.46,.28,-4.85,1.3,-2.1,1);
+ bw(.18,.04,.24,M.w,-4.3,.96,-1.92);bw(.05,.32,.07,M.w,-4.3,1.14,-2.01);bw(.14,.015,.13,dark,-4.3,1.08,-1.88);bw(.08,.08,.17,M.w,-4.3,1.3,-1.92);cyl(.018,.014,.07,M.sd,-4.3,1.225,-1.87,10);const ep=cyl(.018,.018,.15,dark,-4.3,1.39,-1.86,10);ep.rotation.x=-.55;
+ bw(.5,.006,.38,Sm({color:0x8b949e,metalness:.8,roughness:.25,envMap:env}),-3.55,.943,-1.9);cyl(.022,.022,.006,dark,-3.55,.947,-1.9,10);cyl(.015,.015,.35,M.sd,-3.55,1.115,-2.16,10);cyl(.012,.012,.22,M.sd,-3.55,1.29,-2.05,10).rotation.x=Math.PI/2;cyl(.012,.01,.05,M.sd,-3.55,1.265,-1.94,10);
+ bw(.28,.36,.12,M.w,-3.55,1.66,-2.18);bw(.2,.02,.01,dark,-3.55,1.49,-2.12);
+ // fülke-modul helye: kis eszközök (ha megveszik a fülkét, ezek benne lesznek)
+ rackT(G,-9.95,.94,-1.95,[0xa3e635,0xfbbf24,0x38bdf8]);G.bt.push([-10.3,.94,-2.08,0x92400e,1,0,0x111827],[-10.15,.94,-2.1,0xe2e8f0,1,0,0x16a34a]);G.fl.push([-9.0,.94,-1.9,0x2dd4bf]);
+ // déli pult (csomagoló): mérleg, címkenyomtató, dobozok, polc tárolódobozokkal; fehér tábla; fejlesztés-képernyő
+ bw(.3,.05,.2,M.w,-9.9,.965,2.12);bw(.24,.01,.17,steel,-9.9,.995,2.12);bw(.22,.15,.2,dark,-7.2,1.015,2.13);LD.push([-7.2,1.04,2.028,.05,.02,.005,0x22c55e]);
+ for(let i=0;i<5;i++)CB.push([-6.35+(i%3)*.2,.99+Math.floor(i/3)*.1,2.12,.18,.1,.16,0xf8fafc]);
+ bw(3.4,.025,.3,steel,-8.7,1.62,2.1);ib(new THREE.BoxGeometry(.02,.1,.26),M.sd,[-10.2,-8.7,-7.2].map(x=>[x,1.565,2.11]));for(let i=0;i<8;i++)CB.push([-10.15+i*.42,1.72,2.1,.34,.17,.25,i%3?0x60a5fa:0x94a3b8]);
+ bw(2.06,1.06,.025,M.sd,-4.9,1.7,2.22);plate(WB('lab','MŰSZAKTERV – LABOR 2',[['1. Kalibrálás ✔','#15803d'],['2. Mintavétel: 14:00'],['3. Közpénz-esszencia: 3 árnyalat'],['Ferkó szabálya: NE KÓSTOLD!','#b91c1c']],(x)=>{x.strokeStyle='#b91c1c';x.lineWidth=5;x.beginPath();x.moveTo(720,420);x.lineTo(720,200);x.moveTo(720,420);x.lineTo(980,420);x.stroke();x.beginPath();x.moveTo(730,400);[[780,360],[830,380],[880,300],[930,260],[975,215]].forEach(([a,b])=>x.lineTo(a,b));x.stroke()}),2.0,1.0,null,-4.9,1.7,2.206,Math.PI,.08);bw(.8,.03,.06,M.sd,-4.9,1.17,2.19);
+ screen(SCR('up',512,256,'⚛️ LABOR-FEJLESZTÉS',(x,w)=>{for(let i=0;i<9;i++){x.strokeStyle='#22d3ee';x.lineWidth=2;rr(x,22+i*53,70,42,42,8);x.stroke()}x.fillStyle='#e0f2fe';x.font='700 24px system-ui';x.fillText('9 modul · beszerelés itt [E]',22,150);x.fillStyle='#164e63';x.fillRect(22,186,w-44,18)}),.7,.35,-2.45,1.55,2.225,-1);
+ // vészzuhany + szemmosó (zöld), padlólefolyó, jelölt terület
+ cyl(.025,.025,2.25,M.gr,-1.87,1.125,2.15,8);cyl(.02,.02,.42,M.gr,-1.87,2.22,1.94,8).rotation.x=Math.PI/2;cyl(.15,.06,.08,M.gr,-1.87,2.16,1.74,20);cyl(.006,.006,.5,M.sd,-1.87,1.88,1.74,6);bw(.18,.03,.03,M.ye,-1.87,1.62,1.74);
+ const bowl=new THREE.Mesh(new THREE.SphereGeometry(.13,18,8,0,Math.PI*2,Math.PI/2,Math.PI/2),Sm({color:0x22c55e,roughness:.35,side:THREE.DoubleSide}));bowl.position.set(-1.87,1.02,1.95);SC.add(bowl);bw(.14,.04,.05,M.ye,-1.72,.98,1.97);
+ plate(SIGNS.moso(),.3,.15,null,-1.62,1.62,2.244,Math.PI);
+ // tűzoltó-készülék + táblák az északi falon
+ cyl(.075,.075,.48,M.rd,-1.68,.44,-2.13,16);bw(.05,.07,.05,dark,-1.68,.71,-2.13);bw(.12,.1,.03,dark,-1.68,.55,-2.235);plate(SIGNS.tuz(),.3,.15,null,-1.68,1.1,-2.244);
+ // üvegfal az ajtónyílással: keret, matt biztonsági sáv, táblák (a jobb fél felől olvashatók), LABOR 2 felirat
+ const fr=Sm({color:0xf1f5f9,metalness:.3,roughness:.4,envMap:env}),mat=Sm({color:0xffffff,transparent:true,opacity:.55,roughness:.3,depthWrite:false});
+ [-1.49,1.49].forEach(z=>{bw(.035,2.5,1.5,M.pane,-1.45,1.3,z,1,1);bw(.04,.1,1.5,mat,-1.45,1.12,z,1,1);bw(.08,.06,1.5,fr,-1.45,.05,z,1,1)});
+ [-2.23,-.75,.75,2.23].forEach(z=>bw(.1,2.6,.07,fr,-1.45,1.3,z,1,1));bw(.1,.46,1.44,fr,-1.45,2.37,0,1,1);
+ plate(SIGNS.lab2(),.84,.42,null,-1.395,2.37,0,Math.PI/2,.3);plate(SIGNS.szem(),.44,.22,null,-1.425,1.62,-1.5,Math.PI/2);plate(SIGNS.eng(),.44,.22,null,-1.425,1.36,-1.5,Math.PI/2);plate(SIGNS.kop(),.44,.22,null,-1.425,1.62,1.5,Math.PI/2);plate(SIGNS.kesz(),.44,.22,null,-1.425,1.36,1.5,Math.PI/2);
+ // ===== JOBB FÉL: iroda-labor, desztilláló, tároló, vegyifülke, növénynevelő, pihenő, hűtő, kijárat =====
+ // főhadiszállás: fehér tábla „A TERV”
+ bw(1.86,.96,.025,M.sd,.6,1.6,-2.235);plate(WB('plan','A TERV:',[['1. főzz 🧪🍑📄 + termessz 🪴'],['2. rendelés (O) → autó (F)'],['3. ne bukj le 👮','#b91c1c'],['4. 🏝️ → 🚀']]),1.8,.9,null,.6,1.6,-2.221,0,.08);bw(.7,.03,.06,M.sd,.6,1.13,-2.2);
+ // pályázatfőzde: íróasztal, monitor, billentyűzet, papírok, pecsételő, polc iratrendezőkkel
+ bw(1.8,.04,.8,M.w,2.6,.76,-1.85);[1.72,3.48].forEach(x=>bw(.04,.74,.76,M.w,x,.37,-1.85));bw(1.72,.4,.02,M.w,2.6,.5,-2.2);
+ bw(.05,.22,.05,M.sd,2.5,.89,-2.08);bw(.22,.015,.16,M.sd,2.5,.786,-2.05);screen(SCR('doc',512,320,'PÁLYÁZAT – 3. VÁLTOZAT',(x,w,h)=>{x.fillStyle='#f8fafc';x.fillRect(50,52,w-100,h-60);x.fillStyle='#94a3b8';for(let i=0;i<8;i++)x.fillRect(74,74+i*26,(w-170)*(.5+((i*7)%5)/10),10);x.save();x.translate(380,262);x.rotate(-.22);x.strokeStyle='#dc2626';x.lineWidth=5;x.strokeRect(-72,-24,144,48);x.fillStyle='#dc2626';x.font='900 30px system-ui';x.textAlign='center';x.fillText('SÜRGŐS',0,2);x.restore()}),.52,.32,2.5,1.15,-2.06,1);
+ bw(.44,.02,.15,dark,2.5,.79,-1.68);CB.push([3.15,.795,-1.78,.3,.03,.4,0xf8fafc],[3.17,.825,-1.76,.28,.03,.38,0xfef9c3]);cyl(.03,.034,.06,M.rd,2.0,.81,-1.7,12);sph(.022,dark,2.0,.86,-1.7);
+ bw(1.7,.025,.26,steel,2.6,1.55,-2.12);for(let i=0;i<14;i++)CB.push([1.95+i*.095,1.715,-2.12,.07,.3,.24,[0x1d4ed8,0xdc2626,0x16a34a,0x64748b,0xeab308][i%5]]);
+ // tároló vitrin (raktár)
+ bw(1.1,2.25,.6,M.cb,5.0,1.125,-1.95);plate(ct('cab',256,512,(x,w,h)=>{x.fillStyle='#4b5560';x.fillRect(0,0,w,h);for(let s=0;s<4;s++){const y=18+s*122;x.fillStyle='#a3acb6';x.fillRect(8,y+108,w-16,6);for(let i=0;i<5;i++){const bw_=26+((s*5+i)*7)%18,bh=36+((s*3+i)*13)%56;x.fillStyle=['#e5e7eb','#93c5fd','#fcd34d','#86efac','#f9a8d4','#cbd5e1'][(s+i)%6];x.fillRect(14+i*47,y+108-bh,bw_,bh);x.fillStyle='rgba(15,23,42,.5)';x.fillRect(17+i*47,y+118-bh,bw_-6,6)}}
+  x.fillStyle='#d1d5db';x.fillRect(w/2-3,0,6,h);x.fillRect(0,0,w,8);x.fillRect(0,h-8,w,8);x.fillRect(0,0,8,h);x.fillRect(w-8,0,8,h);const g=x.createLinearGradient(0,0,w,h);g.addColorStop(0,'rgba(255,255,255,.2)');g.addColorStop(.35,'rgba(255,255,255,0)');g.addColorStop(.6,'rgba(255,255,255,.1)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,w,h)}),1.0,1.9,null,5.0,1.07,-1.645,0,.2);
+ [4.95,5.05].forEach(x=>bw(.02,.3,.03,M.sd,x,1.15,-1.63));plate(TXT('raktar',512,128,'#334155','#fff','TÁROLÓ · B-2','900 62px system-ui'),.7,.17,null,5.0,2.12,-1.645,0,.3);SH.push([5.0,-1.6,1.25,.35]);
+ // vegyifülke + benne eszközök + kijelölt terület előtte
+ hood(6.3,-2.25,1,null,SH);G.fl.push([6.0,.95,-1.95,0xfbbf24]);G.bk.push([6.35,.95,-1.82,0x67e8f9,1.2]);rackT(G,6.68,.95,-2.02,[0xf472b6,0xe2e8f0]);
+ // növénynevelő pult (a beltéri cserepek alatta), LED-fénycsík, falicsempe, felirat; tűzoltó-készülék
+ bench(7.05,10.75,-2.25,1,.97,null,SH);bw(3.7,.5,.02,M.sb,8.9,1.22,-2.24,1.2,.6);bw(3.56,.05,.1,M.sd,8.9,1.76,-2.07);bw(3.5,.02,.07,M.bl,8.9,1.73,-2.06);[7.3,10.5].forEach(x=>bw(.03,.03,.18,M.sd,x,1.76,-2.16));
+ plate(TXT('grow',512,128,'#14532d','#dcfce7','NÖVÉNYNEVELŐ · 22 °C','900 54px system-ui'),.9,.22,null,8.9,2.08,-2.244,0,.3);
+ cyl(.075,.075,.48,M.rd,10.95,.44,-2.13,16);bw(.05,.07,.05,dark,10.95,.71,-2.13);plate(SIGNS.tuz(),.3,.15,null,10.95,1.1,-2.244);
+ // desztilláló (pálinka): rézüst acél csepptálcán, gyűjtőtartály, kis pult üvegekkel, figyelmeztető tábla
+ bw(1.0,.04,.9,steel,.15,.04,1.75);const copper=M.cu;cyl(.42,.5,.9,copper,0,.51,1.6);const dome=new THREE.Mesh(new THREE.SphereGeometry(.42,20,12,0,6.3,0,1.6),copper);dome.position.set(0,.96,1.6);SC.add(dome);
+ const pipe=cyl(.04,.04,1.1,copper,.5,1.2,1.6,8);pipe.rotation.z=Math.PI/2.6;cyl(.25,.25,.6,steel,1.15,.32,1.85,20);cyl(.26,.26,.03,M.sd,1.15,.635,1.85,20);cyl(.02,.02,.12,M.sd,1.15,.16,1.58,8).rotation.x=Math.PI/2;
+ bench(1.55,2.35,2.25,-1,.9,null,SH);[1.68,1.84,2.0].forEach((x,i)=>G.bt.push([x,.9,2.0,0xfbbf24,1.35,0,[0xdc2626,0x111827,0xeab308][i]]));G.cy.push([2.2,.9,1.9,0xfde68a]);
+ plate(SIGNS.forro(),.36,.18,null,-.75,1.5,2.244,Math.PI);
+ // ablakok: alumínium keret, félig leengedett reluxa
+ const wm=new THREE.MeshBasicMaterial({map:ct('win',256,128,(x,w,h)=>{x.fillStyle='#0b1a3d';x.fillRect(0,0,w,h);for(let i=0;i<70;i++){x.fillStyle=Math.random()<.5?'#fde68a':'#93c5fd';x.fillRect(Math.random()*w,52+Math.random()*76,3,4)}for(let i=0;i<9;i++){x.fillStyle='#e5e7eb';x.fillRect(0,i*6,w,4);x.fillStyle='rgba(0,0,0,.25)';x.fillRect(0,i*6+4,w,1)}})});
+ [.5,4.5].forEach(x=>{bw(1.4,.8,.01,wm,x,1.65,2.243,1.4,.8);bw(1.5,.05,.06,fr,x,2.075,2.22);bw(1.5,.04,.14,fr,x,1.23,2.19);[-.725,.725].forEach(o=>bw(.05,.86,.06,fr,x+o,1.65,2.22))});
+ // analizátor-gép (centrifuga/gép-dobozok mellé)
+ bw(.8,1.25,.7,M.w,3.4,.645,1.88);bw(.62,.5,.01,dark,3.4,.95,1.527);plate(SCR('an',256,256,'ANALIZÁTOR',(x)=>{x.strokeStyle='#164e63';x.lineWidth=14;x.beginPath();x.arc(128,150,62,Math.PI*.75,Math.PI*2.25);x.stroke();x.strokeStyle='#22c55e';x.beginPath();x.arc(128,150,62,Math.PI*.75,Math.PI*1.9);x.stroke();x.fillStyle='#e2e8f0';x.font='800 34px system-ui';x.textAlign='center';x.fillText('78%',128,152);x.font='700 20px system-ui';x.fillStyle='#86efac';x.fillText('● FUT',128,228)}),.3,.3,null,3.25,1.0,1.521,Math.PI,.85);
+ LD.push([3.4,1.23,1.525,.62,.02,.006,0x22c55e],[3.56,1.02,1.52,.04,.03,.006,0xfbbf24],[3.56,.94,1.52,.04,.03,.006,0x22d3ee]);cyl(.22,.22,.05,dark,3.4,1.295,1.88,24);for(let i=0;i<10;i++)G.tt.push([3.4+Math.cos(i*.628)*.16,1.3,1.88+Math.sin(i*.628)*.16,LQ[i%8]]);SH.push([3.4,1.85,.95,.85]);
+ // afterparti: acél zsúrkocsi, hangfal, keverő, forgó jelzőfény (DISCO; a loop az FX.dl.color-t = a fény emisszív színét állítja, valódi fény nélkül)
+ [.3,.86].forEach(y=>bw(.75,.03,.48,steel,6.3,y,1.85));[[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([a,b])=>cyl(.015,.015,.86,M.sd,6.3+a*.35,.45,1.85+b*.21,6));
+ bw(.26,.42,.26,dark,6.05,1.085,1.9);[1.0,1.2].forEach((y,i)=>cyl(i?.035:.08,i?.035:.08,.012,Sm({color:0x374151,roughness:.6}),6.05,y,1.765,16).rotation.x=Math.PI/2);bw(.3,.05,.22,dark,6.36,.9,1.85);
+ for(let i=0;i<6;i++)LD.push([6.26+i*.04,.927,1.8,.02,.006,.02,[0x22d3ee,0xa3e635,0xf472b6][i%3]]);
+ cyl(.06,.07,.04,dark,6.6,.895,1.85,16);DISCO=new THREE.Mesh(new THREE.SphereGeometry(.07,16,10,0,Math.PI*2,0,Math.PI/2),Sm({color:0x1f2937,emissive:0xf472b6,emissiveIntensity:2.2,roughness:.3}));DISCO.position.set(6.6,.915,1.85);SC.add(DISCO);FX.dl={color:DISCO.material.emissive};
+ [6.0,6.15,6.45,6.6].forEach((x,i)=>G.bt.push([x,.315,1.85,LQ[(i*2+1)%8],1.2,0,CP[i]]));SH.push([6.3,1.85,.95,.7]);
+ // pihenő priccs (alvás)
+ bw(1.95,.05,.82,M.sd,8.4,.4,1.8);[[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([a,b])=>cyl(.02,.02,.38,M.sd,8.4+a*.93,.2,1.8+b*.37,6));bw(1.9,.13,.78,Sm({color:0x64748b,roughness:.9}),8.4,.49,1.8);bw(.42,.09,.5,M.w,7.68,.6,1.8);bw(.55,.07,.8,Sm({color:0x0f766e,roughness:.95}),9.0,.585,1.8);SH.push([8.4,1.8,2.2,1.0]);
+ // laborhűtő (bolt): üvegajtó, megvilágított belső, kijelző
+ bw(.8,1.9,.7,M.w,10.65,.97,1.75);plate(ct('fridge',256,512,(x,w,h)=>{x.fillStyle='#f1f5f9';x.fillRect(0,0,w,h);x.fillStyle='#dbeafe';x.fillRect(16,70,w-32,h-90);for(let s=0;s<4;s++){const y=90+s*100;x.fillStyle='#94a3b8';x.fillRect(16,y+80,w-32,4);for(let i=0;i<6;i++){x.fillStyle=['#38bdf8','#f472b6','#a3e635','#fbbf24','#e2e8f0','#818cf8'][(i+s)%6];x.fillRect(26+i*36,y+40,24,40);x.fillStyle='#475569';x.fillRect(26+i*36,y+34,24,7)}}
+  x.fillStyle='#0f172a';rr(x,60,14,136,42,8);x.fill();x.fillStyle='#4ade80';x.font='800 30px monospace';x.textAlign='center';x.textBaseline='middle';x.fillText('+4 °C',128,36);const g=x.createLinearGradient(0,0,w,h);g.addColorStop(0,'rgba(255,255,255,.35)');g.addColorStop(.4,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(16,70,w-32,h-90)}),.66,1.62,null,10.244,1.0,1.75,-Math.PI/2,.45);
+ bw(.03,.5,.03,M.sd,10.235,1.15,1.46);SH.push([10.6,1.75,.95,.85]);
+ // kijárat: fémajtó kémlelőablakkal, pánikkilincs, keret, világító KIJÁRAT tábla; köpenyek a fogason
+ bw(.05,2.1,1.0,Sm({color:0xcfd5dc,metalness:.4,roughness:.45,envMap:env}),11.12,1.07,-.2);bw(.012,.55,.24,Sm({color:0x1e293b,roughness:.1,metalness:.3,envMap:env}),11.092,1.55,-.2);
+ cyl(.022,.022,.75,M.sd,11.05,1.0,-.2,10).rotation.x=Math.PI/2;[-.52,.12].forEach(z=>bw(.07,.04,.04,M.sd,11.07,1.0,z));
+ [-.735,.335].forEach(z=>bw(.07,2.2,.07,fr,11.12,1.1,z));bw(.07,.07,1.14,fr,11.12,2.165,-.2);bw(.06,.27,.52,dark,11.13,2.38,-.2);plate(SIGNS.exit(),.48,.24,null,11.098,2.38,-.2,-Math.PI/2,.9);
+ CB.push([11.06,1.32,.62,.1,.95,.4,0xdfe5ec],[11.06,1.32,1.05,.1,.95,.4,0xbfdbfe],[11.03,1.74,.62,.1,.1,.22,0xc5ced8],[11.03,1.74,1.05,.1,.1,.22,0x93c5fd],[11.1,1.82,.62,.09,.02,.02,0x94a3b8],[11.1,1.82,1.05,.09,.02,.02,0x94a3b8]);plate(SIGNS.kop(),.36,.18,null,11.143,2.05,.84,-Math.PI/2);
+ // padló: veszélycsíkok (küszöb, gép-terület, fülke előtt, vészzuhany), lefolyórácsok, kontakt-árnyékok
+ tape([[-1.64,-.72,-1.64,.72,.16]].concat(rect(-8.5,-.95,-6.3,.95,.07),rect(5.62,-1.38,6.98,-.88,.07),rect(-2.3,1.08,-1.52,2.2,.07)),.07);
+ const gm=Sm({map:TX.grate(),metalness:.5,roughness:.45});bw(.32,.006,.32,gm,-4.6,.023,.35);bw(.26,.006,.26,gm,-1.9,.023,1.62);
+ // labor-székek (3 InstancedMesh)
+ const STO=[[-6.9,-1.15],[-4.55,-1.2],[-9.3,1.2],[2.15,-1.2]];ib(new THREE.CylinderGeometry(.17,.17,.05,20),Sm({color:0x1e3a8a,roughness:.6}),STO.map(([x,z])=>[x,.62,z]));ib(new THREE.CylinderGeometry(.025,.025,.58,8),M.sd,STO.map(([x,z])=>[x,.31,z]));ib(new THREE.CylinderGeometry(.2,.22,.03,20),dark,STO.map(([x,z])=>[x,.035,z]));STO.forEach(([x,z])=>SH.push([x,z,.6,.6]));
+ // összegyűjtött ismétlődő kellékek: üvegeszközök, színes dobozok/iratrendezők/köpenyek, jelző-LED-ek, kontakt-árnyékok
+ glassware(G);ib(new THREE.BoxGeometry(1,1,1),M.cap,CB.map(([x,y,z,w,h,d,c])=>[x,y,z,0,w,h,d,c]));ib(new THREE.BoxGeometry(1,1,1),M.bl,LD.map(([x,y,z,w,h,d,c])=>[x,y,z,0,w,h,d,c]));decals(SH);
  // ===== LABOR-MODULOK (csak megvéve látszanak) =====
  const mod=id=>{const g=new THREE.Group();g.visible=false;SC.add(g);MODS[id]=g;return g};
  // UV neon
@@ -91,38 +265,16 @@ function buildInterior(){
  {const g=mod('lm_reakt');cyl(.55,.65,.3,dark,-7.4,.15,0,24,g);FX.core=sph(.32,EM(0x60a5fa,2.5),-7.4,1.0,0,g);FX.rings=[];[0,1,2].forEach(i=>{const r=new THREE.Mesh(new THREE.TorusGeometry(.5+i*.08,.025,8,40),EM([0x22d3ee,0xa855f7,0xf472b6][i],2));r.position.set(-7.4,1.0,0);g.add(r);FX.rings.push(r)});cyl(.04,.04,1.6,steel,-7.4,1.6,0,8,g);const rl=new PL(0x60a5fa,1.2,6);rl.position.set(-7.4,1.4,0);g.add(rl)}
  // páncélszekrény
  {const g=mod('lm_safe');box(.8,1,.6,MB(0x374151,{metalness:.9,roughness:.3}),-2.3,.5,-1.85,g);cyl(.12,.12,.05,MB(0xfacc15,{metalness:1}),-2.3,.6,-1.53,20,g).rotation.x=Math.PI/2}
- // ===== NAPPALI (pálinka, pályázat, bolt, raktár, buli, ágy, tábla, cserepek, ajtó) =====
- const win=document.createElement('canvas');win.width=128;win.height=64;const wg=win.getContext('2d');wg.fillStyle='#0b1a3d';wg.fillRect(0,0,128,64);for(let i=0;i<40;i++){wg.fillStyle=Math.random()<.5?'#fde68a':'#93c5fd';wg.fillRect(Math.random()*128,20+Math.random()*44,3,4)}wg.fillStyle='#f8fafc';wg.beginPath();wg.arc(100,14,7,0,7);wg.fill();
- const wm=new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(win)});[0.5,4.5].forEach(x=>{box(1.4,.8,.04,wm,x,1.65,2.24);box(.35,.95,.05,tex('fleece',1,1,0x7c3aed),x-.85,1.65,2.2);box(.35,.95,.05,tex('fleece',1,1,0x7c3aed),x+.85,1.65,2.2)});
- box(3,.02,1.6,tex('carpet',2,1,0xb91c1c),4.5,.01,0);
+ // ===== ÁLLOMÁSOK (helyük változatlan) =====
  S('lab',-5.6,-1.25,'🧪 HI-TECH LABOR [E]','#67e8f9','lab');
  S('labup',-2.4,1.0,'⚛️ LABOR-FEJLESZTÉS [E]','#c4b5fd',null,()=>shopUI('lm'));
- // pálinkafőzde
- const copper=MB(0xb87333,{metalness:.9,roughness:.28});cyl(.42,.5,.9,copper,0,.45,1.6);const dome=new THREE.Mesh(new THREE.SphereGeometry(.42,20,12,0,6.3,0,1.6),copper);dome.position.set(0,.9,1.6);SC.add(dome);
- const pipe=cyl(.04,.04,1.1,copper,.5,1.15,1.6,8);pipe.rotation.z=Math.PI/2.6;cyl(.3,.3,.75,tex('darkwood',1,1,0x7c4a26),1.2,.38,1.8);[1.6,1.8,2.0].forEach(x=>cyl(.06,.07,.3,glass(0xfbbf24),x,.97,1.95,10));box(1,.06,.5,tex('wood',1,1),1.8,.8,1.95);
  S('pal',.6,1.1,'🍑 PÁLINKAFŐZDE [E]','#fdba74','pal');
- // pályázatfőzde
- box(1.8,.06,.8,tex('darkwood',1,1,0x5b3a1e),2.6,.78,-1.8);[[1.9,-1.8],[3.3,-1.8]].forEach(([x,z])=>box(.08,.75,.7,tex('metal',1,1,0x334155),x,.38,z));
- box(.5,.03,.35,MB(0x1f2937,{metalness:.6}),2.5,.82,-1.8);box(.5,.32,.02,new THREE.MeshBasicMaterial({color:0x38bdf8}),2.5,.98,-1.97);for(let i=0;i<6;i++)box(.3,.03,.4,MB(i%2?0xf8fafc:0xfef9c3),3.15,.83+i*.035,-1.75);box(.5,.5,.5,tex('leather',1,1,0x111827),2.6,.3,-1.1);
  S('pal2',2.6,-1.3,'📄 PÁLYÁZATFŐZDE [E]','#c4b5fd','pal2');
- // tábla
- const bc=document.createElement('canvas');bc.width=512;bc.height=256;const bg=bc.getContext('2d');bg.fillStyle='#14532d';bg.fillRect(0,0,512,256);bg.font='bold 34px system-ui';bg.fillStyle='#fff';bg.fillText('A TERV:',20,50);bg.font='24px system-ui';['1. főzz 🧪🍑📄 + termessz 🪴','2. rendelés (O) → autó (F)','3. ne bukj le 👮','4. 🏝️ → 🚀'].forEach((t,i)=>bg.fillText(t,30,95+i*40));
- const board=new THREE.Mesh(new THREE.PlaneGeometry(1.8,.9),new THREE.MeshStandardMaterial({map:new THREE.CanvasTexture(bc)}));board.position.set(.6,1.6,-2.23);SC.add(board);S('home',.6,-1.6,'📋 FŐHADISZÁLLÁS [E]','#fde047','home');
- // raktár szekrény
- box(1.1,2.2,.6,tex('fa3',1,2,0xa16207),5.0,1.1,-1.95);box(.03,.3,.03,MB(0xfacc15,{metalness:1}),5.0,1.1,-1.63);S('inv',5.0,-1.4,'🎒 RAKTÁR [E]','#fde68a','inv');
- // buli
- box(.55,1.1,.5,MB(0x111827,{roughness:.4}),6.4,.55,1.95);[.75,.35].forEach(y=>{const sp=cyl(.17,.17,.05,MB(0x374151),6.4,y,1.69,20);sp.rotation.x=Math.PI/2});
- DISCO=new THREE.Mesh(new THREE.SphereGeometry(.22,16,12),MB(0xe5e7eb,{metalness:.4,roughness:.2,emissive:0x6b21a8,emissiveIntensity:.5,flatShading:true}));DISCO.position.set(5.6,2.35,.6);SC.add(DISCO);const dl=new PL(0xf472b6,.8,6);dl.position.set(5.6,2.1,.6);SC.add(dl);FX.dl=dl;
+ S('home',.6,-1.6,'📋 FŐHADISZÁLLÁS [E]','#fde047','home');
+ S('inv',5.0,-1.4,'🎒 RAKTÁR [E]','#fde68a','inv');
  S('party',6.2,1.35,'🕺 AFTERPARTI [E]','#f9a8d4','party');
- // ágy
- box(1.9,.45,1.2,tex('wool',2,1,0x1e3a8a),8.4,.23,1.6);box(.5,.15,.9,tex('fleece',1,1,0xf8fafc),7.65,.52,1.6);
  S('sleep',8.4,1.0,'🛏️ ALVÁS – ÚJ NAP [E]','#93c5fd',null,()=>{window.openSotetProgram('home');setTimeout(()=>{const b=$$('dpsl');b&&b.click()},50)});
- // hűtő = bolt
- box(.8,1.9,.7,tex('metal',1,2,0xe5e7eb,{metalness:.5,roughness:.3}),10.65,.95,1.75);S('shop',10.2,1.2,'🛒 CSABA HŰTŐJE [E]','#86efac','shop');
- // ablakpárkány-polc a cserepeknek
- box(3.4,.05,.35,tex('wood',2,1,0xa16207),8.7,.95,-2.1);
- // ajtó
- box(.08,2.1,1,tex('metal',1,2,0x64748b,{metalness:.6}),11.15,1.05,-.2);box(.05,.05,.2,MB(0xfacc15,{metalness:1}),11.1,1,.15);
+ S('shop',10.2,1.2,'🛒 CSABA HŰTŐJE [E]','#86efac','shop');
  S('out',10.4,-.2,'🚪 KI A VÁROSBA [E]','#fca5a5',null,goOut);
  // NPC-k
  const npc=(k,col,em,x,z,ry,sc)=>{let m;try{m=person(col,em,1)}catch(e){m=new THREE.Mesh(new THREE.CylinderGeometry(.25,.25,1.4),MB(col))}m.scale.multiplyScalar(sc||.38);m.position.set(x,0,z);m.rotation.y=ry;SC.add(m);const n={k,m,x,z,ry};NPC.push(n);return n};
@@ -146,7 +298,7 @@ function buildCity(){
  box(50,.03,50,tex('conc',10,10,0x94a3b8),0,.0,0);
  // lakókocsi külső héj
  const shell=tex('metal',6,1,0xe5e7eb,{metalness:.5,roughness:.4});box(22.8,2.95,.12,shell,0,1.47,-2.42);box(22.8,2.95,.12,shell,0,1.47,2.42);box(.12,2.95,4.9,shell,-11.4,1.47,0);box(.12,2.95,4.9,shell,11.4,1.47,0);box(22.8,.12,4.9,shell,0,2.95,0);
- box(22.82,.35,4.92,EM(0x7c3aed,.6),0,.9,0).material=EM(0x7c3aed,.6);// díszcsík
+ // (a régi „díszcsík” tömör lapként átment a belsőn – az volt a lila padló; kívülről a héj takarta, ezért törölve)
  [-8,-6.6,6.6,8].forEach(x=>{const w=cyl(.45,.45,.3,MB(0x111827),x,.1,2.5,18);w.rotation.x=Math.PI/2;const w2=cyl(.45,.45,.3,MB(0x111827),x,.1,-2.5,18);w2.rotation.x=Math.PI/2});
  box(.6,.2,1.2,tex('metal',1,1,0x475569),11.8,.1,-.2);const ss=sign('🕶️ SÖTÉT PROGRAM','#4c1d95','#f472b6',4,1);ss.position.set(0,2.2,2.5);SC.add(ss);const ss2=ss.clone();ss2.position.z=-2.5;ss2.rotation.y=Math.PI;SC.add(ss2);
  aabb(-11.5,-2.55,11.5,2.55);
@@ -205,10 +357,12 @@ function potVis(){const now=Date.now();POTS.forEach(P=>{const s=potState(P);if(!
  const c=SEEDC[s.p.s]||0xf472b6;P.fr.material.color.setHex(c);P.fr.material.emissive.setHex(c);P.fr.visible=s.prog>.6;P.rd.visible=s.ready;P.st.label=s.ready?'✅ SZÜRET [E]':'🌱 '+Math.ceil(s.left/1000)+' mp [E]'})}
 
 // ===================== MÓDVÁLTÁS =====================
-function goOut(){INSIDE=false;INCAR=false;px=13.2;pz=-.2;yaw=-Math.PI/2;pit=0;SC.fog.near=40;SC.fog.far=210;SC.fog.color.setHex(0x0b1026);HEMI.intensity=.55;MOON.intensity=.55;PAUSE=false;closeOvl();lockP();
+// bent: a köd 40 m-nél teljesen takar → a kamera is ott vág (a város nem rajzolódik a falak mögött); a kinti/benti NPC-k a másik oldalon rejtve
+const inOut=()=>{CAM.far=INSIDE?40:500;CAM.updateProjectionMatrix();NPC.forEach(n=>n.m.visible=(Math.abs(n.x)<=12&&Math.abs(n.z)<=3)===INSIDE)};
+function goOut(){INSIDE=false;INCAR=false;px=13.2;pz=-.2;yaw=-Math.PI/2;pit=0;SC.fog.near=40;SC.fog.far=210;SC.fog.color.setHex(0x0b1026);HEMI.intensity=.55;MOON.intensity=.55;PAUSE=false;closeOvl();lockP();inOut();
  const t=$$('sp3t');if(t)t.innerHTML='🌃 VÁROS · WASD mozgás · SHIFT futás · <b>F</b> autó · <b>O</b> rendelések · <b>M</b> térkép · <b>E</b> interakció · <b>H</b> duda';$$('sp3mm').style.display='block';
  if(!DD()._cityIntro){DD()._cityIntro=1;toast('🕴️ <b>Csavaros Csaba:</b> „Nyomd meg az <b>O</b>-t, ott jönnek a rendelések. Az autó a telken áll – <b>F</b>-fel beszállsz!”')}}
-function goIn(){if(INCAR)toggleCar();INSIDE=true;px=9.8;pz=-.2;yaw=Math.PI/2;pit=0;SC.fog.near=14;SC.fog.far=40;HEMI.intensity=0;MOON.intensity=0;closeOvl();lockP();
+function goIn(){if(INCAR)toggleCar();INSIDE=true;px=9.8;pz=-.2;yaw=Math.PI/2;pit=0;SC.fog.near=14;SC.fog.far=40;HEMI.intensity=0;MOON.intensity=0;closeOvl();lockP();inOut();
  const t=$$('sp3t');if(t)t.innerHTML='Kattints a nézelődéshez · WASD mozgás · SHIFT futás · E interakció · O rendelések · M térkép · F autó · ESC egér · 🟨 nyíl = következő cél';$$('sp3mm').style.display='none'}
 window._sp3out=()=>{if(!ON)openSotet3D();setTimeout(goOut,60)};
 function toggleCar(){if(INSIDE)return;if(INCAR){INCAR=false;const f=car.h;px=car.x+Math.cos(f)*2.2;pz=car.z-Math.sin(f)*2.2;if(hit(px,pz,.4)){px=car.x-Math.cos(f)*2.2;pz=car.z+Math.sin(f)*2.2}yaw=car.h+Math.PI;pit=0;car.v=0;toast('🚶 Kiszálltál');return}
@@ -259,7 +413,7 @@ function buildLife(){const ROADS=[-90,-30,30,90];
  const tape=new THREE.Mesh(new THREE.PlaneGeometry(14,.35),new THREE.MeshBasicMaterial({color:0xfacc15,side:THREE.DoubleSide}));tape.position.set(14.5,1,0);tape.rotation.y=Math.PI/2;rg.add(tape);
  LIFE.raid={g:rg,L,spot,cops,cars:[c1,c2]};
  // 5) villogó neonok (a város reklámtáblái közül néhány)
- SC.traverse(o=>{if(o.isMesh&&o.material&&o.material.map&&o.material.map.image&&o.material.map.image.tagName==='CANVAS'&&o.material.emissive&&Math.random()<.5)LIFE.neon.push({o,b:o.material.emissiveIntensity||1,ph:Math.random()*9})})}
+ SC.traverse(o=>{if(o.isMesh&&o.material&&o.material.map&&o.material.map.image&&o.material.map.image.tagName==='CANVAS'&&o.material.emissive&&!(Math.abs(o.position.x)<11.3&&Math.abs(o.position.z)<2.36)&&Math.random()<.5)LIFE.neon.push({o,b:o.material.emissiveIntensity||1,ph:Math.random()*9})})}
 function tickLife(dt){if(!LIFE.peds.length)return;const me=INCAR?car:{x:px,z:pz};
  LIFE.peds.forEach(p=>{const pp=p.ax==='x'?{x:p.t,z:p.line}:{x:p.line,z:p.t};const nearMe=Math.hypot(pp.x-me.x,pp.z-me.z)<1.4;const nearCar=INCAR&&Math.hypot(pp.x-car.x,pp.z-car.z)<4;
   if(nearCar){p.t-=p.dir*dt*4}else if(!nearMe){const nt=p.t+p.dir*p.sp*dt,np=p.ax==='x'?{x:nt+p.dir*.3,z:p.line}:{x:p.line,z:nt+p.dir*.3};
@@ -319,7 +473,7 @@ function ordUI(){const dp=DP(),d=DD();const ob=$$('sp3ob');if(ob)ob.style.displa
  '<h3 style="margin:6px 0">🚚 Úton lévő szállítások</h3>'+(d.cargo.length?d.cargo.map(c=>'<div style="'+CARD+';margin-bottom:6px;display:flex;gap:10px;align-items:center"><span style="font-size:24px">'+dp.ITM[c.pid].e+'</span><div><b>'+c.n+'× '+dp.ITM[c.pid].n+'</b> → '+dp.DIS[c.di][1]+' '+dp.DIS[c.di][0]+' ('+c.who+')<br>💰 '+dp.f$(c.pay)+' · ⏱️ <b style="color:'+(c.left<20?'#f87171':'#86efac')+'">'+Math.ceil(c.left)+' mp</b></div></div>').join(''):'<i>Nincs.</i>')+
  '<h3 style="margin:12px 0 6px">📨 Új ajánlatok</h3>'+(OFF.length?'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:9px">'+OFF.map(o=>{const ok=dp.has(o.pid,o.n);return'<div style="'+CARD+'"><b>'+o.who+'</b> · '+dp.DIS[o.di][1]+' '+dp.DIS[o.di][0]+(dp.evOf&&dp.evOf(o.di)&&(!dp.evOf(o.di).br||dp.evOf(o.di).br===dp.ITM[o.pid].br)?' <span style="font-size:11px;background:#7c3aed55;border-radius:99px;padding:1px 7px">'+dp.evOf(o.di).n+'</span>':'')+'<br><span style="font-size:22px">'+dp.ITM[o.pid].e+'</span> '+o.n+'× '+dp.ITM[o.pid].n+'<br>Van: <b style="color:'+(ok?'#86efac':'#f87171')+'">'+(d.inv[o.pid]||0)+'</b> · 💰 <b>'+dp.f$(o.pay)+'</b> · ⏱️ '+o.tl+' mp<br>'+BTN('✔ Elfogad','data-ac="'+o.id+'"',!ok)+BTN('✕','data-rj="'+o.id+'"',0,'#475569')+'</div>'}).join('')+'</div>':'<i>Most csend van… pár másodperc múlva jön új rendelés.</i>'));
  OVL.querySelectorAll('[data-ac]').forEach(b=>b.onclick=()=>accept(b.dataset.ac));OVL.querySelectorAll('[data-rj]').forEach(b=>b.onclick=()=>{OFF=OFF.filter(o=>o.id!==b.dataset.rj);ordUI()})}
-function showMods(){const L=DD().lm;for(const k in MODS)MODS[k].visible=!!L[k];if(FX.labL)FX.labL.forEach(l=>l.color.setHex(L.lm_neon?0xc4b5fd:0xdbeafe))}
+function showMods(){const L=DD().lm;for(const k in MODS)MODS[k].visible=!!L[k];if(FX.labL)FX.labL.forEach(l=>l.color.setHex(L.lm_neon?0xc4b5fd:0xf1f5ff))}
 
 // ===================== TÉRKÉP =====================
 function drawMap(cv,big){const x=cv.getContext('2d'),W=cv.width,sc=W/270,T=v=>(v+135)*sc;x.fillStyle='#0b1026';x.fillRect(0,0,W,W);x.fillStyle='#14532d55';x.fillRect(0,0,W,W);
@@ -351,7 +505,7 @@ function guideDraw(){const a=$$('sp3ar'),t=GUIDE.t;if(!a)return;if(!t){if(a.styl
 function stepNear(){near=null;let bd=INSIDE?1.6:(INCAR?5.5:3.2);const fx=-Math.sin(yaw),fz=-Math.cos(yaw);const mx=INCAR?car.x:px,mz=INCAR?car.z:pz;const sc=INSIDE?'in':'out';
  if(FX.carS){FX.carS.x=car.x;FX.carS.z=car.z;FX.carS.sp.position.set(car.x,2.6,car.z);FX.carS.sp.visible=!INCAR&&!INSIDE}
  ST.forEach(s=>{if(s.scope!==sc)return;if(INCAR&&!/^drop/.test(s.id))return;const dx=s.x-mx,dz=s.z-mz,d=Math.hypot(dx,dz);const dot=INCAR?1:(dx*fx+dz*fz)/(d||1);if(d<bd&&dot>.2){bd=d;near=s}});
- ST.forEach(s=>{const on=s===near,w=s.sp.userData.w||1.6;s.sp.material.opacity=on?1:.6;s.sp.scale.set(w*(on?1.15:1),w*.19*(on?1.15:1),1);if(/^drop/.test(s.id))s.sp.visible=!INSIDE});
+ ST.forEach(s=>{const on=s===near,w=s.sp.userData.w||1.6;s.sp.material.opacity=on?1:.85;s.sp.scale.set(w*(on?1.15:1),w*.19*(on?1.15:1),1);if(s!==FX.carS)s.sp.visible=(s.scope==='in')===INSIDE}); // a kinti feliratok ne látszódjanak át a labor falán (és fordítva)
  const pr=$$('sp3p');const hn=near&&(HINT[near.id]||(/^drop/.test(near.id)?'rendelés leadása':/^shop_/.test(near.id)?'bolt':/^pot_/.test(near.id)?'ültetés / szüret':''));const h=near?'<b>['+(near.id==='car'?'F':'E')+']</b> '+near.label.replace(/ \[[EF]\]/,'')+(hn?' <span style="font-weight:500;opacity:.8;font-size:14px">– '+hn+'</span>':''):'';if(pr._h!==h){pr._h=h;pr.innerHTML=h;pr.style.display=h?'block':'none'}}
 function interact(){if(!near)return;if(near.id==='car'){toggleCar();return}PAUSE=true;try{document.exitPointerLock()}catch(e){}if(near.act){PAUSE=false;near.act();return}window.openSotetProgram(near.tab)}
 function loop(t){if(!ON)return;raf=requestAnimationFrame(loop);if(window.spmgOn&&spmgOn()){last=t;return}const dt=Math.min(.05,(t-(last||t))/1000);last=t;clock+=dt;const d=DD();if(window._sp3fx)try{window._sp3fx(dt,{SC,CAM,INSIDE,INCAR,HEMI,MOON,px,pz,car,clock,beep})}catch(e){}
@@ -372,7 +526,7 @@ function loop(t){if(!ON)return;raf=requestAnimationFrame(loop);if(window.spmgOn&
  if(FX.fan&&MODS.lm_hood.visible)FX.fan.rotation.y+=dt*12;if(FX.conv&&MODS.lm_conv.visible)FX.conv.forEach(b=>{b.position.x+=dt*.5;if(b.position.x>-6.5)b.position.x=-10.3});
  if(FX.arm&&MODS.lm_robot.visible){FX.arm[0].rotation.y=Math.sin(clock*.9)*1.2;FX.arm[1].rotation.x=Math.sin(clock*1.7)*.6}
  if(FX.core&&MODS.lm_reakt.visible){FX.core.scale.setScalar(1+Math.sin(clock*4)*.08);FX.rings.forEach((r,i)=>{r.rotation.x=clock*(1+i*.4);r.rotation.y=clock*(.7+i*.3)})}
- if(FX.monC&&MODS.lm_mon.visible&&Math.floor(clock*3)!==FX._mt){FX._mt=Math.floor(clock*3);const x=FX.monC.getContext('2d');x.fillStyle='#020617';x.fillRect(0,0,512,128);for(let p=0;p<4;p++){x.strokeStyle=['#22d3ee','#a3e635','#f472b6','#facc15'][p];x.lineWidth=3;x.beginPath();for(let i=0;i<32;i++){const y=64+Math.sin(clock*2+i*.5+p)*30*Math.random();x.lineTo(p*128+i*4,y)}x.stroke();x.fillStyle='#fff';x.font='bold 14px monospace';x.fillText(['TISZT 99.'+Math.floor(Math.random()*9)+'%','HŐ '+(70+Math.floor(Math.random()*9))+'°C','NYOMÁS OK','Ft '+Math.round(d.cash)][p],p*128+6,18)}FX.monP.forEach(m=>m.material.map.needsUpdate=true)}
+ if(FX.monC&&MODS.lm_mon.visible&&Math.floor(clock*3)!==FX._mt){FX._mt=Math.floor(clock*3);const x=FX.monC.getContext('2d');x.fillStyle='#020617';x.fillRect(0,0,512,128);for(let p=0;p<4;p++){x.strokeStyle=['#22d3ee','#a3e635','#f472b6','#facc15'][p];x.lineWidth=3;x.beginPath();for(let i=0;i<32;i++){const y=64+Math.sin(clock*2+i*.5+p)*30*Math.random();x.lineTo(p*128+i*4,y)}x.stroke();x.fillStyle='#fff';x.font='bold 14px monospace';x.fillText(['MINŐSÉG '+(90+Math.floor(Math.random()*9))+'%','HŐ '+(70+Math.floor(Math.random()*9))+'°C','NYOMÁS OK','Ft '+Math.round(d.cash)][p],p*128+6,18)}FX.monP.forEach(m=>m.material.map.needsUpdate=true)}
  NPC.forEach((n,i)=>{n.m.position.y=Math.abs(Math.sin(clock*2+i))*.02;const dx=px-n.x,dz=pz-n.z;if(Math.hypot(dx,dz)<(INSIDE?2.4:6))n.m.rotation.y=Math.atan2(dx,dz);else n.m.rotation.y=n.ry+Math.sin(clock*.5+i)*.3;if(n.k==='beno')n.m.rotation.z=Math.sin(clock*6)*.08});
  if(!busy){tickOffers(dt);tickPolice(dt)}
  const tg=new Set(d.cargo.map(c=>c.di));DROPS.forEach(D=>{const on=tg.has(D.i)&&!INSIDE;D.beam.visible=on;D.ring.visible=on;if(on){D.ring.scale.setScalar(1+Math.sin(clock*4)*.12);D.beam.material.opacity=.15+Math.sin(clock*3)*.08}});

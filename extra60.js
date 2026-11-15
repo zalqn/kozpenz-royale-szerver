@@ -35,7 +35,7 @@ WP('invUI',null,()=>{const inv=$$('inv');if(!inv||typeof G==='undefined'||!G)ret
 // FOTÓSZERŰ, GENERÁLT TEXTÚRÁK
 // =====================================================================
 const TX={};
-function cnv(w,h,f){const c=document.createElement('canvas');c.width=w;c.height=h;f(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;return t}
+function cnv(w,h,f){const c=document.createElement('canvas');c.width=w;c.height=h;f(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;return t}
 function noise(x,w,h,a,base){const d=x.getImageData(0,0,w,h),p=d.data;for(let i=0;i<p.length;i+=4){const n=(Math.random()-.5)*a;p[i]+=n;p[i+1]+=n;p[i+2]+=n}x.putImageData(d,0,0)}
 function tex(k){if(TX[k])return TX[k];let t;
  if(k==='metal')t=cnv(256,256,(x,w,h)=>{x.fillStyle='#4b5563';x.fillRect(0,0,w,h);for(let i=0;i<900;i++){x.strokeStyle='rgba('+(Math.random()<.5?'255,255,255':'0,0,0')+','+RN(.02,.08)+')';const y=Math.random()*h;x.beginPath();x.moveTo(0,y);x.lineTo(w,y+RN(-2,2));x.stroke()}noise(x,w,h,26);for(let i=0;i<14;i++){x.strokeStyle='rgba(255,255,255,.18)';x.beginPath();const sx=Math.random()*w,sy=Math.random()*h;x.moveTo(sx,sy);x.lineTo(sx+RN(-30,30),sy+RN(-6,6));x.stroke()}});

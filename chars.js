@@ -1,7 +1,7 @@
 // ===== RÉSZLETES KARAKTERMODELLEK: ruha-, haj- és arctextúrák (rajzolt, kitalált arcok) =====
 (function(){
 const TX={};
-function cv(w,h,draw){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t}
+function cv(w,h,draw){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.anisotropy=8;return t}
 const noise=(x,w,h,a,n)=>{for(let i=0;i<(n||w*h/6);i++){const v=Math.random()*a|0;x.fillStyle='rgba('+(Math.random()<.5?'255,255,255':'0,0,0')+','+(v/255)+')';x.fillRect(Math.random()*w,Math.random()*h,1,1)}};
 // --- szövetek (szürkeárnyalatos, az anyagszín színezi) ---
 const FAB={

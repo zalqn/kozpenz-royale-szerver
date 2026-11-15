@@ -49,7 +49,7 @@ window.sgn=function(t,x,y,z,s){try{const key=t+'|'+s;let T=SGC[key];if(!T){const
   const bg=cx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'rgba(30,27,75,.92)');bg.addColorStop(1,'rgba(10,10,25,.92)');cx.fillStyle=bg;cx.fill();cx.lineWidth=6;const bd=cx.createLinearGradient(0,0,W,0);bd.addColorStop(0,'#fde68a');bd.addColorStop(.5,'#f59e0b');bd.addColorStop(1,'#fde68a');cx.strokeStyle=bd;cx.stroke();
   cx.font='bold 46px sans-serif';cx.textBaseline='middle';cx.fillText('🏛️',26,H/2+3);
   cx.font='bold 60px "Luckiest Guy",Impact,sans-serif';cx.textAlign='center';cx.lineWidth=10;cx.strokeStyle='rgba(0,0,0,.7)';cx.strokeText(t,W/2+30,H/2+4);const tg=cx.createLinearGradient(0,20,0,H-20);tg.addColorStop(0,'#fff7d6');tg.addColorStop(1,'#fbbf24');cx.fillStyle=tg;cx.fillText(t,W/2+30,H/2+4);
-  T=SGC[key]=new THREE.CanvasTexture(c);T.anisotropy=4;T._w=c.width}
+  T=SGC[key]=new THREE.CanvasTexture(c);T.anisotropy=8;T._w=c.width}
  const m=new THREE.SpriteMaterial({map:T,transparent:true,depthTest:true,depthWrite:false});const p=new THREE.Sprite(m);const h=s*.9;p.scale.set(h*T._w/128,h,1);p.position.set(x,y,z);scene.add(p);return p}catch(e){console.error('sgn',e)}};
 
 // =====================================================================

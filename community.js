@@ -32,7 +32,10 @@ const MS=(c,o)=>new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:
 function mesh(g,m,x,y,z,par){const o=new THREE.Mesh(g,m);o.position.set(x,y,z);(par||SC).add(o);return o}
 function build(){built=true;R=new THREE.WebGLRenderer({canvas:$$('csCv'),antialias:true});R.setPixelRatio(Math.min(1.5,devicePixelRatio||1));R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.15;R.outputEncoding=THREE.sRGBEncoding;R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;
  SC=new THREE.Scene();CAM=new THREE.PerspectiveCamera(55,1,.1,400);const AN=Math.min(8,R.capabilities.getMaxAnisotropy());
- const TL=new THREE.TextureLoader(),TC={};const tx=(n,rx,ry,nor)=>{const k=n+rx+ry+nor;if(TC[k])return TC[k];const t=TL.load('tex_opt/'+n+(nor?'_nor':'_diff')+'.jpg');t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rx,ry||rx);t.anisotropy=AN;if(!nor)t.encoding=THREE.sRGBEncoding;return TC[k]=t};
+ // tex 11-15: fájlonként egy betöltés + egy GL-textúra (a repeat-változatok a texq.js-megosztással a szülőt kötik be)
+ const TL=new THREE.TextureLoader(),TC={},PL={};const tx=(n,rx,ry,nor)=>{const k=n+rx+ry+nor;if(TC[k])return TC[k];const f='tex_opt/'+n+(nor?'_nor':'_diff')+'.jpg';
+  let p=PL[f];if(!p){p=PL[f]=TL.load(f,()=>p.cl.forEach(q=>{q.image=p.image;q.needsUpdate=true}));p.cl=[];p.wrapS=p.wrapT=THREE.RepeatWrapping;p.anisotropy=AN;if(!nor)p.encoding=THREE.sRGBEncoding}
+  const t=p.clone();t.__tqP=p;t.repeat.set(rx,ry||rx);if(p.image)t.needsUpdate=true;else p.cl.push(t);return TC[k]=t};
  const PB=(n,rx,ry,o)=>new THREE.MeshStandardMaterial(Object.assign({map:tx(n,rx,ry),normalMap:tx(n,rx,ry,1),roughness:.85},o||{}));
  const cvT=(w,h,f)=>{const c=document.createElement('canvas');c.width=w;c.height=h;f(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;t.anisotropy=AN;return t};
  const GLOW=cvT(128,128,(x,w)=>{const g=x.createRadialGradient(64,64,0,64,64,64);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.25,'rgba(255,255,255,.6)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,128,128)});GLOW.encoding=THREE.LinearEncoding;

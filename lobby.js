@@ -187,7 +187,7 @@ function build3D(){const cv=$('lbCv');const r=new THREE.WebGLRenderer({canvas:cv
  // tollas pálmalevél: középér + sok levélke
  for(let y=10;y<500;y+=7){const k=y/512,len=(1-Math.abs(k-.45)*1.6)*60,sway=Math.sin(y*.13)*3;[-1,1].forEach(s=>{const g=x.createLinearGradient(64,y,64+s*len,y+26);g.addColorStop(0,'#1f7a3f');g.addColorStop(.6,'#3fb36a');g.addColorStop(1,'#7bd389');x.fillStyle=g;x.beginPath();x.moveTo(64,y);x.quadraticCurveTo(64+s*len*.5,y+4+sway,64+s*len,y+24);x.quadraticCurveTo(64+s*len*.45,y+14,64,y+8);x.fill()})}
  x.strokeStyle='#5a7d2e';x.lineWidth=4;x.beginPath();x.moveTo(64,0);x.quadraticCurveTo(66,256,64,512);x.stroke();
- const t=new THREE.CanvasTexture(c);t.anisotropy=4;return new THREE.MeshStandardMaterial({map:t,transparent:true,alphaTest:.35,side:THREE.DoubleSide,roughness:.65,emissive:0x0a2a14,emissiveIntensity:.35})})();
+ const t=new THREE.CanvasTexture(c);t.anisotropy=8;return new THREE.MeshStandardMaterial({map:t,transparent:true,alphaTest:.35,side:THREE.DoubleSide,roughness:.65,emissive:0x0a2a14,emissiveIntensity:.35})})();
  const palm=(x,z,h)=>{const g=new THREE.Group();const tm=TM?TM('bark',1,3,0xa98a6a):new THREE.MeshStandardMaterial({color:0x6b4a2b,roughness:.9});
   const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.22,.38,h,12,1),tm);trunk.position.y=h/2;g.add(trunk);
   const ringM=new THREE.MeshStandardMaterial({color:0x5a4430,roughness:.95});for(let i=1;i<h/.7;i++){const r=new THREE.Mesh(new THREE.TorusGeometry(.38-.16*(i*.7/h),.04,6,14),ringM);r.rotation.x=Math.PI/2;r.position.y=i*.7;g.add(r)}
@@ -209,7 +209,7 @@ function build3D(){const cv=$('lbCv');const r=new THREE.WebGLRenderer({canvas:cv
    if(seed%2===0){x.fillStyle='#1a1410';x.fillRect(90,40,70,50);x.fillStyle='#b4552e';x.fillRect(96,46,58,38);x.fillStyle='#e8b04a';x.beginPath();x.arc(125,62,10,0,7);x.fill()}
    x.fillStyle='#2f5d34';x.beginPath();x.ellipse(seed%2?210:30,165,18,30,0,0,7);x.fill();x.fillStyle='#5a3a22';x.fillRect((seed%2?210:30)-9,185,18,12);
    x.fillStyle='rgba(240,230,210,.35)';x.fillRect(0,0,22,256);x.fillRect(234,0,22,256);
-   const t=new THREE.CanvasTexture(c);return t};
+   const t=new THREE.CanvasTexture(c);t.anisotropy=8;return t};
   const glows=[0,1,2,3,4,5,6,7].map(i=>{const t=room(i);return new THREE.MeshStandardMaterial({map:t,color:0x8a6a50,emissive:0xffd9a0,emissiveMap:t,emissiveIntensity:.62,roughness:.15})});let gi=0;const glowM=()=>glows[gi++%glows.length];
   const glass=new THREE.MeshStandardMaterial({color:0x9fc8e8,transparent:true,opacity:.28,roughness:.05,metalness:.6,depthWrite:false});
   const frame=new THREE.MeshStandardMaterial({color:0x1f2328,roughness:.4,metalness:.7}),led=new THREE.MeshBasicMaterial({color:0x7df9ff});
@@ -287,7 +287,7 @@ function build3D(){const cv=$('lbCv');const r=new THREE.WebGLRenderer({canvas:cv
   // --- helikopter-leszállópálya ---
   {const HX=-25,HZ=-31;C(5.2,5.4,1.6,HX,.8,HZ,TT('conc',3,1,0x6b7280),40);
    const hc=document.createElement('canvas');hc.width=512;hc.height=512;const x=hc.getContext('2d');x.fillStyle='#2b2f36';x.fillRect(0,0,512,512);x.strokeStyle='#facc15';x.lineWidth=18;x.beginPath();x.arc(256,256,215,0,7);x.stroke();x.fillStyle='#fff';x.font='bold 300px Arial Black, Arial';x.textAlign='center';x.textBaseline='middle';x.fillText('H',256,270);
-   const top=new THREE.Mesh(new THREE.CircleGeometry(5.15,40),new THREE.MeshStandardMaterial({map:new THREE.CanvasTexture(hc),roughness:.8}));top.rotation.x=-Math.PI/2;top.position.set(HX,1.62,HZ);sc.add(top);
+   const top=new THREE.Mesh(new THREE.CircleGeometry(5.15,40),new THREE.MeshStandardMaterial({map:Object.assign(new THREE.CanvasTexture(hc),{anisotropy:8}),roughness:.8}));top.rotation.x=-Math.PI/2;top.position.set(HX,1.62,HZ);sc.add(top);
    const lights=[];for(let i=0;i<12;i++){const a=i/12*Math.PI*2,l=new THREE.Mesh(new THREE.SphereGeometry(.12,8,6),new THREE.MeshBasicMaterial({color:0x22c55e}));l.position.set(HX+Math.cos(a)*5.2,1.68,HZ+Math.sin(a)*5.2);sc.add(l);lights.push(l)}
    // helikopter
    const h=new THREE.Group();const body=new THREE.Mesh(new THREE.SphereGeometry(1.4,20,14),new THREE.MeshStandardMaterial({color:0x111827,roughness:.25,metalness:.6}));body.scale.set(1.6,1,1);body.position.y=1.5;h.add(body);

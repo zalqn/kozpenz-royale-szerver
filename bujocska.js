@@ -16,12 +16,12 @@ const css=document.createElement('style');css.textContent=`#bjBub{position:absol
 #bjCnt{position:absolute;left:24px;top:232px;z-index:3;background:#0b1022d9;border:1px solid #ffffff22;border-radius:12px;padding:6px 12px;font:15px 'Luckiest Guy',Impact;color:#fde68a;pointer-events:none}
 #bjWin{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%) scale(.5);z-index:6;pointer-events:none;font:56px 'Luckiest Guy',Impact;color:#facc15;text-shadow:0 5px 0 #7c2d12,0 0 30px #facc15;opacity:0;transition:all .3s;white-space:nowrap;text-align:center}`;document.head.appendChild(css);
 function ensure(){const L=window.LB3D,lb=document.getElementById('lb');if(!L||man)return!!man;
- // rajzfilmes, kitalált figura (nem fotó)
+ // rajzfilmes figura (nem fotó); név: Matolcsy – a user kérése (11-15), politikai karikatúra
  const def={c:0,skinC:0xf0c8a8,hair:'side',hairC:0x2b1a10,topC:0x0f0f14,legC:0x0f0f14,lapel:0x1a1a22,shirtC:0xffffff,collar:1,cuffC:0xffffff,shoeC:0x111111,belt:1,
   face:{skin:'#f0c8a8',eye:'#3b2a1a',brow:'#2b1a10',mouth:'grin',glasses:'#111',shades:1,stubble:1}};
  man=window.charModel?charModel(def,1):person(0x0f0f14,'',1);
  const chain=new THREE.Mesh(new THREE.TorusGeometry(.2,.035,6,18),new THREE.MeshStandardMaterial({color:0xd4af37,metalness:1,roughness:.2}));chain.position.set(0,1.8,.24);chain.rotation.x=.3;man.add(chain);
- const lb2=spr('Bújós Bálint',2.4,'x');lb2.position.y=3.5;lb2.material.depthTest=false;man.add(lb2);
+ const lb2=spr('Matolcsy',2.4,'x');lb2.position.y=3.5;lb2.material.depthTest=false;man.add(lb2);
  man.visible=false;L.sc.add(man);
  bub=document.createElement('div');bub.id='bjBub';lb.appendChild(bub);hot=document.createElement('div');hot.id='bjHot';hot.title='Kapd el!';lb.appendChild(hot);
  ctr=document.createElement('div');ctr.id='bjCnt';lb.appendChild(ctr);updCnt();
@@ -44,12 +44,14 @@ function mkPole(sc){const g=new THREE.Group();const wood=new THREE.MeshStandardM
  const p=new THREE.Mesh(new THREE.CylinderGeometry(.14,.18,7,10),wood);p.position.y=3.5;g.add(p);const cr=new THREE.Mesh(new THREE.BoxGeometry(2,.14,.14),wood);cr.position.y=6.4;g.add(cr);
  [-.8,.8].forEach(x=>{const i=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,.18,8),new THREE.MeshStandardMaterial({color:0xe5e7eb}));i.position.set(x,6.55,0);g.add(i)});
  const lamp=new THREE.Mesh(new THREE.SphereGeometry(.22,10,8),new THREE.MeshBasicMaterial({color:0xfff3c4}));lamp.position.set(0,6.9,.25);g.add(lamp);
- const c=document.createElement('canvas');c.width=256;c.height=340;const x=c.getContext('2d');x.fillStyle='#f5f0e1';x.fillRect(0,0,256,340);x.strokeStyle='#7c2d12';x.lineWidth=6;x.strokeRect(6,6,244,328);
+ const c=document.createElement('canvas');c.width=512;c.height=680;const x=c.getContext('2d');x.scale(2,2);x.fillStyle='#f5f0e1';x.fillRect(0,0,256,340);
+ {const vg=x.createRadialGradient(128,170,60,128,170,230);vg.addColorStop(0,'rgba(120,80,30,0)');vg.addColorStop(1,'rgba(120,80,30,.28)');x.fillStyle=vg;x.fillRect(0,0,256,340);for(let i=0;i<900;i++){const h=Math.sin(i*12.9898)*43758.5453,u=h-Math.floor(h),v=(h*7.13)%1;x.fillStyle='rgba(90,60,30,'+(.04+.06*((i*37)%7)/7)+')';x.fillRect(u*256,Math.abs(v)*340,1.2,1.2)}} // papírszemcse (tex 11-15, determinisztikus, nem fogyaszt Math.random-ot)
+ x.strokeStyle='#7c2d12';x.lineWidth=6;x.strokeRect(6,6,244,328);
  x.fillStyle='#b91c1c';x.font='bold 34px Impact,Arial';x.textAlign='center';x.fillText('KÖRÖZÉS',128,46);
  x.fillStyle='#d6d3d1';x.fillRect(48,60,160,170);x.fillStyle='#f1c27d';x.beginPath();x.ellipse(128,150,48,60,0,0,7);x.fill();x.fillStyle='#e5e7eb';x.beginPath();x.ellipse(128,100,52,22,0,Math.PI,0);x.fill();
  x.fillStyle='#111';[108,148].forEach(ex=>{x.beginPath();x.arc(ex,140,5,0,7);x.fill()});x.strokeStyle='#111';x.lineWidth=3;x.beginPath();x.arc(128,170,16,.2,Math.PI-.2);x.stroke();x.fillStyle='#1e3a8a';x.fillRect(70,205,116,25);
  x.fillStyle='#111';x.font='bold 19px Arial';x.fillText('AKI MINDIG',128,262);x.fillText('ELŐUGRÁL',128,286);x.fillStyle='#15803d';x.font='bold 17px Arial';x.fillText('Jutalom: 20 000 Ft',128,318);
- const t=new THREE.CanvasTexture(c);const ps=new THREE.Mesh(new THREE.PlaneGeometry(1.2,1.6),new THREE.MeshStandardMaterial({map:t,roughness:.9}));ps.position.set(0,2.6,.2);g.add(ps);
+ x.fillStyle='#9ca3af';[[18,16],[238,16],[18,324],[238,324]].forEach(([px,py])=>{x.beginPath();x.arc(px,py,4,0,7);x.fill()});const t=new THREE.CanvasTexture(c);t.anisotropy=8;const ps=new THREE.Mesh(new THREE.PlaneGeometry(1.2,1.6),new THREE.MeshStandardMaterial({map:t,roughness:.9}));ps.position.set(0,2.6,.2);g.add(ps);
  g.position.set(POLE.x,0,POLE.z);g.rotation.y=.15;g.traverse(o=>{if(o.isMesh)o.castShadow=true});sc.add(g);return g}
 function tick(dt){if(!pole&&window.LB3D&&LB3D.sc){try{pole=mkPole(LB3D.sc)}catch(e){console.error(e)}}
  if(man&&man.visible&&st.phase!=='wait'){const d=Math.hypot(man.position.x-POLE.x,man.position.z-POLE.z);if(d<16&&!poleSaid){poleSaid=true;setTimeout(()=>{if(man&&man.visible)say(pick(['Hát ez én vagyok! Tudod, aki mindig előugrál!','Nézd, a plakáton! Hát ez én vagyok, aki mindig előugrál!','Ez a kép nem hízelgő… de igen, ez én vagyok!']),3200)},900)}}else poleSaid=false;

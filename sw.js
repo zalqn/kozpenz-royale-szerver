@@ -1,5 +1,5 @@
 // sw.js – Közpénz Royale PWA service worker (E). A szerver-API-kat (/api, /ws) SOHA nem cache-eli.
-const C='kpr-v1';
+const C='kpr-v2'; // v2 (11-15): újrakódolt tex_opt képek – a régi gyorsítótár törlődik
 const CORE=['./','./index.html','./manifest.json','./icon192.png','./icon512.png','./three.min.js'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(CORE).catch(()=>0)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});

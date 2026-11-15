@@ -29,7 +29,7 @@ const LOBBY_PT={x:0,z:0},GATE={x:-27,z:-21};
 
 // ---------- ÉPÍTÉS ----------
 let G=null,cv,box,plane,cyl,sph;const BOXES=[],CIRC=[];const ROOMS={};let MAT={};
-function cvTex(w,h,f){const c=document.createElement('canvas');c.width=w;c.height=h;f(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t}
+function cvTex(w,h,f){const c=document.createElement('canvas');c.width=w;c.height=h;f(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.anisotropy=8;return t}
 const lam=(c,o)=>new THREE.MeshLambertMaterial(Object.assign({color:c},o||{}));
 const bas=(c,o)=>new THREE.MeshBasicMaterial(Object.assign({color:c},o||{}));
 function signTex(txt,bg,fg,w,h,ic){return cvTex(w||1024,h||256,(x,W,H)=>{const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,bg);g.addColorStop(1,'#000');x.fillStyle=g;x.fillRect(0,0,W,H);x.strokeStyle=fg;x.lineWidth=10;x.strokeRect(8,8,W-16,H-16);
@@ -250,7 +250,7 @@ function showZone(){// a kinti tér a szobában rejtve (olcsóbb); a lobby3d2 cs
  const L=window.LB3D;if(L&&L.sc.fog){if(!S._fog)S._fog=[L.sc.fog.near,L.sc.fog.far];L.sc.fog.near=out?S._fog[0]:60;L.sc.fog.far=out?S._fog[1]:200}}
 function goRoom(id){const R=ROOMS[id];trans(()=>{S.zone=id;S.pos={x:0,y:0,z:4.2};S.head=Math.PI;S.yaw=0;S.pitch=.42;showZone();save()})}
 function leaveRoom(){const s=ROOMS[S.zone].s;trans(()=>{S.zone='out';const o=outPt(s);S.pos={x:o.x,y:0,z:o.z};S.head=o.h;S.yaw=o.h+Math.PI;showZone();save()})}
-function outPt(s){if(s.side==='L')return{x:-36.6,z:s.z,h:Math.PI/2};if(s.side==='R')return{x:36.6,z:s.z,h:-Math.PI/2};return{x:s.x,z:s.z-1.8,h:Math.PI}}
+function outPt(s){if(s.out)return s.out;if(s.side==='L')return{x:-36.6,z:s.z,h:Math.PI/2};if(s.side==='R')return{x:36.6,z:s.z,h:-Math.PI/2};return{x:s.x,z:s.z-1.8,h:Math.PI}}
 function useCounter(alt){const s=ROOMS[S.zone].s;S.paused=true;S.keys={};try{document.exitPointerLock()}catch(e){}
  const f=alt?s.alt.fn:s.fn;call(f,alt?s.alt.nm:s.nm);setTimeout(()=>{S.paused=false},400)}
 
@@ -332,6 +332,6 @@ addEventListener('keydown',e=>{if(e.key!=='Enter'||!e.target||e.target.tagName!=
 (function addMenu(){if(window._lb2&&_lb2.add){_lb2.add({ic:'🚶',hu:'Séta a téren',tx:'Séta a téren',c:'play',fn:()=>{try{_lb2.open&&_lb2.open(null)}catch(e){}setTimeout(()=>showCap2(enter()),50)},kw:'seta setal tér bolt mászkálás kint'});return}setTimeout(addMenu,800)})();
 (function waitUI(){if(document.body)ui();else setTimeout(waitUI,300)})();
 
-Object.assign(S,{enter,exit,toggle,goRoom,leaveRoom,fight,rooms:ROOMS,shops:SHOPS,boxes:BOXES});
+Object.assign(S,{enter,exit,toggle,goRoom,leaveRoom,fight,rooms:ROOMS,shops:SHOPS,boxes:BOXES,THEME,EMO}); // THEME/EMO + s.out: külső modul saját boltot adhat (dohany.js)
 S.menuOn=on=>menu(on);S.blocker=blocker;S.tp=(x,z)=>{S.pos.x=x;S.pos.z=z};S.use=alt=>useCounter(alt);
 })();

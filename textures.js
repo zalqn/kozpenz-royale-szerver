@@ -3,12 +3,14 @@
 if(!location.protocol.startsWith('http'))return; // file:// alatt a böngésző tiltja a képtextúrákat – marad a generált
 const WP=(n,pre,post)=>{const o=window[n];if(typeof o!=='function'){console.error('WP missing '+n);return}window[n]=function(){let st;try{st=pre?pre(arguments):0}catch(e){}const r=o.apply(this,arguments);try{post&&post(arguments,st,r)}catch(e){console.error(n+': '+(e&&e.stack))}return r}};
 const LD=new THREE.TextureLoader(),BASE={};
-function base(name){if(BASE[name])return BASE[name];const mk=f=>{const w={clones:[],img:null};w.t=LD.load('tex_opt/'+f,t=>{w.img=t.image;w.clones.forEach(q=>{q.image=w.img;q.needsUpdate=true})});return w};return BASE[name]={map:mk(name+'_diff.jpg'),nrm:mk(name+'_nor.jpg')}}
+// w.p = közös „szülő” (texq.js GPU-megosztás): a méretarányos klónok ennek a GL-textúráját használják
+const par=()=>{const p=new THREE.Texture();p.wrapS=p.wrapT=THREE.RepeatWrapping;p.anisotropy=8;return p};
+function base(name){if(BASE[name])return BASE[name];const mk=f=>{const w={clones:[],img:null,p:par()};w.clones.push(w.p);w.t=LD.load('tex_opt/'+f,t=>{w.img=t.image;w.clones.forEach(q=>{q.image=w.img;q.needsUpdate=true})});return w};return BASE[name]={map:mk(name+'_diff.jpg'),nrm:mk(name+'_nor.jpg')}}
 // játékbeli anyagfajta -> fotótextúra, méretarány, érdesség, fémesség, árnyalás erőssége
 const KIND={grass:['grass2',1.1,.95,0,.8],roof:['roof',1.6,.8,0,.3],pool:['pool',1.5,.15,.1,.2],fa1:['fa1',1,.35,.25,.08],fa2:['fa2',1,.35,.2,.08],fa3:['fa3',1,.6,.05,.08],fa4:['fa4',1,.4,.2,.08],fa5:['fa5',1,.45,.15,.08],fa6:['fa6',1,.25,.4,.08],stone:['stone',1,.9,0,.25],darkwood:['darkwood',1.4,.6,0,.3],rock:['rock',1,.95,0,.25],cobble:['cobble',1.4,.9,0,.3],facade:['facade',1.2,.6,.05,.35],conc:['conc',1.4,.85,0,.45],brick:['brick',2.6,.9,0,.25],wood:['wood',2,.7,0,.35],metal:['metal',2.2,.5,.15,.45],asphalt:['asphalt',1.2,.92,0,.3],tile:['tile',1.6,.3,.05,.3],plaster:['plaster',1.2,.9,0,.4],bark:['bark',1,.9,0,.2],sand:['sand',1,.95,0,.2]};
 const MC={};const W=new THREE.Color(0xffffff);
 window.texMat=function(kind,rx,ry,tint){const K=KIND[kind];const key=kind+'|'+rx+'|'+ry+'|'+tint;if(MC[key])return MC[key];const b=base(K[0]);
- const cl=w=>{const q=new THREE.Texture(w.img||undefined);q.wrapS=q.wrapT=THREE.RepeatWrapping;q.anisotropy=8;q.repeat.set(rx*K[1],ry*K[1]);if(w.img)q.needsUpdate=true;else w.clones.push(q);return q};
+ const cl=w=>{const q=new THREE.Texture(w.img||undefined);q.wrapS=q.wrapT=THREE.RepeatWrapping;q.anisotropy=8;q.__tqP=w.p;q.repeat.set(rx*K[1],ry*K[1]);if(w.img)q.needsUpdate=true;else w.clones.push(q);return q};
  const col=new THREE.Color(tint===undefined?0xffffff:tint).lerp(W,1-K[4]);
  return MC[key]=new THREE.MeshStandardMaterial({color:col,map:cl(b.map),normalMap:cl(b.nrm),normalScale:new THREE.Vector2(1,1),roughness:K[2],metalness:K[3]})};
 
@@ -32,8 +34,8 @@ function procMat(kind,c){const key=kind+'|'+c;if(PM[key])return PM[key];const t=
 
 // --- szürkeárnyalatos fotótextúrák (színezhető anyagokhoz: ruha, bunda, festett felület) ---
 const GT={};
-window.photoTex=function(file,rx,ry){const key=file+'|'+rx+'|'+ry;if(GT[key])return GT[key];const w=GT['@'+file]||(GT['@'+file]=(()=>{const o={clones:[],img:null};LD.load('tex_opt/'+file,t=>{o.img=t.image;o.clones.forEach(q=>{q.image=o.img;q.needsUpdate=true})});return o})());
- const q=new THREE.Texture(w.img||undefined);q.wrapS=q.wrapT=THREE.RepeatWrapping;q.anisotropy=8;q.repeat.set(rx||1,ry||1);if(w.img)q.needsUpdate=true;else w.clones.push(q);return GT[key]=q};
+window.photoTex=function(file,rx,ry){const key=file+'|'+rx+'|'+ry;if(GT[key])return GT[key];const w=GT['@'+file]||(GT['@'+file]=(()=>{const o={clones:[],img:null,p:par()};o.clones.push(o.p);LD.load('tex_opt/'+file,t=>{o.img=t.image;o.clones.forEach(q=>{q.image=o.img;q.needsUpdate=true})});return o})());
+ const q=new THREE.Texture(w.img||undefined);q.wrapS=q.wrapT=THREE.RepeatWrapping;q.anisotropy=8;q.__tqP=w.p;q.repeat.set(rx||1,ry||1);if(w.img)q.needsUpdate=true;else w.clones.push(q);return GT[key]=q};
 const GM={};
 window.grayMat=function(name,c,rx,ry,o){const key=name+'|'+c+'|'+rx+'|'+ry+'|'+JSON.stringify(o||{});if(GM[key])return GM[key];
  return GM[key]=new THREE.MeshStandardMaterial(Object.assign({color:new THREE.Color(c).multiplyScalar(1.22),map:photoTex(name+'_gray.jpg',rx,ry),normalMap:photoTex(name+'_nor.jpg',rx,ry),roughness:.85,metalness:0},o||{}))};
