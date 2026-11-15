@@ -23,6 +23,10 @@ const css=`
  #lbSide>*{margin:0!important;zoom:.85!important}
  #lbSide{zoom:1!important;bottom:92px!important}
  #lbBot{right:20px!important;bottom:20px!important;left:auto!important;gap:8px!important}
+ /* chat: feljebb, a CHAT/TÁNC gombsor fölött ér véget, lebegő panelként */
+ #lbChat{z-index:61!important;top:56px!important;bottom:96px!important;right:20px!important;border-radius:var(--lu-r)!important;border:1px solid var(--lu-bd)!important;overflow:hidden!important}
+ html body:has(#lbChat.on) #x14dJP,html body:has(#lbChat.on) #k2dock{visibility:hidden!important}
+ #lbChat:not(.on){transform:translateX(calc(100% + 40px))!important}
  /* kutya-kapcsoló: középen alul, a karakter alatt */
  #pfTog{left:50%!important;transform:translateX(-50%)!important;bottom:20px!important;top:auto!important;border-radius:999px!important}
 }

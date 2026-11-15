@@ -399,7 +399,7 @@ function updParty(){if(!L)return;const others=(ACC.party.members||[]).filter(x=>
  const leader=!inP||ACC.party.leader===ACC.user.name,allReady=inP&&ACC.party.members.every(m=>m.ready||m.name===ACC.party.leader);
  const go=$('lbGo');go.classList.toggle('wait',inP&&!leader);go.textContent=inP&&!leader?(ACC.ready?'KÉSZ ✔':'KÉSZ VAGYOK?'):(inP&&!allReady?'JÁTÉK (nem mindenki kész)':'JÁTÉK');if(inP&&!allReady&&leader)go.style.fontSize='24px';else go.style.fontSize='';
  renderUsers()}
-function draw3D(){if(!L||!lb.classList.contains('on'))return;requestAnimationFrame(draw3D);const W=innerWidth,H=innerHeight;if(L.r.domElement.width!==Math.floor(W*L.r.getPixelRatio())){L.r.setSize(W,H,false);L.cam.aspect=W/H;L.cam.updateProjectionMatrix()}
+let _lbRaf=0;function draw3D(){cancelAnimationFrame(_lbRaf);if(!L||!lb.classList.contains('on'))return;_lbRaf=requestAnimationFrame(draw3D);/* egy hurok: az ismételt showLobby nem indít újabbat */const W=innerWidth,H=innerHeight;if(L.r.domElement.width!==Math.floor(W*L.r.getPixelRatio())){L.r.setSize(W,H,false);L.cam.aspect=W/H;L.cam.updateProjectionMatrix()}
  const _n=performance.now(),_dt=Math.min(.05,Math.max(.001,((_n-(L._lt||_n))/1000)||1/60));L._lt=_n;L.t+=_dt;const t=L.t;if(L.me)danceStep(L.me,_dt,t);
  L.peds[0].disk.material.opacity=.4+Math.sin(t*3)*.15;L.peds.forEach((p,i)=>{if(i===0||p.mate)return;p.ring.visible=!!p.hover;p.disk.material.opacity=p.hover?.35+Math.sin(t*6)*.1:0});if(L.dog){L.dog.position.y=.3+Math.abs(Math.sin(t*5))*.05;L.dog.children.forEach(c=>{if(c.userData.tail)c.rotation.y=Math.sin(t*12)*.6})}
  if(L.fx)L.fx.forEach(f=>f(t));

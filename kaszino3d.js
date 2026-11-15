@@ -6,7 +6,7 @@ let rs=7;const rnd=()=>(rs=rs*16807%2147483647)/2147483647; // saját PRNG: a 3D
 const css=document.createElement('style');css.textContent='.k3d3{position:relative;width:100%;height:clamp(110px,24vh,210px);margin:6px 0 8px;border-radius:14px;overflow:hidden;background:radial-gradient(ellipse at 50% 25%,#2b1c48,#07040f 75%);border:1px solid #c9a64a66;box-shadow:inset 0 0 30px #000a;flex:0 0 auto}.k3d3 canvas{display:block;width:100%!important;height:100%!important}.k3d3 b{position:absolute;right:8px;top:6px;font:700 10px system-ui;color:#facc15aa;letter-spacing:1px;pointer-events:none}@media (max-width:480px){.k3d3{height:clamp(96px,17vh,150px)}}';document.head.appendChild(css);
 let R=null,dead=false,cur=null,raf=0,last=0,iv=0;const wrap=document.createElement('div');wrap.className='k3d3';wrap.innerHTML='<b>3D</b>';
 function rend(){if(R||dead)return R;try{R=new T.WebGLRenderer({antialias:true,alpha:true});R.setPixelRatio(Math.min(devicePixelRatio||1,1.5));R.setClearColor(0,0);wrap.appendChild(R.domElement);
- R.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();dead=true;stop()})}catch(e){dead=true;R=null}return R}
+ R.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();if(R&&R.__p2s)return;dead=true;stop()})}catch(e){dead=true;R=null}return R}
 const vis=e=>e&&e.isConnected&&e.getClientRects().length>0;
 // ---- melyik játék látszik ----
 function find(){const wh=document.getElementById('xWh');if(vis(wh))return{type:'wheel',root:wh.parentNode,before:wh};

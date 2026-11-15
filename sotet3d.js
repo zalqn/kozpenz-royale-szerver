@@ -642,7 +642,7 @@ function openSotet3D(){if(ON)return;ON=true;const lb=$$('lb');if(lb)lb.classList
  const d=DD();if(d.veh!=='berelt'&&!d.own[d.veh])d.veh='berelt';rebuildCar();showMods();
  R.setSize(innerWidth,innerHeight);CAM.aspect=innerWidth/innerHeight;CAM.updateProjectionMatrix();goIn();px=6;pz=0;yaw=Math.PI/2;PAUSE=false;last=0;raf=requestAnimationFrame(loop);
  window._sp3hud=setInterval(hud,250);hud();setTimeout(()=>{if(!d._intro2){d._intro2=1;toast('👨‍🔬 <b>Profi Ferkó:</b> „Nézd, mekkora lett a kocsi! A labor balra van – a fejlesztéseket a lila táblánál veszed. A városba az ajtón át jutsz ki!”')}},700)}
-function closeSotet3D(){ON=false;cancelAnimationFrame(raf);clearInterval(window._sp3hud);try{document.exitPointerLock()}catch(e){}closeOvl();const w=$$('sp3');if(w)w.style.display='none';const p=$$('dp');if(p)p.style.display='none';try{DP().save()}catch(e){}const lb=$$('lb');if(lb)lb.classList.add('on')}
+function closeSotet3D(){ON=false;cancelAnimationFrame(raf);clearInterval(window._sp3hud);try{document.exitPointerLock()}catch(e){}closeOvl();const w=$$('sp3');if(w)w.style.display='none';const p=$$('dp');if(p)p.style.display='none';try{DP().save()}catch(e){}const lb=$$('lb');if(lb&&!lb.classList.contains('on')){if(window.showLobby)showLobby();else lb.classList.add('on')}}
 window.openSotet3D=openSotet3D;window.closeSotet3D=closeSotet3D;
 addEventListener('keydown',e=>{if(!ON)return;if(window.spmgOn&&spmgOn())return;if(window.sotetPanelOpen&&sotetPanelOpen())return;if($$('dpmg')&&$$('dpmg').style.display==='flex')return;const k=e.key.toLowerCase();e.stopImmediatePropagation();
  if(ovlOpen()){if(k==='escape'||(k==='o'&&OVL.innerHTML.includes('RENDELÉSEK')))closeOvl();return}

@@ -55,7 +55,7 @@ h1{margin:4px 0;color:var(--y);font-size:clamp(28px,7vw,58px);text-shadow:0 4px 
 <div id="ph"><div id="phi"></div></div>
 
 <script src="three.min.js"></script>
-<script src="texq.js"></script>
+<script src="texq.js"></script><script src="perf2.js"></script>
 <script>
 const $=i=>document.getElementById(i),R=Math.random,rnd=(a,b)=>a+R()*(b-a),pick=a=>a[R()*a.length|0],d2=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 const st={g(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},s(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
@@ -1173,5 +1173,6 @@ go('menu');
 <script src="dohanybolt_targyak.js"></script>
 <script src="dohanybolt.js"></script>
 <script src="lobbyui.js"></script>
+<script src="hungarikum.js"></script>
 <script src="alfredo.js"></script>
 </body></html>
