@@ -16,7 +16,26 @@ const fmt=n=>Math.round(n).toLocaleString('hu-HU')+' Ft';
 // ---------- TERMÉKEK (kitalált) ----------
 const PROD=[['kod','Ködfalvi Szűrős (doboz)',1890,'🚬'],['szel','Mentolos Szellő Slim',2150,'🌬️'],['bago','Bagó Bácsi sodródohány',2690,'🟤'],['pipa','Pipafüst Prémium pipadohány',3400,'🪈'],
  ['szivar','Tölgyesi Kézi Szivar',5900,'🟫'],['gyufa','Gyufa Gyuri gyufa',150,'🔥'],['ongy','Lángoló Laci öngyújtó',690,'🔥'],['papir','Selyempapír Sári',390,'🧻'],['rago','Rágó Rudi nikotinmentes rágó',490,'🍬'],['ujs','Közpénz Hírlap',350,'📰']];
+// a CSV 200 tárgya (dohanybolt_targyak.js): [id,név,ár,ikon,kategória,ritkaság,leírás]
+(window._DBT_ITEMS||[]).forEach(r=>PROD.push([r[0],r[1],r[5],r[6],r[2],r[3],r[4]]));
 const PN=Object.fromEntries(PROD.map(p=>[p[0],p]));
+// ---------- HATÁSOK: minden katalógus-tárgy 1 hatást kap (kulcsszó → típus, erősség = ritkaság 1–5) ----------
+// Eszköz/Kiegészítő = passzív, amíg nálad van (típusonként a legerősebb számít); Fogyasztható/Alapanyag = „Használ” → 5 perc.
+const EF={zona:['🤏 Ügyes ujjak','szélesebb zöld sáv a zsebtolvajlásnál',12],lassu:['🧘 Nyugodt kéz','lassabb jel a zsebtolvajlásnál',6],csend:['🫥 Szagtalan','az NPC-k kevésbé figyelnek rád',15],
+ zsakmany:['💰 Nagy fogás','több Ft a zsebekből',10],birsag:['⚖️ Rendes polgár','kisebb bírság lebukáskor',10],kitiltas:['🚪 Visszafogadnak','rövidebb kitiltás',12],karizma:['😎 Karizma','kedvezmény a boltban',3]};
+const TIER={'Nagyon gyakori':1,'Gyakori':2,'Ritka':3,'Nagyon ritka':4,'Legendás':5},BUFF_MS=300000;
+const EMAP=[[/öngyújtó|gyufa|gyújtó|láng|tűzkő|kanóc|gyújtólencse/i,'karizma'],[/hamutartó|csikk|köpőcsésze/i,'birsag'],[/rágó|cukor|pasztilla|spray|parfüm|szájvíz|illat|gyertya|fertőtlenítő|törlőkendő|fogfehérítő|légtisztító|tapasz|mentolos tubák/i,'csend'],
+ [/vízipipa|szén|fólia|diffúzor|hőszabályzó|szopóka/i,'kitiltas'],[/szivar|humidor|cédrus|higrométer|párásító/i,'zsakmany'],[/pipa|dohány|tubák|latakia/i,'lassu'],[/papír|szűrő|filter|sodró|töltő|tömő|kapszula|mérleg|kesztyű|szipka/i,'zona'],[/kabát|sapka|táska|tok|album|gyűrű/i,'zsakmany']];
+const ECAT={'Eszköz':'zona','Fogyasztható':'csend','Alapanyag':'lassu','Kiegészítő':'karizma'};
+PROD.forEach(p=>{if(!p[4])return;p[7]=(EMAP.find(([re])=>re.test(p[1]))||[0,ECAT[p[4]]||'zona'])[1];p[8]=TIER[p[5]]||1;p[9]=p[4]==='Eszköz'||p[4]==='Kiegészítő'});
+if(!D.bf)D.bf={};
+// a típus aktuális szintje: passzív tárgyak + futó buff közül a legnagyobb
+function bonus(t){let b=0;for(const k in D.inv)if(D.inv[k]>0&&PN[k]&&PN[k][9]&&PN[k][7]===t)b=Math.max(b,PN[k][8]);const f=D.bf[t];if(f&&f.u>Date.now())b=Math.max(b,f.l);return b}
+const pct=t=>bonus(t)*EF[t][2];
+function useItem(id){const p=PN[id];if(!p||p[9]||!(D.inv[id]>0))return;D.inv[id]--;D.bf[p[7]]={u:Date.now()+BUFF_MS,l:Math.max(p[8],(D.bf[p[7]]&&D.bf[p[7]].u>Date.now())?D.bf[p[7]].l:0)};
+ if(p[7]==='kitiltas'&&D.ban>Date.now())D.ban=Date.now()+(D.ban-Date.now())*(1-pct('kitiltas')/100);
+ if(p[7]==='csend')NPC.forEach(n=>n.alert=0);persist();toast('✨ '+p[3]+' '+p[1]+' → '+EF[p[7]][0]+' +'+p[8]*EF[p[7]][2]+'% (5 perc)')}
+const priceOf=p=>Math.round(p[2]*(1-Math.min(25,pct('karizma'))/100)/10)*10;
 const addInv=(id,n)=>{D.inv[id]=(D.inv[id]||0)+(n||1);persist()};
 
 // ---------- NPC-K (kitalált) ----------
@@ -66,6 +85,16 @@ const css=document.createElement('style');css.textContent=`
 .dbtBub{position:fixed;z-index:8999;transform:translate(-50%,-100%);max-width:240px;background:#fff;color:#111;border:3px solid #d4a017;border-radius:14px;padding:6px 10px;font:700 14px Rajdhani,Arial;pointer-events:none;display:none}
 .dbtBub.yell{border-color:#dc2626;background:#fee2e2;font-size:17px}
 #dbtBk{position:fixed;inset:0;z-index:8998;background:transparent;display:none}
+#dbtCat{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(760px,94vw);height:min(620px,88vh);z-index:9001;background:#140c08f5;border:2px solid #d4a017;border-radius:16px;padding:12px;display:none;flex-direction:column;gap:8px;font:600 15px Rajdhani,Arial;color:#fde68a}
+#dbtCat.on{display:flex}#dbtCat .hd{display:flex;align-items:center;gap:10px}#dbtCat .hd b{font:22px 'Luckiest Guy',Impact;color:#fbbf24;flex:1}
+#dbtCat .x{background:#3a2414;color:#fde68a;border:1px solid #d4a01766;border-radius:8px;padding:4px 10px;cursor:pointer;font-size:16px}
+#dbtCat .tb{display:flex;flex-wrap:wrap;gap:6px}#dbtCat .tb button{background:#2a1a10;color:#fde68a;border:1px solid #d4a01766;border-radius:999px;padding:4px 12px;cursor:pointer;font:600 14px Rajdhani,Arial}
+#dbtCat .tb button.on{background:#fbbf24;color:#1a1008}#dbtCat .ef{font-size:12px;color:#86efac}#dbtCat .af{font-size:13px;color:#86efac}#dbtCat .us{background:#22c55e;margin-left:6px}
+#dbtCat .q{background:#0d0805;color:#fff;border:1px solid #d4a01766;border-radius:8px;padding:6px 10px;font:600 15px Rajdhani,Arial}
+#dbtCat .ls{flex:1;overflow:auto;display:flex;flex-direction:column;gap:6px;padding-right:4px}
+#dbtCat .it{display:flex;align-items:center;gap:10px;background:#2a1a10;border-left:5px solid;border-radius:10px;padding:6px 10px}
+#dbtCat .ic{font-size:26px;width:34px;text-align:center}#dbtCat .tx2{flex:1;min-width:0}#dbtCat .nm{color:#fff;font-weight:700}#dbtCat .rr{font-size:12px;font-weight:600}#dbtCat .ds{font-size:13px;color:#d6c7a1}
+#dbtCat .by{background:#fbbf24;color:#1a1008;border:0;border-radius:8px;padding:6px 10px;font:700 14px Rajdhani,Arial;cursor:pointer;white-space:nowrap}#dbtCat .by:disabled{opacity:.4;cursor:not-allowed}
 #dbtToast{position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:9002;background:#140c08f0;border:2px solid #d4a017;border-radius:12px;padding:8px 16px;color:#fde68a;font:700 18px Rajdhani,Arial;display:none;pointer-events:none}`;
 document.head.appendChild(css);
 let dlg,mg,toastEl,bk;
@@ -86,11 +115,34 @@ function talk(n){D.stats.talk++;persist();n.mood=Math.min(3,(n.mood||0)+1);n.fac
  const menu=t=>show(d.ic+' '+d.nm+' – '+d.per,t,[['Hogy van?',()=>menu(pick(d.q.hogy))],['Mit tud a Füstfelhő dohányboltról?',()=>menu(pick(d.q.bolt))],['Mondjon valami vicceset!',()=>menu(pick(d.q.vicc))],
   ['Mi van a zsebében? (szemtelen)',()=>{n.alert=Math.min(1,(n.alert||0)+.4);menu(pick(['Semmi közöd hozzá! Most már figyellek ám.','Na, na! Ilyet nem kérdezünk!','Mi ez, vámvizsgálat?']))}],['Viszlát!',null]]);
  menu(pick(d.hi))}
-function seller(){const opts=PROD.slice(0,8).map(p=>[p[3]+' '+p[1]+' – '+fmt(p[2]),()=>{if(money()<p[2]){show('🧕 Bagó Bella eladó','Ebből nem jön ki, aranyom. Előbb keress valamit… tisztességesen!',[['Rendben',null]]);return}
-  money(-p[2]);addInv(p[0]);show('🧕 Bagó Bella eladó',pick(['Tessék! Blokkot kérsz? Úgyis eldobod.','Jó választás! Mondjuk mind az.','Parancsolj. Az egészségügyi figyelmeztetés ingyen jár hozzá.'])+' (+1 '+p[1]+')',[['Még nézelődöm',seller],['Köszönöm, viszlát!',null]])}]);
+function seller(){const opts=[['🛒 Katalógus – mind a '+PROD.length+' termék',openCat]].concat(PROD.slice(0,6).map(p=>[p[3]+' '+p[1]+' – '+fmt(p[2]),()=>{if(money()<p[2]){show('🧕 Bagó Bella eladó','Ebből nem jön ki, aranyom. Előbb keress valamit… tisztességesen!',[['Rendben',null]]);return}
+  money(-p[2]);addInv(p[0]);show('🧕 Bagó Bella eladó',pick(['Tessék! Blokkot kérsz? Úgyis eldobod.','Jó választás! Mondjuk mind az.','Parancsolj. Az egészségügyi figyelmeztetés ingyen jár hozzá.'])+' (+1 '+p[1]+')',[['Még nézelődöm',seller],['Köszönöm, viszlát!',null]])}]));
  opts.push(['🎒 Mi van nálam? ('+invTxt()+')',seller],['Viszlát!',null]);
  show('🧕 Bagó Bella eladó','Füstfelhő Dohánybolt, tessék! 18 év alatt csak rágó. A dohányzás súlyosan károsítja az egészséget – a pénztárcádat is.',opts)}
-const invTxt=()=>Object.keys(D.inv).filter(k=>D.inv[k]>0).map(k=>(PN[k]?PN[k][3]:'')+'×'+D.inv[k]).join(' ')||'üres';
+const invTxt=()=>{const k=Object.keys(D.inv).filter(k=>D.inv[k]>0&&PN[k]);if(!k.length)return 'üres';const t=k.slice(0,8).map(k=>PN[k][3]+'×'+D.inv[k]).join(' ');return k.length>8?t+' … (+'+(k.length-8)+' féle)':t};
+
+// ---------- KATALÓGUS (200 tárgy) ----------
+const RC={'Nagyon gyakori':'#9ca3af','Gyakori':'#4ade80','Ritka':'#60a5fa','Nagyon ritka':'#c084fc','Legendás':'#fbbf24'};
+let cat,catF={k:'Mind',q:'',own:false};
+function openCat(){closeDlg();ui();if(!cat){cat=document.createElement('div');cat.id='dbtCat';cat.setAttribute('role','dialog');cat.setAttribute('aria-label','Dohánybolt katalógus');document.body.appendChild(cat)}
+ cat.innerHTML='<div class="hd"><b>🏪 Füstfelhő – Katalógus</b><span class="af"></span><span class="mn"></span><button class="x" aria-label="Bezárás">✕</button></div><div class="tb"></div><input class="q" placeholder="Keresés…" aria-label="Keresés"><div class="ls"></div>';
+ const tb=cat.querySelector('.tb');['Mind','Eszköz','Fogyasztható','Alapanyag','Kiegészítő','🎒 Nálam'].forEach(k=>{const b=document.createElement('button');b.textContent=k;b.onclick=()=>{catF.own=k==='🎒 Nálam';catF.k=catF.own?'Mind':k;drawCat()};tb.appendChild(b)});
+ const q=cat.querySelector('.q');q.value=catF.q;q.oninput=()=>{catF.q=q.value.toLowerCase();drawCat()};
+ cat.querySelector('.x').onclick=closeCat;cat.classList.add('on');setTimeout(()=>pause(true),0);drawCat()}
+function closeCat(){if(!cat||!cat.classList.contains('on'))return;cat.classList.remove('on');setTimeout(()=>pause(false),150)}
+function drawCat(){if(!cat)return;cat.querySelector('.mn').textContent='💵 '+fmt(money());{const a=Object.keys(EF).filter(t=>bonus(t)).map(t=>EF[t][0].split(' ')[0]+'+'+pct(t)+'%');cat.querySelector('.af').textContent=a.length?'Aktív: '+a.join(' '):'Nincs aktív hatás'}
+ cat.querySelectorAll('.tb button').forEach(b=>b.classList.toggle('on',catF.own?b.textContent==='🎒 Nálam':b.textContent===catF.k));
+ const ls=cat.querySelector('.ls');ls.innerHTML='';
+ const L=PROD.filter(p=>p[4]&&(catF.k==='Mind'||p[4]===catF.k)&&(!catF.own||D.inv[p[0]]>0)&&(!catF.q||(p[1]+' '+p[6]).toLowerCase().includes(catF.q)));
+ if(!L.length){ls.textContent=catF.own?'Még nincs nálad semmi innen.':'Nincs találat.';return}
+ L.forEach(p=>{const r=document.createElement('div');r.className='it';r.style.borderLeftColor=RC[p[5]]||'#888';
+  r.innerHTML='<div class="ic"></div><div class="tx2"><div class="nm"></div><div class="ds"></div></div><button class="by"></button>';
+  r.querySelector('.ic').textContent=p[3];r.querySelector('.nm').textContent=p[1]+(D.inv[p[0]]?'  ×'+D.inv[p[0]]:'');
+  const rr=document.createElement('span');rr.className='rr';rr.style.color=RC[p[5]]||'#888';rr.textContent=' · '+p[5]+' · '+p[4];r.querySelector('.nm').appendChild(rr);
+  r.querySelector('.ds').textContent=p[6];{const ef=document.createElement('div');ef.className='ef';ef.textContent='⚡ '+EF[p[7]][0]+' +'+p[8]*EF[p[7]][2]+'% – '+EF[p[7]][1]+(p[9]?' (passzív, amíg nálad van)':' (használva 5 perc)');r.querySelector('.tx2').appendChild(ef)}
+  if(D.inv[p[0]]>0&&!p[9]){const u=document.createElement('button');u.className='by us';u.textContent='Használ';u.onclick=()=>{useItem(p[0]);drawCat()};r.appendChild(u)}const by=r.querySelector('.by');const pr=priceOf(p);by.textContent=fmt(pr);by.disabled=money()<pr;
+  by.onclick=()=>{if(banLeft()>0){toast('🚫 Ki vagy tiltva a boltból!');return}if(money()<pr){toast('💸 Nincs elég pénzed.');return}money(-pr);addInv(p[0]);toast('🛍️ Megvetted: '+p[3]+' '+p[1]);drawCat()};
+  ls.appendChild(r)})}
 
 // ---------- ZSEBTOLVAJLÁS ----------
 function pocket(n){const p=D.pk[n.d.id];if(p&&Date.now()-p.t<REFILL_MS)return p;
@@ -99,8 +151,8 @@ function behind(n){const s=ST(),dx=s.pos.x-n.x,dz=s.pos.z-n.z,dd=Math.hypot(dx,d
 let MG=null;
 function steal(n){if(MG||cur)return;const p=pocket(n);if(!p.ft&&!p.items.length){toast('🫥 '+n.d.nm+' zsebe üres – nemrég kiürítették.');return}
  if(n.face||!behind(n)){caught(n,'Látom ám, mit csinálsz!');return}
- ui();pause(true);const diff=Math.min(.95,n.d.diff+(n.alert||0)*.3-(n.mood||0)*.05),w=Math.max(.08,.3-diff*.2);
- MG={n,p,hits:0,x:0,v:.9+diff*.9,z:0,w,last:performance.now()};newZone();
+ ui();pause(true);const diff=Math.min(.95,n.d.diff+(n.alert||0)*.3*(1-pct('csend')/100)-(n.mood||0)*.05),w=Math.min(.6,Math.max(.08,.3-diff*.2)*(1+pct('zona')/100));
+ MG={n,p,hits:0,x:0,v:(.9+diff*.9)*(1-Math.min(60,pct('lassu'))/100),z:0,w,last:performance.now()};newZone();
  mg.innerHTML='<b>🤏 Zsebtolvajlás: '+n.d.nm+'</b><div>Szóköz / kattintás, amikor a fehér jel a zöldben van! (3 sikeres kell)</div><div class="bar"><div class="z"></div><div class="n"></div></div><div class="h">0 / 3</div>';
  mg.onclick=hit;mg.classList.add('on');requestAnimationFrame(mgLoop)}
 function newZone(){MG.z=.05+Math.random()*(.9-MG.w)}
@@ -108,11 +160,11 @@ function mgLoop(t){if(!MG)return;const dt=Math.min(.05,(t-MG.last)/1000);MG.last
  const z=mg.querySelector('.z'),nn=mg.querySelector('.n');if(z){z.style.left=MG.z*100+'%';z.style.width=MG.w*100+'%';nn.style.left='calc('+MG.x*100+'% - 3px)'}requestAnimationFrame(mgLoop)}
 function hit(){if(!MG)return;const ok=MG.x>=MG.z&&MG.x<=MG.z+MG.w;if(!ok){const n=MG.n;endMg();caught(n,pick(['TOLVAJ! Segítség!','Hé! A kezed a zsebemben?!','Rendőr! Itt egy zsebmetsző!']));return}
  MG.hits++;MG.v*=1.18;newZone();mg.querySelector('.h').textContent=MG.hits+' / 3';if(MG.hits>=3){const {n,p}=MG;endMg();
-  const got=[];if(p.ft){money(p.ft);D.stats.ft+=p.ft;got.push(fmt(p.ft))}p.items.forEach(i=>{addInv(i);got.push(PN[i][3]+' '+PN[i][1])});p.ft=0;p.items=[];D.stats.steal++;persist();
+  const got=[];if(p.ft){p.ft=Math.round(p.ft*(1+pct('zsakmany')/100));money(p.ft);D.stats.ft+=p.ft;got.push(fmt(p.ft))}p.items.forEach(i=>{addInv(i);got.push(PN[i][3]+' '+PN[i][1])});p.ft=0;p.items=[];D.stats.steal++;persist();
   toast('🤏 Sikerült! Zsákmány: '+got.join(', '));bubble(n,pick(['Hm? Mintha könnyebb lennék…','Fura, valami huzatot érzek a zsebemnél.','La-la-la…']),2500)}}
 function endMg(){MG=null;mg.classList.remove('on');setTimeout(()=>pause(false),150)}
-function caught(n,line){const fine=Math.min(money(),2500+Math.round(n.d.diff*7500));money(-fine);D.ban=Date.now()+BAN_MS;D.stats.caught++;n.alert=1;persist();
- bubble(n,line,3500,1);try{sfx('hurt')}catch(e){}toast('🚨 Lebuktál! Bírság: '+fmt(fine)+' · 3 percig kitiltva a Füstfelhőből');
+function caught(n,line){const fine=Math.min(money(),Math.round((2500+n.d.diff*7500)*(1-Math.min(60,pct('birsag'))/100)));money(-fine);D.ban=Date.now()+BAN_MS*(1-Math.min(60,pct('kitiltas'))/100);D.stats.caught++;n.alert=1;persist();
+ bubble(n,line,3500,1);try{sfx('hurt')}catch(e){}toast('🚨 Lebuktál! Bírság: '+fmt(fine)+' · '+Math.ceil(banLeft()/60)+' percig kitiltva a Füstfelhőből');
  const s=ST();if(s&&s.zone==='dbt')setTimeout(()=>{try{s.leaveRoom()}catch(e){}},900)}
 const banLeft=()=>Math.max(0,Math.ceil((D.ban-Date.now())/1000));
 
@@ -189,11 +241,12 @@ function hookNear(s){let real=null;Object.defineProperty(s,'near',{configurable:
 const _show=show;show=function(a,b,c){const n=cur&&cur.n;_show(a,b,c);if(n)cur.n=n};
 addEventListener('keydown',e=>{const s=ST();if(!s||!s.on)return;const a=document.activeElement;if(a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA'))return;const k=e.key.toLowerCase();
  if(MG){if(k===' '||k==='e'){hit();e.preventDefault();e.stopImmediatePropagation()}else if(k==='escape'){const n=MG.n;endMg();caught(n,'Hova-hova, kis barátom?!');e.stopImmediatePropagation()}return}
+ if(cat&&cat.classList.contains('on')){if(k==='escape'){closeCat();e.preventDefault();e.stopImmediatePropagation()}return}
  if(dlg&&dlg.classList.contains('on')){if(/^[1-9]$/.test(k)){choose(+k-1);e.preventDefault();e.stopImmediatePropagation()}else if(k==='escape'||k==='e'){closeDlg();e.preventDefault();e.stopImmediatePropagation()}return}
  if(k==='f'&&!e.repeat&&best&&!s.paused){steal(best.n);e.preventDefault();e.stopImmediatePropagation()}},true);
 // meccs indításakor minden bezárul
-{const ol=window.launch;if(typeof ol==='function')window.launch=function(){try{closeDlg();if(MG)endMg()}catch(e){}return ol.apply(this,arguments)}}
+{const ol=window.launch;if(typeof ol==='function')window.launch=function(){try{closeDlg();closeCat();if(MG)endMg()}catch(e){}return ol.apply(this,arguments)}}
 setInterval(()=>{try{build()}catch(e){}},700);
-window._dbt={D:()=>D,NPC,mg:()=>MG,talk:i=>talk(NPC[i]),steal:i=>steal(NPC[i]),seller,behind:i=>behind(NPC[i]),banLeft,reset:()=>{D=JSON.parse(JSON.stringify(DEF));persist()},
+window._dbt={D:()=>D,NPC,mg:()=>MG,talk:i=>talk(NPC[i]),steal:i=>steal(NPC[i]),seller,openCat,useItem,bonus,behind:i=>behind(NPC[i]),banLeft,reset:()=>{D=JSON.parse(JSON.stringify(DEF));persist()},
  test(){const n=NPC[5];console.assert(pocket(n).ft>=n.d.ft[0]-10,'pocket ft');const b=money();caught(n,'teszt');console.assert(money()<=b&&banLeft()>170,'caught');D.ban=0;persist();return 'ok'}};
 })();
