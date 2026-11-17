@@ -14,12 +14,13 @@ const css=`
  /* kategóriasáv: vékony, középre igazított pirulasor a fülsor alatt */
  #lb2bar{top:66px!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important;
   width:auto!important;max-width:calc(100vw - 660px)!important;padding:6px 10px!important;border-radius:999px!important;
-  display:flex!important;flex-wrap:wrap!important;justify-content:center!important;gap:4px!important}
+  flex-wrap:wrap!important;justify-content:center!important;gap:4px!important}
  /* jobb oszlop: zene → jackpot → oldalgombok, 280 px, a bal oszlop tükörképe */
  #lbPlayer{right:20px!important;left:auto!important;top:72px!important;width:280px!important;box-sizing:border-box!important;overflow:hidden!important}
  #x14dJP{right:20px!important;left:auto!important;top:252px!important;width:280px!important;border-radius:999px!important}
  #lbSide{right:20px!important;left:auto!important;top:auto!important;width:auto!important;
-  display:flex!important;flex-direction:row!important;gap:8px!important;align-items:flex-end!important}
+  flex-direction:row!important;gap:8px!important;align-items:flex-end!important}
+ html body.lb2on #lb2bar,html body.lb2on #lbSide{display:flex!important}
  #lbSide>*{margin:0!important;zoom:.85!important}
  #lbSide{zoom:1!important;bottom:92px!important}
  #lbBot{right:20px!important;bottom:20px!important;left:auto!important;gap:8px!important}
